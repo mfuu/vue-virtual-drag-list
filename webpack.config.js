@@ -8,8 +8,8 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './dist'),
     publicPath: '/dist/',
-    filename: 'v-draggable-virtual-list.js',
-    library: 'v-draggable-virtual-list',
+    filename: 'vue-virtual-draglist.js',
+    library: 'vue-virtual-draglist',
     libraryTarget: 'umd',
     umdNamedDefine: true
   },

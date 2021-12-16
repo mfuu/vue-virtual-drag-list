@@ -1,8 +1,9 @@
 <template>
   <div id="v-draggable-virtual-list">
-    <virtual-table :dataSource="dataSource" />
-    <div class="header"></div>
-    <div class="footer"></div>
+    <button @click="toBottom">bottom</button>
+    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="50" />
+    <!-- <div class="header"></div>
+    <div class="footer"></div> -->
   </div>
 </template>
 
@@ -11,7 +12,7 @@ import utils from '../utils'
 import { Random } from '../utils/mock'
 import getSentences from '../utils/sentences'
 
-import virtualTable from './table.vue'
+import virtualList from './virtual.vue'
 
 const getPageData = (count, currentLength) => {
   const DataItems = []
@@ -28,7 +29,7 @@ const getPageData = (count, currentLength) => {
 }
 export default {
   name: 'v-draggable-virtual-list', 
-  components: {virtualTable},
+  components: {virtualList},
   data() {
     return {
       dataSource: getPageData(100, 0)
@@ -36,11 +37,15 @@ export default {
   },
   mounted() {
     const scrollElement = document.getElementById('v-draggable-virtual-list')
-    scrollElement.addEventListener('scroll', this.onScroll, {
-      passive: false
-    })
+    // scrollElement.addEventListener('scroll', this.onScroll, {
+    //   passive: false
+    // })
   },
   methods: {
+    toBottom() {
+      console.log(this.$refs.list)
+      this.$refs.list.scrollToBottom()
+    },
     onScroll(event) {
       console.log('scroll', event)
     }
@@ -51,7 +56,7 @@ export default {
 <style>
 #v-draggable-virtual-list {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
 }
 </style>

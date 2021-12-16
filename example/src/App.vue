@@ -20,7 +20,11 @@ html, body {
   padding: 0;
   margin: 0;
 }
+#app {
+  height: 100%;
+}
 .content {
-  height: 500px;
+  /* height: 500px; */
+  height: 100%;
 }
 </style>
