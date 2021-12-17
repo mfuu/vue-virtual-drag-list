@@ -1,14 +1,14 @@
 <template>
   <div id="v-draggable-virtual-list">
     <button @click="toBottom">bottom</button>
-    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="70" />
-    <!-- <virtual-drag-list ref="list" :dataSource="dataSource" dataKey="id" :size="50">
-      <template #item="{ record, index }">
-        <div class="list-item">{{ record.desc }}</div>
+    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="60" @top="handleTop" @bottom="handleBottom">
+      <template #item="{ source, index }">
+        {{ source.desc }}
       </template>
-    </virtual-drag-list> -->
-    <!-- <div class="header"></div>
-    <div class="footer"></div> -->
+      <template slot="footer">
+        <div style="font-size: 16px; height: 20px">加载中...</div>
+      </template>
+    </virtual-list>
   </div>
 </template>
 
@@ -39,7 +39,7 @@ export default {
   components: {virtualList, virtualDragList},
   data() {
     return {
-      dataSource: getPageData(100, 0)
+      dataSource: getPageData(20, 0)
     }
   },
   mounted() {
@@ -49,6 +49,17 @@ export default {
     // })
   },
   methods: {
+    handleTop() {
+      setTimeout(() => {
+        // this.dataSource = [...getPageData(20, 0), ...this.dataSource]
+      }, 2000)
+    },
+    handleBottom() {
+      setTimeout(() => {
+        // this.dataSource = [...this.dataSource, ...getPageData(20, 0)]
+      }, 2000)
+      
+    },
     toBottom() {
       console.log(this.$refs.list)
       this.$refs.list.scrollToBottom()
@@ -62,7 +73,8 @@ export default {
 
 <style>
 #v-draggable-virtual-list {
-  height: 100%;
+  /* height: 100%; */
+  height: 500px;
   overflow: hidden;
   position: relative;
 }

@@ -1,23 +1,27 @@
 <template>
-  <div ref="infinityList" :style="{ height }" class="infinity-list-scroll" @scroll="handleScroll($event)">
-    <div ref="content" class="infinity-list-content" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
-      <Item v-for="(item, index) in _visibleData" :key="uniqueId(item)" :index="getIndex" :item="item" :uniqueKey="uniqueId(item)" @resize="onItemResized">
-        <template #item="{ record, index }">
-          <slot name="item" :record="record" :index="index">
-            <div style="padding: 16px">{{ record.desc }}</div>
-          </slot>
+  <div ref="infinityList" :style="{ height, overflowX: 'hidden', overflowY: 'auto', position: 'relative' }" @scroll="handleScroll($event)">
+    <!-- 顶部插槽 -->
+    <Slots v-if="header" :slots="header" :tag="headerTag" uniqueKey="header" @resize="onHeaderResized"></Slots>
+    <!-- 列表项 -->
+    <div ref="content" role="infinitylist" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
+      <Items v-for="item in _visibleData" :key="uniqueId(item)" :index="getIndex(item)" :source="item" :uniqueKey="uniqueId(item)" @resize="onItemResized">
+        <template #item="{ source, index }">
+          <slot name="item" :source="source" :index="index"></slot>
         </template>
-      </Item>
+      </Items>
     </div>
+    <!-- 底部插槽 -->
+    <Slots v-if="footer" :slots="footer" :tag="footerTag" uniqueKey="footer" @resize="onFooterResized"></Slots>
+    <!-- 最底部元素 -->
     <div ref="bottomItem"></div>
   </div>
 </template>
 
 <script>
-import Item from './item.vue'
+import { Slots, Items } from './slots'
 export default {
   name: 'infinity-list',
-  components: { Item },
+  components: { Items, Slots },
   props: {
     // 列表数据
     dataSource: {
@@ -42,6 +46,14 @@ export default {
     // 每一行预估高度
     size: {
       type: Number
+    },
+    headerTag: {
+      type: String,
+      default: 'div'
+    },
+    footerTag: {
+      type: String,
+      default: 'div'
     }
   },
   data() {
@@ -63,7 +75,10 @@ export default {
       fixedSize: 0,
 
       padFront: 0,
-      padBehind: 0
+      padBehind: 0,
+
+      headerSize: 0,
+      footerSize: 0
     }
   },
   computed: {
@@ -72,7 +87,7 @@ export default {
     },
     getIndex() {
       return function(item) {
-        const index = this.list.findIndex(el => uniqueId(item) == uniqueId(el))
+        const index = this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
         return index
       }
     }
@@ -88,6 +103,11 @@ export default {
       deep: true,
       immediate: true
     }
+  },
+  beforeCreate() {
+    const { header, footer } = this.$slots
+    this.header = header
+    this.footer = footer
   },
   mounted() {
     this.screenHeight = Math.ceil(this.$el.clientHeight)
@@ -132,7 +152,7 @@ export default {
       }
       this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
       this.offset = scrollTop
-      const overs = this.getScrollOvers(scrollTop)
+      const overs = this.getScrollOvers()
       if (this.direction === 'FRONT') {
         this.handleFront(overs)
         if (!!this.list.length && scrollTop <= 0) this.$emit('top')
@@ -174,6 +194,12 @@ export default {
         }
       }
     },
+    onHeaderResized(id, size) {
+      this.headerSize = size
+    },
+    onFooterResized(id, size) {
+      this.footerSize = size
+    },
     // 原数组改变重新计算
     handleSourceDataChange() {
       let start = Math.max(this.start, 0)
@@ -206,7 +232,8 @@ export default {
       this.padFront = this.getFront()
       this.padBehind = this.getBehind()
     },
-    getScrollOvers(offset) {
+    getScrollOvers() {
+      const offset = this.offset - this.headerSize
       if (offset <= 0) return 0
       if (this.isFixedType()) return Math.floor(offset / this.fixedSize)
       let low = 0
@@ -281,11 +308,4 @@ export default {
 }
 </script>
 
-<style scoped>
-.infinity-list-scroll {
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  position: relative;
-}
-</style>
+<style></style>
