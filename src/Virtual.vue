@@ -35,11 +35,12 @@ export default {
     // 列表展示多少条数据，为0或者不传会自动计算
     keeps: {
       type: Number,
-      default: 40
+      default: 30
     },
     // 每一行预估高度
     size: {
-      type: Number
+      type: Number,
+      default: 50
     }
   },
   data() {
