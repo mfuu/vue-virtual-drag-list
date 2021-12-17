@@ -15,7 +15,7 @@ Root component:
       :data-key="'uid'"
       :data-source="list"
     >
-      <template #item="{ record, index }">
+      <template #item="{ record, index, dataKey }">
         {{ record.text }}
       </template>
     </virtual-drag-list>

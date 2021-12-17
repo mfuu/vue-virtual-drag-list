@@ -1,12 +1,22 @@
 <template>
-  <div ref="infinityList" :style="{ height, overflowX: 'hidden', overflowY: 'auto', position: 'relative' }" @scroll="handleScroll($event)">
+  <div ref="infinityList" :style="{ height, overflow: 'hidden auto', position: 'relative' }" @scroll="handleScroll($event)">
     <!-- 顶部插槽 -->
     <Slots v-if="header" :slots="header" :tag="headerTag" uniqueKey="header" @resize="onHeaderResized"></Slots>
     <!-- 列表项 -->
     <div ref="content" role="infinitylist" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
-      <Items v-for="item in _visibleData" :key="uniqueId(item)" :index="getIndex(item)" :source="item" :uniqueKey="uniqueId(item)" @resize="onItemResized">
-        <template #item="{ source, index }">
-          <slot name="item" :source="source" :index="index"></slot>
+      <Items
+        v-for="item in _visibleData"
+        :key="uniqueId(item)"
+        :tag="itemTag"
+        :source="item"
+        :index="getIndex(item)"
+        :itemStyle="itemStyle"
+        :itemClass="itemClass"
+        :uniqueKey="uniqueId(item)"
+        @resize="onItemResized"
+      >
+        <template #item="{ source, index, uniqueKey }">
+          <slot name="item" :source="source" :index="index" :dataKey="uniqueKey"></slot>
         </template>
       </Items>
     </div>
@@ -54,6 +64,18 @@ export default {
     footerTag: {
       type: String,
       default: 'div'
+    },
+    itemTag: {
+      type: String,
+      default: 'div'
+    },
+    itemStyle: {
+      type: Object,
+      default: () => {}
+    },
+    itemClass: {
+      type: String,
+      default: ''
     }
   },
   data() {

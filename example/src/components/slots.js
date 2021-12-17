@@ -36,19 +36,24 @@ const mixin = {
 export const Items = Vue.component('virtual-draglist-items', {
   mixins: [mixin],
   props: {
+    tag: {},
     index: {},
     source: {},
-    uniqueKey: {}
+    uniqueKey: {},
+    itemStyle: {},
+    itemClass: {}
   },
   render (h) {
-    const { source, index, uniqueKey } = this
-    return h('div', {
+    const { tag, itemStyle, itemClass, source, index, uniqueKey } = this
+    return h(tag, {
       key: uniqueKey,
+      style: itemStyle,
+      class: itemClass,
       attrs: {
         ['data-key']: uniqueKey
       },
-      props: { source, index }
-    }, [this.$scopedSlots.item({ source, index })])
+      props: { source, index, uniqueKey }
+    }, [this.$scopedSlots.item({ source, index, uniqueKey })])
   }
 })
 
@@ -64,7 +69,7 @@ export const Slots =  Vue.component('virtual-draglist-Slots', {
     return h(tag, {
       key: uniqueKey,
       attrs: {
-        ['data-key']: uniqueKey
+        role: uniqueKey
       }
     }, this.slots)
   }

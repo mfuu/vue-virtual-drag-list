@@ -1,9 +1,9 @@
 <template>
   <div id="v-draggable-virtual-list">
     <button @click="toBottom">bottom</button>
-    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="60" @top="handleTop" @bottom="handleBottom">
+    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="60" :itemStyle="{ color: 'red' }" @top="handleTop" @bottom="handleBottom">
       <template #item="{ source, index }">
-        {{ source.desc }}
+        <div style="padding: 16px">{{ source.desc }}</div>
       </template>
       <template slot="footer">
         <div style="font-size: 16px; height: 20px">加载中...</div>
@@ -39,7 +39,7 @@ export default {
   components: {virtualList, virtualDragList},
   data() {
     return {
-      dataSource: getPageData(20, 0)
+      dataSource: getPageData(60, 0)
     }
   },
   mounted() {
@@ -51,12 +51,12 @@ export default {
   methods: {
     handleTop() {
       setTimeout(() => {
-        // this.dataSource = [...getPageData(20, 0), ...this.dataSource]
+        // this.dataSource = [...getPageData(60, 0), ...this.dataSource]
       }, 2000)
     },
     handleBottom() {
       setTimeout(() => {
-        // this.dataSource = [...this.dataSource, ...getPageData(20, 0)]
+        // this.dataSource = [...this.dataSource, ...getPageData(60, 0)]
       }, 2000)
       
     },
