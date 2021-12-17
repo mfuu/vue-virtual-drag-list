@@ -1,24 +1,17 @@
 <template>
-  <div ref="parent" style="height: 100%">
-    <div ref="infinityList" :style="{ height }" class="infinity-list-scroll" @scroll="handleScroll($event)">
-      <div ref="content" class="infinity-list-content">
-        <Item v-for="(item, index) in _visibleData" :key="uniqueId(item)" :index="getIndex" :item="item" :uniqueKey="uniqueId(item)" @resize="onItemResized">
-          <template #item="{ record, index }">
-            <slot name="item" :record="record" :index="index"></slot>
-          </template>
-        </Item>
-      </div>
-      <div ref="bottomItem"></div>
+  <div ref="infinityList" :style="{ height }" class="infinity-list-scroll" @scroll="handleScroll($event)">
+    <div ref="content" class="infinity-list-content" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
+      <Item v-for="(item, index) in _visibleData" :key="uniqueId(item)" :index="getIndex" :item="item" :uniqueKey="uniqueId(item)" @resize="onItemResized">
+        <template #item="{ record, index }">
+          <slot name="item" :record="record" :index="index"></slot>
+        </template>
+      </Item>
     </div>
+    <div ref="bottomItem"></div>
   </div>
 </template>
 
 <script>
-const CALC_TYPE = {
-  INIT: 'INIT',
-  FIXED: 'FIXED',
-  DYNAMIC: 'DYNAMIC'
-}
 import Item from './Item.vue'
 export default {
   name: 'infinity-list',
@@ -57,14 +50,19 @@ export default {
       screenHeight: 0, // 可视区高度
       start: 0, // 起始索引
       end: 0, // 结束索引
+      offset: 0,
+      direction: '',
 
       uniqueKeys: [],
 
-      calcType: CALC_TYPE.INIT,
+      calcType: 'INIT',
       lastCalcIndex: 0,
       firstAverageSize: 0,
       firstTotalSize: 0,
-      fixedSize: 0
+      fixedSize: 0,
+
+      padFront: 0,
+      padBehind: 0
     }
   },
   computed: {
@@ -93,15 +91,9 @@ export default {
       immediate: true
     }
   },
-  updated() {
-    this.$nextTick(() => {
-      this.updateOffset()
-    })
-  },
   mounted() {
     this.screenHeight = Math.ceil(this.$el.clientHeight)
     this.end = this.start + this.keeps
-    this.updateOffset()
   },
   methods: {
     // 滚动到底部
@@ -111,10 +103,11 @@ export default {
         const offset = bottomItem.offsetTop
         this.scrollToOffset(offset)
       }
+      const clientHeight = this.$el.clientHeight
       const scrollTop = this.$refs.infinityList.scrollTop
       const scrollHeight = this.$refs.infinityList.scrollHeight
       setTimeout(() => {
-        if (scrollTop + this.screenHeight < scrollHeight) {
+        if (scrollTop + clientHeight < scrollHeight) {
           this.scrollToBottom()
         }
       }, 3)
@@ -133,24 +126,46 @@ export default {
       }
     },
     handleScroll(event) {
-      const scrollTop = this.$refs.infinityList.scrollTop
+      const clientHeight = Math.ceil(this.$el.clientHeight)
+      const scrollTop = Math.ceil(this.$refs.infinityList.scrollTop)
+      const scrollHeight = Math.ceil(this.$refs.infinityList.scrollHeight)
+      if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) {
+        return
+      }
+      this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
+      this.offset = scrollTop
       const overs = this.getScrollOvers(scrollTop)
+      if (this.direction === 'FRONT') {
+        this.handleFront(overs)
+      } else if (this.direction === 'BEHIND') {
+        this.handleBehind(overs)
+      }
+    },
+    handleFront(overs) {
+      if (overs > this.start) {
+        return
+      }
       const start = Math.max(overs - Math.round(this.keeps / 3), 0)
-      this.updateRange(start, this.getEndByStart(overs))
+      this.checkRange(start, this.getEndByStart(start))
+    },
+    handleBehind(overs) {
+      if (overs < this.start + Math.round(this.keeps / 3)) {
+        return
+      }
+      this.checkRange(overs, this.getEndByStart(overs))
     },
     // 更新每个子组件高度
     onItemResized(uniqueKey, size) {
       this.sizeStack.set(uniqueKey, size)
       // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
-      if (this.calcType === CALC_TYPE.INIT) {
+      if (this.calcType === 'INIT') {
         this.fixedSize = size
-        this.calcType = CALC_TYPE.FIXED
-        this.initSizeStack()
-      } else if (this.calcType === CALC_TYPE.FIXED && this.fixedSize !== size) {
-        this.calcType = CALC_TYPE.DYNAMIC
+        this.calcType = 'FIXED'
+      } else if (this.calcType === 'FIXED' && this.fixedSize !== size) {
+        this.calcType = 'DYNAMIC'
         delete this.fixedSize
       }
-      if (this.calcType !== CALC_TYPE.FIXED && this.firstTotalSize !== 'undefined') {
+      if (this.calcType !== 'FIXED' && this.firstTotalSize !== 'undefined') {
         if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
           this.firstTotalSize = [...this.sizeStack.values()].reduce((acc, cur) => acc + cur, 0)
           this.firstAverageSize = Math.round(this.firstTotalSize / this.sizeStack.size)
@@ -164,13 +179,6 @@ export default {
       let start = Math.max(this.start, 0)
       this.updateRange(this.start, this.getEndByStart(start))
     },
-    // 初始化缓存
-    initSizeStack() {
-      this.list.forEach(item => {
-        const id = this.uniqueId(item)
-        this.sizeStack.set(id, this.firstAverageSize)
-      })
-    },
     // 更新缓存
     updateSizeStack() {
       this.sizeStack.forEach((v, key) => {
@@ -179,7 +187,7 @@ export default {
         }
       })
     },
-    updateRange(start, end) {
+    checkRange(start, end) {
       const keeps = this.keeps
       const total = this.uniqueKeys.length
       if (total <= keeps) {
@@ -189,13 +197,14 @@ export default {
         start = end - keeps + 1
       }
       if (this.start !== start) {
-        this.start = start
-        this.end = end
+        this.updateRange(start, end)
       }
     },
-    // 更新偏移量
-    updateOffset() {
-      this.$refs.content.style.padding = `${this.getPadFront()}px 0px ${this.getPadBehind()}px`
+    updateRange(start, end) {
+      this.start = start
+      this.end = end
+      this.padFront = this.getFront()
+      this.padBehind = this.getBehind()
     },
     getScrollOvers(offset) {
       if (offset <= 0) return 0
@@ -239,14 +248,14 @@ export default {
       const truelyEnd = Math.min(theoryEnd, this.getLastIndex())
       return truelyEnd
     },
-    getPadFront () {
+    getFront() {
       if (this.isFixedType()) {
         return this.fixedSize * this.start
       } else {
         return this.getIndexOffset(this.start)
       }
     },
-    getPadBehind () {
+    getBehind() {
       const end = this.end
       const lastIndex = this.getLastIndex()
       if (this.isFixedType()) {
@@ -258,11 +267,11 @@ export default {
         return (lastIndex - end) * this.getEstimateSize()
       }
     },
-    getEstimateSize () {
+    getEstimateSize() {
       return this.isFixedType() ? this.fixedSize : (this.firstAverageSize || this.size)
     },
-    isFixedType () {
-      return this.calcType === CALC_TYPE.FIXED
+    isFixedType() {
+      return this.calcType === 'FIXED'
     },
     uniqueId(obj, defaultValue = '') {
       const keys = this.dataKey

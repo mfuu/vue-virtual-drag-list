@@ -2,12 +2,19 @@
   <div id="v-draggable-virtual-list">
     <button @click="toBottom">bottom</button>
     <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="50" />
+    <!-- <virtual-drag-list ref="list" :dataSource="dataSource" dataKey="id" :size="50">
+      <template #item="{ record, index }">
+        <div class="list-item">{{ record.desc }}</div>
+      </template>
+    </virtual-drag-list> -->
     <!-- <div class="header"></div>
     <div class="footer"></div> -->
   </div>
 </template>
 
 <script>
+import virtualDragList from 'vue-virtual-draglist'
+
 import utils from '../utils'
 import { Random } from '../utils/mock'
 import getSentences from '../utils/sentences'
@@ -29,7 +36,7 @@ const getPageData = (count, currentLength) => {
 }
 export default {
   name: 'v-draggable-virtual-list', 
-  components: {virtualList},
+  components: {virtualList, virtualDragList},
   data() {
     return {
       dataSource: getPageData(100, 0)
@@ -58,5 +65,8 @@ export default {
   height: 100%;
   overflow: hidden;
   position: relative;
+}
+.list-item{
+  padding: 16px;
 }
 </style>

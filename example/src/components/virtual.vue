@@ -1,29 +1,30 @@
 <template>
-  <div ref="parent" style="height: 100%">
-    <div ref="infinityList" :style="{ height }" class="infinity-list-scroll" @scroll="handleScroll($event)">
-      <div ref="phantom" class="infinity-list-phantom"></div>
-      <div ref="content" class="infinity-list-content">
-        <div ref="listItems" class="infinity-list-item" v-for="(item, index) in _visibleData" :key="uniqueId(item)" :id="uniqueId(item)">
-          <slot name="item" :record="item">
-            {{ item.desc }}
+  <div ref="infinityList" :style="{ height }" class="infinity-list-scroll" @scroll="handleScroll($event)">
+    <div ref="content" class="infinity-list-content" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
+      <Item v-for="(item, index) in _visibleData" :key="uniqueId(item)" :index="getIndex" :item="item" :uniqueKey="uniqueId(item)" @resize="onItemResized">
+        <template #item="{ record, index }">
+          <slot name="item" :record="record" :index="index">
+            <div style="padding: 16px">{{ record.desc }}</div>
           </slot>
-        </div>
-      </div>
+        </template>
+      </Item>
     </div>
+    <div ref="bottomItem"></div>
   </div>
 </template>
 
 <script>
-import utils from '../utils'
+import Item from './item.vue'
 export default {
-  name: 'vue-virtual-draglist-infinity-list',
+  name: 'infinity-list',
+  components: { Item },
   props: {
     // 列表数据
     dataSource: {
       type: Array,
       default: () => []
     },
-    // 每一行的key值键值
+    // 每一项的key值键值
     dataKey: {
       type: String,
       required: true
@@ -36,159 +37,247 @@ export default {
     // 列表展示多少条数据，为0或者不传会自动计算
     keeps: {
       type: Number,
-      default: 0
+      default: 40
     },
     // 每一行预估高度
     size: {
-      type: Number,
-      required: true
-    },
-    // 缓冲区比例
-    bufferScale: {
-      type: Number,
-      default: 1
+      type: Number
     }
   },
   data() {
     return {
       list: [], // 将dataSource深克隆一份
+      sizeStack: new Map(),
       positionStack: [], // 缓存
-      scrolling: false, // 是否正在滚动
       screenHeight: 0, // 可视区高度
       start: 0, // 起始索引
-      end: 0 // 结束索引
+      end: 0, // 结束索引
+      offset: 0,
+      direction: '',
+
+      uniqueKeys: [],
+
+      calcType: 'INIT',
+      lastCalcIndex: 0,
+      firstAverageSize: 0,
+      firstTotalSize: 0,
+      fixedSize: 0,
+
+      padFront: 0,
+      padBehind: 0
     }
   },
   computed: {
     _visibleData() {
-      const start = this.start - this._aboveCount
-      const end = this.end + this._belowCount
-      return this.list.slice(start, end)
-    },
-    _visibleCount() {
-      return this.keeps || Math.ceil(this.screenHeight / this.size)
+      return this.list.slice(this.start, this.end)
     },
     _anchorPoint() {
       return this.positionStack.length ? this.positionStack[this.start] : null
     },
-    _aboveCount() {
-      return Math.min(this.start, this.bufferScale * this._visibleCount)
-    },
-    _belowCount() {
-      return Math.min(this.dataSource.length - this.end, this.bufferScale * this._visibleCount)
+    getIndex() {
+      return function(item) {
+        const index = this.list.findIndex(el => uniqueId(item) == uniqueId(el))
+        return index
+      }
     }
   },
   watch: {
     dataSource: {
       handler(val) {
         this.list = JSON.parse(JSON.stringify(val))
+        this.uniqueKeys = this.list.map(item => this.uniqueId(item))
+        this.handleSourceDataChange()
+        this.updateSizeStack()
       },
       deep: true,
       immediate: true
     }
   },
-  updated() {
-    if (this.list.length !== this.positionStack.length) this.initPositionStack()
-    this.$nextTick(() => {
-      if (!(this.$refs.listItems && this.$refs.listItems.length)) return
-      this.updateSize()
-      // 更新列表总高度
-      const height = this.positionStack[this.positionStack.length - 1].bottom
-      this.$refs.phantom.style.height = height + 'px'
-      this.updateOffset()
-    })
-  },
-  created() {
-    this.initPositionStack()
-    this.setScrollState(false)
-  },
   mounted() {
-    this.screenHeight = this.$el.clientHeight
-    this.start = 0
-    this.end = this.start + this._visibleCount
-    this.updateOffset()
+    this.screenHeight = Math.ceil(this.$el.clientHeight)
+    this.end = this.start + this.keeps
   },
   methods: {
-    handleScroll(event) {
+    // 滚动到底部
+    scrollToBottom() {
+      const { bottomItem } = this.$refs
+      if (bottomItem) {
+        const offset = bottomItem.offsetTop
+        this.scrollToOffset(offset)
+      }
+      const clientHeight = this.$el.clientHeight
       const scrollTop = this.$refs.infinityList.scrollTop
-      this.setScrollState(true) // 更新滚动状态
-      if (scrollTop > this._anchorPoint.bottom || scrollTop < this._anchorPoint.top) {
-        this.start = this.getStartIndex(scrollTop)
-        this.end = this.start + this._visibleCount
-        this.updateOffset()
+      const scrollHeight = this.$refs.infinityList.scrollHeight
+      setTimeout(() => {
+        if (scrollTop + clientHeight < scrollHeight) {
+          this.scrollToBottom()
+        }
+      }, 3)
+    },
+    // 滚动到指定高度
+    scrollToOffset(offset) {
+      const { infinityList } = this.$refs
+      infinityList.scrollTop = offset
+    },
+    scrollToIndex(index) {
+      if (index >= this.list.length - 1) {
+        this.scrollToBottom()
+      } else {
+        const offset = this.getIndexOffset(index)
+        this.scrollToOffset(offset)
       }
     },
-    // 初始化缓存
-    initPositionStack() {
-      this.positionStack = this.dataSource.map((item, index) => ({
-        index,
-        height: this.size,
-        top: index * this.size,
-        bottom: (index + 1) * this.size
-      }))
+    handleScroll(event) {
+      const clientHeight = Math.ceil(this.$el.clientHeight)
+      const scrollTop = Math.ceil(this.$refs.infinityList.scrollTop)
+      const scrollHeight = Math.ceil(this.$refs.infinityList.scrollHeight)
+      if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) {
+        return
+      }
+      this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
+      this.offset = scrollTop
+      const overs = this.getScrollOvers(scrollTop)
+      if (this.direction === 'FRONT') {
+        this.handleFront(overs)
+      } else if (this.direction === 'BEHIND') {
+        this.handleBehind(overs)
+      }
     },
-    // 更新列表项的大小，获取真实高度
-    updateSize() {
-      const nodes = this.$refs.listItems
-      nodes.forEach(node => {
-        const rect = node.getBoundingClientRect()
-        const height = rect.height
-        const index = this.list.findIndex(item => this.uniqueId(item) == node.id)
-        const oldHeight = this.positionStack[index].height
-        const differ = oldHeight - height
-        if (differ && !isNaN(index)) {
-          this.positionStack[index].bottom = this.positionStack[index].bottom - differ
-          this.positionStack[index].height = height
-          this.positionStack[index].over = true
-          for(let i = index + 1; i < this.positionStack.length; i++) {
-            this.positionStack[i].top = this.positionStack[i - 1].bottom
-            this.positionStack[i].bottom = this.positionStack[i].bottom - differ
-          }
+    handleFront(overs) {
+      if (overs > this.start) {
+        return
+      }
+      const start = Math.max(overs - Math.round(this.keeps / 3), 0)
+      this.checkRange(start, this.getEndByStart(start))
+    },
+    handleBehind(overs) {
+      if (overs < this.start + Math.round(this.keeps / 3)) {
+        return
+      }
+      this.checkRange(overs, this.getEndByStart(overs))
+    },
+    // 更新每个子组件高度
+    onItemResized(uniqueKey, size) {
+      this.sizeStack.set(uniqueKey, size)
+      // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
+      if (this.calcType === 'INIT') {
+        this.fixedSize = size
+        this.calcType = 'FIXED'
+      } else if (this.calcType === 'FIXED' && this.fixedSize !== size) {
+        this.calcType = 'DYNAMIC'
+        delete this.fixedSize
+      }
+      if (this.calcType !== 'FIXED' && this.firstTotalSize !== 'undefined') {
+        if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
+          this.firstTotalSize = [...this.sizeStack.values()].reduce((acc, cur) => acc + cur, 0)
+          this.firstAverageSize = Math.round(this.firstTotalSize / this.sizeStack.size)
+        } else {
+          delete this.firstTotalSize
+        }
+      }
+    },
+    // 原数组改变重新计算
+    handleSourceDataChange() {
+      let start = Math.max(this.start, 0)
+      this.updateRange(this.start, this.getEndByStart(start))
+    },
+    // 更新缓存
+    updateSizeStack() {
+      this.sizeStack.forEach((v, key) => {
+        if (!this.uniqueKeys.includes(key)) {
+          this.sizeStack.delete(key)
         }
       })
     },
-    // 更新偏移量
-    updateOffset() {
-      let offset
-      if (this.start >= 1) {
-        const size = this.positionStack[this.start].top - (this.positionStack[this.start - this._aboveCount] ? this.positionStack[this.start - this._aboveCount].top : 0)
-        offset = this.positionStack[this.start - 1].bottom - size
-      } else {
-        offset = 0
+    checkRange(start, end) {
+      const keeps = this.keeps
+      const total = this.uniqueKeys.length
+      if (total <= keeps) {
+        start = 0
+        end = this.getLastIndex()
+      } else if (end - start < keeps - 1) {
+        start = end - keeps + 1
       }
-      this.offset = offset
-      this.$refs.content.style.transform = `translate3d(0, ${offset}px, 0)`
+      if (this.start !== start) {
+        this.updateRange(start, end)
+      }
     },
-    //设定滚动状态
-    setScrollState(flag = false){
-      this.scrolling = flag
+    updateRange(start, end) {
+      this.start = start
+      this.end = end
+      this.padFront = this.getFront()
+      this.padBehind = this.getBehind()
     },
-    // 获取起始索引
-    getStartIndex(scrollTop = 0) {
-      // 二分法查找
-      return this.binarySearch(this.positionStack, scrollTop)
-    },
-    binarySearch(list, top) {
-      let start = 0
-      let end = list.length - 1
-      let tempIndex = null
-      while(start <= end) {
-        const midIndex = parseInt((start + end) / 2)
-        const midValue = list[midIndex].bottom
-        if (midValue === top) {
-          return midIndex + 1
-        } else if (midValue < top) {
-          start = midIndex + 1
-        } else if (midValue > top) {
-          if (tempIndex === null || tempIndex > midIndex) tempIndex = midIndex
-          end = end - 1
+    getScrollOvers(offset) {
+      if (offset <= 0) return 0
+      if (this.isFixedType()) return Math.floor(offset / this.fixedSize)
+      let low = 0
+      let middle = 0
+      let middleOffset = 0
+      let high = this.uniqueKeys.length
+      while (low <= high) {
+        middle = low + Math.floor((high - low) / 2)
+        middleOffset = this.getIndexOffset(middle)
+        if (middleOffset === offset) {
+          return middle
+        } else if (middleOffset < offset) {
+          low = middle + 1
+        } else if (middleOffset > offset) {
+          high = middle - 1
         }
       }
-      return tempIndex
+      return low > 0 ? --low : 0
+    },
+    getIndexOffset(givenIndex) {
+      if (!givenIndex) {
+        return 0
+      }
+      let offset = 0
+      let indexSize = 0
+      for (let index = 0; index < givenIndex; index++) {
+        indexSize = this.sizeStack.get(this.uniqueKeys[index])
+        offset = offset + (typeof indexSize === 'number' ? indexSize : this.getEstimateSize())
+      }
+      this.lastCalcIndex = Math.max(this.lastCalcIndex, givenIndex - 1)
+      this.lastCalcIndex = Math.min(this.lastCalcIndex, this.getLastIndex())
+      return offset
+    },
+    getLastIndex() {
+      return this.uniqueKeys.length - 1
+    },
+    getEndByStart(start) {
+      const theoryEnd = start + this.keeps
+      const truelyEnd = Math.min(theoryEnd, this.getLastIndex())
+      return truelyEnd
+    },
+    getFront() {
+      if (this.isFixedType()) {
+        return this.fixedSize * this.start
+      } else {
+        return this.getIndexOffset(this.start)
+      }
+    },
+    getBehind() {
+      const end = this.end
+      const lastIndex = this.getLastIndex()
+      if (this.isFixedType()) {
+        return (lastIndex - end) * this.fixedSize
+      }
+      if (this.lastCalcIndex === lastIndex) {
+        return this.getIndexOffset(lastIndex) - this.getIndexOffset(end)
+      } else {
+        return (lastIndex - end) * this.getEstimateSize()
+      }
+    },
+    getEstimateSize() {
+      return this.isFixedType() ? this.fixedSize : (this.firstAverageSize || this.size)
+    },
+    isFixedType() {
+      return this.calcType === 'FIXED'
     },
     uniqueId(obj, defaultValue = '') {
-      const key = this.dataKey
-      return (!Array.isArray(key) ? key.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : key).reduce((o, k) => (o || {})[k], obj) || defaultValue
+      const keys = this.dataKey
+      return (!Array.isArray(keys) ? keys.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : keys).reduce((o, k) => (o || {})[k], obj) || defaultValue
     }
   }
 }
@@ -196,25 +285,9 @@ export default {
 
 <style scoped>
 .infinity-list-scroll {
-  overflow-x:hidden;
   width: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
   position: relative;
-  -webkit-overflow-scrolling: touch;
-}
-.infinity-list-phantom, .infinity-list-content {
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-}
-.infinity-list-content {
-  z-index: 1;
-}
-.infinity-list-phantom {
-  z-index: -1;
-}
-.infinity-list-item {
-  padding: 16px;
 }
 </style>
