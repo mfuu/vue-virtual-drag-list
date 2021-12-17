@@ -39,15 +39,13 @@ export default {
     },
     // 每一行预估高度
     size: {
-      type: Number,
-      default: 50
+      type: Number
     }
   },
   data() {
     return {
       list: [], // 将dataSource深克隆一份
       sizeStack: new Map(),
-      positionStack: [], // 缓存
       screenHeight: 0, // 可视区高度
       start: 0, // 起始索引
       end: 0, // 结束索引
@@ -69,9 +67,6 @@ export default {
   computed: {
     _visibleData() {
       return this.list.slice(this.start, this.end)
-    },
-    _anchorPoint() {
-      return this.positionStack.length ? this.positionStack[this.start] : null
     },
     getIndex() {
       return function(item) {
@@ -111,7 +106,7 @@ export default {
         if (scrollTop + clientHeight < scrollHeight) {
           this.scrollToBottom()
         }
-      }, 3)
+      }, 10)
     },
     // 滚动到指定高度
     scrollToOffset(offset) {
@@ -138,8 +133,10 @@ export default {
       const overs = this.getScrollOvers(scrollTop)
       if (this.direction === 'FRONT') {
         this.handleFront(overs)
+        if (!!this.list.length && scrollTop <= 0) this.$emit('top')
       } else if (this.direction === 'BEHIND') {
         this.handleBehind(overs)
+        if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom')
       }
     },
     handleFront(overs) {

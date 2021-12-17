@@ -1,7 +1,7 @@
 <template>
   <div id="v-draggable-virtual-list">
     <button @click="toBottom">bottom</button>
-    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="50" />
+    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="70" />
     <!-- <virtual-drag-list ref="list" :dataSource="dataSource" dataKey="id" :size="50">
       <template #item="{ record, index }">
         <div class="list-item">{{ record.desc }}</div>

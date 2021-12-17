@@ -1,6 +1,6 @@
 {
   "name": "vue-virtual-draglist",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "一个支持拖拽排序和虚拟滚动的表格组件",
   "main": "dist/vue-virtual-draglist.js",
   "files": [
