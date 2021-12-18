@@ -23,7 +23,7 @@ Root component:
 </template>
 
 <script>
-  import virtualDragList from 'vue-virtual-scroll-list'
+  import virtualDragList from 'vue-virtual-draglist'
 
   export default {
     name: 'root',

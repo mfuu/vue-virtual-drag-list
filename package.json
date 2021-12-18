@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mf-note/drag-list.git"
+    "url": "git+https://github.com/mf-note/vue-virtual-draglist.git"
   },
   "keywords": [
     "drag",
@@ -25,9 +25,9 @@
   "license": "ISC",
   "private": false,
   "bugs": {
-    "url": "https://github.com/mf-note/drag-list/issues"
+    "url": "https://github.com/mf-note/vue-virtual-draglist/issues"
   },
-  "homepage": "https://github.com/mf-note/drag-list#readme",
+  "homepage": "https://github.com/mf-note/vue-virtual-draglist#readme",
   "dependencies": {
     "extract-text-webpack-plugin": "^3.0.2",
     "vue": "^2.6.14"
