@@ -18,6 +18,8 @@ Root component:
       <template #item="{ record, index, dataKey }">
         {{ record.text }}
       </template>
+      <template slot="header"></template>
+      <template slot="footer"></template>
     </virtual-drag-list>
   </div>
 </template>
