@@ -1,12 +1,15 @@
 <template>
   <div id="v-draggable-virtual-list">
-    <button @click="toBottom">bottom</button>
-    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :size="60" :itemStyle="{ color: 'red' }" @top="handleTop" @bottom="handleBottom">
+    <!-- <button @click="toBottom">bottom</button> -->
+    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template #item="{ source, index }">
-        <div style="padding: 16px">{{ source.desc }}</div>
+        <div class="test-item">
+          <span class="index" draggable="true">{{ source.index }}</span>
+          <span>{{ source.desc }}</span>
+        </div>
       </template>
       <template slot="footer">
-        <div style="font-size: 16px; height: 20px">加载中...</div>
+        <div class="loading">加载中...</div>
       </template>
     </virtual-list>
   </div>
@@ -49,15 +52,18 @@ export default {
     // })
   },
   methods: {
+    ondragend(list, e) {
+      // console.log(list, e)
+    },
     handleTop() {
       setTimeout(() => {
         // this.dataSource = [...getPageData(60, 0), ...this.dataSource]
-      }, 2000)
+      }, 1000)
     },
     handleBottom() {
       setTimeout(() => {
         // this.dataSource = [...this.dataSource, ...getPageData(60, 0)]
-      }, 2000)
+      }, 1000)
       
     },
     toBottom() {
@@ -73,12 +79,21 @@ export default {
 
 <style>
 #v-draggable-virtual-list {
-  /* height: 100%; */
-  height: 500px;
+  height: 100%;
+  /* height: 500px; */
   overflow: hidden;
   position: relative;
 }
-.list-item{
+.index {
+  color: #1984ff;
+}
+.test-item {
   padding: 16px;
+  border-bottom: 1px solid #1984ff;
+}
+.loading {
+  font-size: 16px;
+  height: 20px;
+  text-align: center;
 }
 </style>

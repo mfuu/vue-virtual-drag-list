@@ -29,6 +29,46 @@ const mixin = {
     },
     getCurrentSize () {
       return this.$el ? this.$el.offsetHeight : 0
+    },
+    getTarget(e) {
+      const parent = this.$parent
+      let dataKey = e.target.getAttribute('data-key')
+      // 向上查询，找到dataKey属性
+      if (!dataKey)
+        for(let node = e.target; (node = node.parentNode); ) {
+          if (node) {
+            dataKey = node.getAttribute('data-key')
+            if (node == document.documentElement || dataKey) break
+          } else {
+            break
+          }
+        }
+      const target = parent.list.find(item => parent.uniqueId(item) == dataKey)
+      return target
+    },
+    dragstart(e) {
+      this.$parent.dragState.from = this.getTarget(e)
+    },
+    dragenter(e) {
+      this.$parent.dragState.to = this.getTarget(e)
+    },
+    dragover(e) {
+      e.preventDefault()
+    },
+    dragend(e) {
+      const parent = this.$parent
+      const { from, to } = parent.dragState
+      // 拖拽前后不一致，重新赋值
+      if (from != to) {
+        const dIndex = parent.list.indexOf(from)
+        const tIndex = parent.list.indexOf(to)
+        let newArr = [...parent.list]
+        newArr.splice(dIndex, 1)
+        newArr.splice(tIndex, 0, from)
+        parent.list = [...newArr]
+      }
+      parent.dragState = { from: null, to: null }
+      parent.$emit('ondragend', parent.list, e)
     }
   }
 }
@@ -52,7 +92,13 @@ export const Items = Vue.component('virtual-draglist-items', {
       attrs: {
         ['data-key']: uniqueKey
       },
-      props: { source, index, uniqueKey }
+      props: { source, index, uniqueKey },
+      on: {
+        dragstart: this.dragstart,
+        dragenter: this.dragenter,
+        dragover: this.dragover,
+        dragend: this.dragend
+      }
     }, [this.$scopedSlots.item({ source, index, uniqueKey })])
   }
 })

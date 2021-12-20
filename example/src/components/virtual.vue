@@ -1,9 +1,10 @@
 <template>
-  <div ref="infinityList" :style="{ height, overflow: 'hidden auto', position: 'relative' }" @scroll="handleScroll($event)">
+  <div ref="virtualDragList" class="virtual-drag-list" :style="{ height, overflow: 'hidden auto', position: 'relative' }" @scroll="handleScroll($event)">
     <!-- 顶部插槽 -->
     <Slots v-if="header" :slots="header" :tag="headerTag" uniqueKey="header" @resize="onHeaderResized"></Slots>
     <!-- 列表项 -->
-    <div ref="content" role="infinitylist" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
+    <!-- <transition-group name="drag" tag="div" ref="content" role="group" :style="{ padding: `${padFront}px 0px ${padBehind}px` }" @dragstart="dragstart" @dragenter="dragenter" @dragover="dragover" @dragend="dragend"> -->
+    <div ref="content" role="group" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
       <Items
         v-for="item in _visibleData"
         :key="uniqueId(item)"
@@ -20,6 +21,7 @@
         </template>
       </Items>
     </div>
+    <!-- </transition-group> -->
     <!-- 底部插槽 -->
     <Slots v-if="footer" :slots="footer" :tag="footerTag" uniqueKey="footer" @resize="onFooterResized"></Slots>
     <!-- 最底部元素 -->
@@ -56,6 +58,11 @@ export default {
     // 每一行预估高度
     size: {
       type: Number
+    },
+    // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
+    draggable: {
+      type: Boolean,
+      default: true
     },
     headerTag: {
       type: String,
@@ -100,7 +107,12 @@ export default {
       padBehind: 0,
 
       headerSize: 0,
-      footerSize: 0
+      footerSize: 0,
+
+      dragState: {
+        from: null,
+        to: null
+      }
     }
   },
   computed: {
@@ -138,14 +150,14 @@ export default {
   methods: {
     // 滚动到底部
     scrollToBottom() {
-      const { bottomItem } = this.$refs
+      const { bottomItem, virtualDragList } = this.$refs
       if (bottomItem) {
         const offset = bottomItem.offsetTop
         this.scrollToOffset(offset)
       }
       const clientHeight = this.$el.clientHeight
-      const scrollTop = this.$refs.infinityList.scrollTop
-      const scrollHeight = this.$refs.infinityList.scrollHeight
+      const scrollTop = virtualDragList.scrollTop
+      const scrollHeight = virtualDragList.scrollHeight
       setTimeout(() => {
         if (scrollTop + clientHeight < scrollHeight) {
           this.scrollToBottom()
@@ -154,8 +166,8 @@ export default {
     },
     // 滚动到指定高度
     scrollToOffset(offset) {
-      const { infinityList } = this.$refs
-      infinityList.scrollTop = offset
+      const { virtualDragList } = this.$refs
+      virtualDragList.scrollTop = offset
     },
     scrollToIndex(index) {
       if (index >= this.list.length - 1) {
@@ -166,9 +178,10 @@ export default {
       }
     },
     handleScroll(event) {
+      const { virtualDragList } = this.$refs
       const clientHeight = Math.ceil(this.$el.clientHeight)
-      const scrollTop = Math.ceil(this.$refs.infinityList.scrollTop)
-      const scrollHeight = Math.ceil(this.$refs.infinityList.scrollHeight)
+      const scrollTop = Math.ceil(virtualDragList.scrollTop)
+      const scrollHeight = Math.ceil(virtualDragList.scrollHeight)
       if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) {
         return
       }

@@ -1,4 +1,4 @@
-可拖拽排序的表格组件（暂不支持拖拽和表格）
+可拖拽排序的表格组件（暂不支持表格）
 
 
 ## Simple usage
@@ -14,8 +14,10 @@ Root component:
     <virtual-drag-list
       :data-key="'uid'"
       :data-source="list"
+      @ondragend="ondragend"
     >
       <template #item="{ record, index, dataKey }">
+        <span draggable="true">{{ record.id }}</span>
         {{ record.text }}
       </template>
       <template slot="header"></template>
@@ -34,7 +36,12 @@ Root component:
         list: [{id: '1', text: 'asd'}, {uid: '2', text: 'fgh'}, ...]
       }
     },
-    components: { virtualDragList }
+    components: { virtualDragList },
+    methods: {
+      ondragend(list) {
+        console.log(list)
+      }
+    }
   }
 </script>
 ```
@@ -72,6 +79,12 @@ Root component:
       <td>Number</td>
       <td>50</td>
       <td>每一条数据的预估高度，可选择传或不传，会自动计算</td>
+    </tr>
+    <tr>
+      <td><code>draggable</code></td>
+      <td>Boolean</td>
+      <td>true</td>
+      <td>默认可拖拽，需要手动指定拖拽元素，设置draggable="true"</td>
     </tr>
   </table>
 </details>
