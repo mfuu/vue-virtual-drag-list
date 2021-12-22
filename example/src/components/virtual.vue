@@ -3,10 +3,9 @@
     <!-- 顶部插槽 -->
     <Slots v-if="header" :slots="header" :tag="headerTag" uniqueKey="header" @resize="onHeaderResized"></Slots>
     <!-- 列表项 -->
-    <!-- <transition-group name="drag" tag="div" ref="content" role="group" :style="{ padding: `${padFront}px 0px ${padBehind}px` }" @dragstart="dragstart" @dragenter="dragenter" @dragover="dragover" @dragend="dragend"> -->
-    <div ref="content" role="group" :style="{ padding: `${padFront}px 0px ${padBehind}px` }">
+    <div ref="content" role="group" :style="{ padding: `${padding.front}px 0px ${padding.behind}px` }">
       <Items
-        v-for="item in _visibleData"
+        v-for="item in visibleData"
         :key="uniqueId(item)"
         :tag="itemTag"
         :source="item"
@@ -21,7 +20,6 @@
         </template>
       </Items>
     </div>
-    <!-- </transition-group> -->
     <!-- 底部插槽 -->
     <Slots v-if="footer" :slots="footer" :tag="footerTag" uniqueKey="footer" @resize="onFooterResized"></Slots>
     <!-- 最底部元素 -->
@@ -92,31 +90,34 @@ export default {
       screenHeight: 0, // 可视区高度
       start: 0, // 起始索引
       end: 0, // 结束索引
-      offset: 0,
-      direction: '',
+      offset: 0, // 记录滚动高度
+      direction: '', // 记录滚动方向
 
-      uniqueKeys: [],
+      uniqueKeys: [], // 通过dataKey获取所有数据的唯一键值
 
-      calcType: 'INIT',
       lastCalcIndex: 0,
-      firstAverageSize: 0,
-      firstTotalSize: 0,
-      fixedSize: 0,
+      calcType: 'INIT', // 初始化标致
+      calcSize: {
+        average: 0, // 计算首次加载每一项的评价高度
+        total: 0, // 首次加载的总高度
+        fixed: 0, // 记录固定高度值
+        header: 0, // 顶部插槽高度
+        footer: 0 // 底部插槽高度
+      },
 
-      padFront: 0,
-      padBehind: 0,
-
-      headerSize: 0,
-      footerSize: 0,
+      padding: {
+        front: 0,
+        behind: 0
+      },
 
       dragState: {
-        from: null,
-        to: null
+        from: null, // 拖拽起始元素
+        to: null // 拖拽结束目标元素
       }
     }
   },
   computed: {
-    _visibleData() {
+    visibleData() {
       return this.list.slice(this.start, this.end)
     },
     getIndex() {
@@ -124,6 +125,12 @@ export default {
         const index = this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
         return index
       }
+    },
+    uniqueKeyLen() {
+      return this.uniqueKeys.length - 1
+    },
+    isFixedType() {
+      return this.calcType === 'FIXED'
     }
   },
   watch: {
@@ -158,6 +165,7 @@ export default {
       const clientHeight = this.$el.clientHeight
       const scrollTop = virtualDragList.scrollTop
       const scrollHeight = virtualDragList.scrollHeight
+      // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
       setTimeout(() => {
         if (scrollTop + clientHeight < scrollHeight) {
           this.scrollToBottom()
@@ -169,11 +177,12 @@ export default {
       const { virtualDragList } = this.$refs
       virtualDragList.scrollTop = offset
     },
+    // 滚动到指定索引值位置
     scrollToIndex(index) {
       if (index >= this.list.length - 1) {
         this.scrollToBottom()
       } else {
-        const offset = this.getIndexOffset(index)
+        const offset = this.getOffsetByIndex(index)
         this.scrollToOffset(offset)
       }
     },
@@ -182,9 +191,9 @@ export default {
       const clientHeight = Math.ceil(this.$el.clientHeight)
       const scrollTop = Math.ceil(virtualDragList.scrollTop)
       const scrollHeight = Math.ceil(virtualDragList.scrollHeight)
-      if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) {
-        return
-      }
+      // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+      if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) return
+      // 记录上一次滚动的距离，判断当前滚动方向
       this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
       this.offset = scrollTop
       const overs = this.getScrollOvers()
@@ -214,26 +223,26 @@ export default {
       this.sizeStack.set(uniqueKey, size)
       // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
       if (this.calcType === 'INIT') {
-        this.fixedSize = size
+        this.calcSize.fixed = size
         this.calcType = 'FIXED'
-      } else if (this.calcType === 'FIXED' && this.fixedSize !== size) {
+      } else if (this.calcType === 'FIXED' && this.calcSize.fixed !== size) {
         this.calcType = 'DYNAMIC'
-        delete this.fixedSize
+        delete this.calcSize.fixed
       }
-      if (this.calcType !== 'FIXED' && this.firstTotalSize !== 'undefined') {
+      if (this.calcType !== 'FIXED' && this.calcSize.total !== 'undefined') {
         if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
-          this.firstTotalSize = [...this.sizeStack.values()].reduce((acc, cur) => acc + cur, 0)
-          this.firstAverageSize = Math.round(this.firstTotalSize / this.sizeStack.size)
+          this.calcSize.total = [...this.sizeStack.values()].reduce((acc, cur) => acc + cur, 0)
+          this.calcSize.average = Math.round(this.calcSize.total / this.sizeStack.size)
         } else {
-          delete this.firstTotalSize
+          delete this.calcSize.total
         }
       }
     },
     onHeaderResized(id, size) {
-      this.headerSize = size
+      this.calcSize.header = size
     },
     onFooterResized(id, size) {
-      this.footerSize = size
+      this.calcSize.footer = size
     },
     // 原数组改变重新计算
     handleSourceDataChange() {
@@ -253,7 +262,7 @@ export default {
       const total = this.uniqueKeys.length
       if (total <= keeps) {
         start = 0
-        end = this.getLastIndex()
+        end = this.uniqueKeyLen
       } else if (end - start < keeps - 1) {
         start = end - keeps + 1
       }
@@ -264,20 +273,24 @@ export default {
     updateRange(start, end) {
       this.start = start
       this.end = end
-      this.padFront = this.getFront()
-      this.padBehind = this.getBehind()
+      this.padding = {
+        front: this.getFront(),
+        behind: this.getBehind()
+      }
     },
+    // 二分法查找
     getScrollOvers() {
-      const offset = this.offset - this.headerSize
+      // 如果有header插槽，需要减去header的高度
+      const offset = this.offset - this.calcSize.header
       if (offset <= 0) return 0
-      if (this.isFixedType()) return Math.floor(offset / this.fixedSize)
+      if (this.isFixedType) return Math.floor(offset / this.calcSize.fixed)
       let low = 0
       let middle = 0
       let middleOffset = 0
       let high = this.uniqueKeys.length
       while (low <= high) {
         middle = low + Math.floor((high - low) / 2)
-        middleOffset = this.getIndexOffset(middle)
+        middleOffset = this.getOffsetByIndex(middle)
         if (middleOffset === offset) {
           return middle
         } else if (middleOffset < offset) {
@@ -288,52 +301,43 @@ export default {
       }
       return low > 0 ? --low : 0
     },
-    getIndexOffset(givenIndex) {
-      if (!givenIndex) {
-        return 0
-      }
-      let offset = 0
-      let indexSize = 0
-      for (let index = 0; index < givenIndex; index++) {
-        indexSize = this.sizeStack.get(this.uniqueKeys[index])
-        offset = offset + (typeof indexSize === 'number' ? indexSize : this.getEstimateSize())
-      }
-      this.lastCalcIndex = Math.max(this.lastCalcIndex, givenIndex - 1)
-      this.lastCalcIndex = Math.min(this.lastCalcIndex, this.getLastIndex())
-      return offset
-    },
-    getLastIndex() {
-      return this.uniqueKeys.length - 1
-    },
-    getEndByStart(start) {
-      const theoryEnd = start + this.keeps
-      const truelyEnd = Math.min(theoryEnd, this.getLastIndex())
-      return truelyEnd
-    },
     getFront() {
-      if (this.isFixedType()) {
-        return this.fixedSize * this.start
+      if (this.isFixedType) {
+        return this.calcSize.fixed * this.start
       } else {
-        return this.getIndexOffset(this.start)
+        return this.getOffsetByIndex(this.start)
       }
     },
     getBehind() {
-      const end = this.end
-      const lastIndex = this.getLastIndex()
-      if (this.isFixedType()) {
-        return (lastIndex - end) * this.fixedSize
+      const last = this.uniqueKeyLen
+      if (this.isFixedType) {
+        return (last - this.end) * this.calcSize.fixed
       }
-      if (this.lastCalcIndex === lastIndex) {
-        return this.getIndexOffset(lastIndex) - this.getIndexOffset(end)
+      if (this.lastCalcIndex === last) {
+        return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.end)
       } else {
-        return (lastIndex - end) * this.getEstimateSize()
+        return (last - this.end) * this.getItemSize()
       }
     },
-    getEstimateSize() {
-      return this.isFixedType() ? this.fixedSize : (this.firstAverageSize || this.size)
+    // 通过滚动高度获取索引
+    getOffsetByIndex(index) {
+      if (!index) return 0
+      let offset = 0
+      let indexSize = 0
+      for (let i = 0; i < index; i++) {
+        indexSize = this.sizeStack.get(this.uniqueKeys[i])
+        offset = offset + (typeof indexSize === 'number' ? indexSize : this.getItemSize())
+      }
+      this.lastCalcIndex = Math.max(this.lastCalcIndex, index - 1)
+      this.lastCalcIndex = Math.min(this.lastCalcIndex, this.uniqueKeyLen)
+      return offset
     },
-    isFixedType() {
-      return this.calcType === 'FIXED'
+    // 获取每一项的高度
+    getItemSize() {
+      return this.isFixedType ? this.calcSize.fixed : (this.calcSize.average || this.size)
+    },
+    getEndByStart(start) {
+      return Math.min(start + this.keeps, this.uniqueKeyLen)
     },
     uniqueId(obj, defaultValue = '') {
       const keys = this.dataKey

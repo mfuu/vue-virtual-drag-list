@@ -12,6 +12,12 @@
         <div class="loading">加载中...</div>
       </template>
     </virtual-list>
+    <!-- <div class="content">
+      <div v-for="item in dataSource" :key="item.id" class="test-item">
+        <span class="index" draggable="true">{{ item.index }}</span>
+        <span>{{ item.desc }}</span>
+      </div>
+    </div> -->
   </div>
 </template>
 
@@ -57,13 +63,13 @@ export default {
     },
     handleTop() {
       setTimeout(() => {
-        // this.dataSource = [...getPageData(60, 0), ...this.dataSource]
-      }, 1000)
+        this.dataSource = [...getPageData(60, 0), ...this.dataSource]
+      }, 500)
     },
     handleBottom() {
       setTimeout(() => {
-        // this.dataSource = [...this.dataSource, ...getPageData(60, 0)]
-      }, 1000)
+        this.dataSource = [...this.dataSource, ...getPageData(60, 0)]
+      }, 500)
       
     },
     toBottom() {
@@ -77,15 +83,22 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 #v-draggable-virtual-list {
-  height: 100%;
-  /* height: 500px; */
+  /* height: 100%; */
+  height: 500px;
   overflow: hidden;
   position: relative;
 }
+.content {
+  height: 100%;
+  overflow: auto;
+}
 .index {
+  display: inline-block;
+  min-width: 30px;
   color: #1984ff;
+  cursor: grab;
 }
 .test-item {
   padding: 16px;

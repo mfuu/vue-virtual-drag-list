@@ -1,4 +1,4 @@
-可拖拽排序的表格组件（暂不支持表格）
+可拖拽排序的虚拟滚动列表组件
 
 
 ## Simple usage
@@ -12,7 +12,7 @@ Root component:
 <template>
   <div>
     <virtual-drag-list
-      :data-key="'uid'"
+      :data-key="'id'"
       :data-source="list"
       @ondragend="ondragend"
     >
@@ -33,7 +33,7 @@ Root component:
     name: 'root',
     data () {
       return {
-        list: [{id: '1', text: 'asd'}, {uid: '2', text: 'fgh'}, ...]
+        list: [{id: '1', text: 'asd'}, {id: '2', text: 'fgh'}, ...]
       }
     },
     components: { virtualDragList },

@@ -1,8 +1,8 @@
 {
   "name": "vue-virtual-draglist",
-  "version": "2.0.0",
-  "description": "一个支持拖拽排序和虚拟滚动的表格组件",
-  "main": "dist/vue-virtual-draglist.js",
+  "version": "2.0.1",
+  "description": "一个支持拖拽排序和虚拟滚动的列表组件",
+  "main": "dist/vue-virtual-drag-list.js",
   "files": [
     "src",
     "dist"
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mf-note/vue-virtual-draglist.git"
+    "url": "git+https://github.com/mf-note/vue-virtual-drag-list.git"
   },
   "keywords": [
     "drag",
@@ -25,9 +25,9 @@
   "license": "ISC",
   "private": false,
   "bugs": {
-    "url": "https://github.com/mf-note/vue-virtual-draglist/issues"
+    "url": "https://github.com/mf-note/vue-virtual-drag-list/issues"
   },
-  "homepage": "https://github.com/mf-note/vue-virtual-draglist#readme",
+  "homepage": "https://github.com/mf-note/vue-virtual-drag-list#readme",
   "dependencies": {
     "extract-text-webpack-plugin": "^3.0.2",
     "vue": "^2.6.14"

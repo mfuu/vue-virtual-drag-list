@@ -3,28 +3,28 @@ import Vue from 'vue'
 const mixin = {
   data() {
     return {
-      resizeObserver: null
+      observer: null
     }
   },
   mounted () {
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(() => {
-        this.dispatchSizeChange()
+      this.observer = new ResizeObserver(() => {
+        this.onSizeChange()
       })
-      this.resizeObserver.observe(this.$el)
+      this.observer.observe(this.$el)
     }
   },
   updated () {
-    this.dispatchSizeChange()
+    this.onSizeChange()
   },
   beforeDestroy () {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect()
-      this.resizeObserver = null
+    if (this.observer) {
+      this.observer.disconnect()
+      this.observer = null
     }
   },
   methods: {
-    dispatchSizeChange() {
+    onSizeChange() {
       this.$emit('resize', this.uniqueKey, this.getCurrentSize())
     },
     getCurrentSize () {
@@ -48,6 +48,7 @@ const mixin = {
     },
     dragstart(e) {
       this.$parent.dragState.from = this.getTarget(e)
+      document.body.style.cursor = 'grabbing'
     },
     dragenter(e) {
       this.$parent.dragState.to = this.getTarget(e)
@@ -67,6 +68,7 @@ const mixin = {
         newArr.splice(tIndex, 0, from)
         parent.list = [...newArr]
       }
+      document.body.style.cursor = 'auto'
       parent.dragState = { from: null, to: null }
       parent.$emit('ondragend', parent.list, e)
     }
@@ -103,7 +105,7 @@ export const Items = Vue.component('virtual-draglist-items', {
   }
 })
 
-export const Slots =  Vue.component('virtual-draglist-Slots', {
+export const Slots =  Vue.component('virtual-draglist-slots', {
   mixins: [mixin],
   props: {
     tag: {},
