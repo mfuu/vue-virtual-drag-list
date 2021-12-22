@@ -63,12 +63,12 @@ export default {
     },
     handleTop() {
       setTimeout(() => {
-        this.dataSource = [...getPageData(60, 0), ...this.dataSource]
+        // this.dataSource = [...getPageData(60, 0), ...this.dataSource]
       }, 500)
     },
     handleBottom() {
       setTimeout(() => {
-        this.dataSource = [...this.dataSource, ...getPageData(60, 0)]
+        // this.dataSource = [...this.dataSource, ...getPageData(60, 0)]
       }, 500)
       
     },

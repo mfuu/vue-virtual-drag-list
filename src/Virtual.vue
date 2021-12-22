@@ -13,6 +13,8 @@
         :itemStyle="itemStyle"
         :itemClass="itemClass"
         :uniqueKey="uniqueId(item)"
+        :dataSource="list"
+        :dragStyle="dragStyle"
         @resize="onItemResized"
       >
         <template #item="{ source, index, uniqueKey }">
@@ -81,6 +83,15 @@ export default {
     itemClass: {
       type: String,
       default: ''
+    },
+    // 拖拽时的样式
+    dragStyle: {
+      type: Object,
+      default: () => {
+        return {
+          backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
+        }
+      }
     }
   },
   data() {
@@ -111,8 +122,12 @@ export default {
       },
 
       dragState: {
-        from: null, // 拖拽起始元素
-        to: null // 拖拽结束目标元素
+        oldNode: null, // 拖拽起始dom元素
+        oldItem: null, // 拖拽起始节点数据
+        oldIndex: null, // 拖拽起始节点索引
+        newNode: null, // 拖拽结束目标dom元素
+        newIitem: null, // 拖拽结束节点数据
+        newIndex: null // 拖拽结束节点索引
       }
     }
   },
