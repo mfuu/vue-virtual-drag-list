@@ -4,6 +4,7 @@
   "description": "一个支持拖拽排序和虚拟滚动的列表组件",
   "main": "dist/vue-virtual-drag-list.js",
   "files": [
+    "src",
     "dist"
   ],
   "scripts": {
@@ -44,7 +45,7 @@
     "eslint-plugin-vue": "^8.2.0",
     "rollup": "^2.61.1",
     "rollup-plugin-babel": "^4.4.0",
-    "rollup-plugin-vue": "^5.1.9",
+    "rollup-plugin-vue": "^4.2.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "vue-loader": "^15.9.8",
     "vue-template-compiler": "^2.6.14"

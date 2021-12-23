@@ -26,7 +26,9 @@ export default {
     banner: bannerString.replace(/\n/, '')
   },
   plugins: [
-    vue(),
+    vue({
+      compileTemplate: true 
+    }),
     babel()
   ]
 }
