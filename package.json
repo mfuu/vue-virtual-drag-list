@@ -1,6 +1,6 @@
 {
   "name": "vue-virtual-draglist",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "一个支持拖拽排序和虚拟滚动的列表组件",
   "main": "dist/vue-virtual-drag-list.js",
   "files": [
@@ -44,6 +44,7 @@
     "file-loader": "^6.2.0",
     "less": "^3.11.1",
     "less-loader": "^10.2.0",
+    "uglifyjs-webpack-plugin": "^2.2.0",
     "vue-loader": "^15.9.8",
     "vue-template-compiler": "^2.6.14",
     "webpack": "^4.46.0",
