@@ -8,6 +8,9 @@
           <span>{{ source.desc }}</span>
         </div>
       </template>
+      <template slot="header">
+        <div class="loading">加载中...</div>
+      </template>
       <template slot="footer">
         <div class="loading">加载中...</div>
       </template>

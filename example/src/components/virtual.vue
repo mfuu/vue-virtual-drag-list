@@ -9,12 +9,12 @@
         :key="uniqueId(item)"
         :tag="itemTag"
         :source="item"
+        :dataSource="list"
+        :dragStyle="dragStyle"
         :index="getIndex(item)"
         :itemStyle="itemStyle"
         :itemClass="itemClass"
         :uniqueKey="uniqueId(item)"
-        :dataSource="list"
-        :dragStyle="dragStyle"
         @resize="onItemResized"
       >
         <template #item="{ source, index, uniqueKey }">
@@ -97,8 +97,9 @@ export default {
   data() {
     return {
       list: [], // 将dataSource深克隆一份
-      sizeStack: new Map(),
-      screenHeight: 0, // 可视区高度
+
+      sizeStack: new Map(), // 保存每个item的高度
+
       start: 0, // 起始索引
       end: 0, // 结束索引
       offset: 0, // 记录滚动高度
@@ -126,7 +127,7 @@ export default {
         oldItem: null, // 拖拽起始节点数据
         oldIndex: null, // 拖拽起始节点索引
         newNode: null, // 拖拽结束目标dom元素
-        newIitem: null, // 拖拽结束节点数据
+        newItem: null, // 拖拽结束节点数据
         newIndex: null // 拖拽结束节点索引
       }
     }
@@ -137,8 +138,7 @@ export default {
     },
     getIndex() {
       return function(item) {
-        const index = this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
-        return index
+        return this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
       }
     },
     uniqueKeyLen() {
@@ -166,7 +166,6 @@ export default {
     this.footer = footer
   },
   mounted() {
-    this.screenHeight = Math.ceil(this.$el.clientHeight)
     this.end = this.start + this.keeps
   },
   methods: {

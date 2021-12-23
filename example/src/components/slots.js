@@ -52,13 +52,13 @@ const mixin = {
         document.body.style.cursor = 'grabbing'
         // 记录拖拽目标元素
         this.$parent.dragState.newNode = target
-        this.$parent.dragState.newIitem = item
-        const { oldNode, newNode, oldItem, newIitem } = this.$parent.dragState
+        this.$parent.dragState.newItem = item
+        const { oldNode, newNode, oldItem, newItem } = this.$parent.dragState
         // 拖拽前后不一致，改变拖拽节点位置
-        if (oldItem != newIitem) {
+        if (oldItem != newItem) {
           if (newNode && newNode.animated) return
           const oldIndex = this.dataSource.indexOf(oldItem)
-          const newIndex = this.dataSource.indexOf(newIitem)
+          const newIndex = this.dataSource.indexOf(newItem)
           const oldRect = oldNode.getBoundingClientRect()
           const newRect = newNode.getBoundingClientRect()
           this.$parent.dragState.oldIndex = oldIndex
