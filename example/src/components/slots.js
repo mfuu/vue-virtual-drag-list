@@ -75,24 +75,27 @@ const mixin = {
       document.onmouseup = () => {
         document.onmousemove = null
         document.onmouseup = null
-        document.body.style.cursor = 'auto'
         this.setMask('destory')
-        const { oldItem, oldIndex, newIndex } = this.$parent.dragState
-        // 拖拽前后不一致，数组重新赋值
-        if (oldIndex != newIndex) {
-          let newArr = [...this.dataSource]
-          newArr.splice(oldIndex, 1)
-          newArr.splice(newIndex, 0, oldItem)
-          this.$parent.list = newArr
-          this.$parent.$emit('ondragend', newArr)
+        // 当前拖拽位置不在允许的范围内时不需要对数组重新赋值
+        if (document.body.style.cursor != 'not-allowed') {
+          const { oldItem, oldIndex, newIndex } = this.$parent.dragState
+          // 拖拽前后不一致，数组重新赋值
+          if (oldIndex != newIndex) {
+            let newArr = [...this.dataSource]
+            newArr.splice(oldIndex, 1)
+            newArr.splice(newIndex, 0, oldItem)
+            this.$parent.list = newArr
+            this.$parent.$emit('ondragend', newArr)
+          }
         }
+        document.body.style.cursor = 'auto'
       }
     },
     setMask(type, left, top) {
       if (type == 'init') {
         this.mask = document.createElement('div')
         for(let key in this.dragStyle) {
-          this.mask.style[key] = this.dragStyle[key]
+          this.setStyle(this.mask, key, this.dragStyle[key])
         }
         this.mask.style.position = 'absolute'
         this.mask.style.left = left + 'px'
@@ -126,25 +129,27 @@ const mixin = {
       const item = this.dataSource.find(item => this.$parent.uniqueId(item) == dataKey)
       return { target, item }
     },
+    // 设置动画
     animate(rect, target) {
       const delay = 300
       if (delay) {
         var cRect = target.getBoundingClientRect()
         if (rect.nodeType === 1) rect = rect.getBoundingClientRect()
-        this.setCss(target, 'transition', 'none')
-        this.setCss(target, 'transform', `translate3d(${rect.left - cRect.left}px, ${rect.top - cRect.top}px, 0)`)
+        this.setStyle(target, 'transition', 'none')
+        this.setStyle(target, 'transform', `translate3d(${rect.left - cRect.left}px, ${rect.top - cRect.top}px, 0)`)
         target.offsetWidth // 触发重绘
-        this.setCss(target, 'transition', `all ${delay}ms`)
-        this.setCss(target, 'transform', 'translate3d(0, 0, 0)')
+        this.setStyle(target, 'transition', `all ${delay}ms`)
+        this.setStyle(target, 'transform', 'translate3d(0, 0, 0)')
         clearTimeout(target.animated)
         target.animated = setTimeout(() => {
-          this.setCss(target, 'transition', '')
-          this.setCss(target, 'transform', '')
+          this.setStyle(target, 'transition', '')
+          this.setStyle(target, 'transform', '')
           target.animated = false
         }, delay)
       }
     },
-    setCss(el, prop, val) {
+    // 为dom添加样式
+    setStyle(el, prop, val) {
       let style = el && el.style
       if (style) {
         if (val === void 0) {
