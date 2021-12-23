@@ -59,25 +59,30 @@ module.exports = {
     new ExtractTextPlugin("style.css"),
     new VueLoaderPlugin()
   ],
-  resolve: {
-    alias: {
-      'vue$': 'vue/dist/vue.esm.js'
-    },
-    extensions: ['*', '.js', '.vue', '.json']
-  },
-  devServer: {
-    historyApiFallback: true,
-    noInfo: true,
-    overlay: true
-  },
-  performance: {
-    hints: false
-  },
-  devtool: '#eval-source-map'
+  // resolve: {
+  //   alias: {
+  //     'vue$': 'vue/dist/vue.esm.js'
+  //   },
+  //   extensions: ['*', '.js', '.vue', '.json']
+  // },
+  // devServer: {
+  //   historyApiFallback: true,
+  //   noInfo: true,
+  //   overlay: true
+  // },
+  // performance: {
+  //   hints: false
+  // },
+  // devtool: '#eval-source-map'
+  optimization: {
+    splitChunks: {
+      chunks: 'all'
+    }
+  }
 }
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports.devtool = '#source-map'
+  // module.exports.devtool = '#source-map'
   // http://vue-loader.vuejs.org/en/workflow/production.html
   module.exports.plugins = (module.exports.plugins || []).concat([
     new webpack.DefinePlugin({

@@ -4,22 +4,22 @@
   "description": "一个支持拖拽排序和虚拟滚动的列表组件",
   "main": "dist/vue-virtual-drag-list.js",
   "files": [
-    "src",
     "dist"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
-    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mf-note/vue-virtual-drag-list.git"
   },
   "keywords": [
+    "vue",
     "drag",
     "list",
-    "vue"
+    "virtual"
   ],
   "author": "mf-note",
   "license": "ISC",
@@ -29,7 +29,6 @@
   },
   "homepage": "https://github.com/mf-note/vue-virtual-drag-list#readme",
   "dependencies": {
-    "extract-text-webpack-plugin": "^3.0.2",
     "vue": "^2.6.14"
   },
   "devDependencies": {
@@ -41,12 +40,13 @@
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^7.0.3",
     "css-loader": "^3.6.0",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^6.2.0",
     "less": "^3.11.1",
     "less-loader": "^10.2.0",
     "vue-loader": "^15.9.8",
     "vue-template-compiler": "^2.6.14",
-    "webpack": "^3.6.0",
+    "webpack": "^4.46.0",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^2.9.1"
   }
