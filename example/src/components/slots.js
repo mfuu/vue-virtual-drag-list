@@ -1,7 +1,7 @@
 import Vue from 'vue'
 
 const mixin = {
-  data() {
+  data () {
     return {
       observer: null,
       mask: null
@@ -25,13 +25,13 @@ const mixin = {
     }
   },
   methods: {
-    onSizeChange() {
+    onSizeChange () {
       this.$emit('resize', this.uniqueKey, this.getCurrentSize())
     },
     getCurrentSize () {
       return this.$el ? this.$el.offsetHeight : 0
     },
-    mousedown(e) {
+    mousedown (e) {
       // 仅设置了draggable=true的元素才可拖动
       const draggable = e.target.getAttribute('draggable')
       if (!draggable) return
@@ -81,7 +81,7 @@ const mixin = {
           const { oldItem, oldIndex, newIndex } = this.$parent.dragState
           // 拖拽前后不一致，数组重新赋值
           if (oldIndex != newIndex) {
-            let newArr = [...this.dataSource]
+            const newArr = [...this.dataSource]
             newArr.splice(oldIndex, 1)
             newArr.splice(newIndex, 0, oldItem)
             this.$parent.list = newArr
@@ -91,10 +91,10 @@ const mixin = {
         document.body.style.cursor = 'auto'
       }
     },
-    setMask(type, left, top) {
+    setMask (type, left, top) {
       if (type == 'init') {
         this.mask = document.createElement('div')
-        for(let key in this.dragStyle) {
+        for (const key in this.dragStyle) {
           this.setStyle(this.mask, key, this.dragStyle[key])
         }
         this.mask.style.position = 'absolute'
@@ -110,13 +110,13 @@ const mixin = {
       }
     },
     // 找到目标dom在数组中的位置
-    getTarget(e) {
+    getTarget (e) {
       let dataKey = e.target.getAttribute('data-key')
       let target = e.target
       if (!dataKey) {
         // 如果当前拖拽超出了item范围，则不允许拖拽，否则向上查找dataKey属性
         if (target.contains(this.$el)) return {}
-        for(let node = e.target; (node = node.parentNode); ) {
+        for (let node = e.target; (node = node.parentNode);) {
           if (node) {
             target = node
             dataKey = node.getAttribute('data-key')
@@ -130,7 +130,7 @@ const mixin = {
       return { target, item }
     },
     // 设置动画
-    animate(rect, target) {
+    animate (rect, target) {
       const delay = 300
       if (delay) {
         var cRect = target.getBoundingClientRect()
@@ -149,8 +149,8 @@ const mixin = {
       }
     },
     // 为dom添加样式
-    setStyle(el, prop, val) {
-      let style = el && el.style
+    setStyle (el, prop, val) {
+      const style = el && el.style
       if (style) {
         if (val === void 0) {
           if (document.defaultView && document.defaultView.getComputedStyle) {
@@ -187,7 +187,7 @@ export const Items = Vue.component('virtual-draglist-items', {
       style: itemStyle,
       class: itemClass,
       attrs: {
-        ['data-key']: uniqueKey
+        'data-key': uniqueKey
       },
       props: { source, index, uniqueKey },
       on: {
@@ -197,7 +197,7 @@ export const Items = Vue.component('virtual-draglist-items', {
   }
 })
 
-export const Slots =  Vue.component('virtual-draglist-slots', {
+export const Slots = Vue.component('virtual-draglist-slots', {
   mixins: [mixin],
   props: {
     tag: {},

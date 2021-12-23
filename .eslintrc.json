@@ -1,0 +1,16 @@
+{
+  // "extends": ["standard"],
+  // "env": {
+  //   "browser": true,
+  //   "amd": true
+  // },
+  // "globals": {
+  //   "it": "readonly",
+  //   "expect": "readonly",
+  //   "describe": "readonly"
+  // },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  }
+}
