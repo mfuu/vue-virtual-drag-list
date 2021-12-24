@@ -12,7 +12,7 @@ const mixin = {
       this.observer = new ResizeObserver(() => {
         this.onSizeChange()
       })
-      this.observer.observe(this.$el)
+      this.$el && this.observer.observe(this.$el)
     }
   },
   updated () {
@@ -26,7 +26,7 @@ const mixin = {
   },
   methods: {
     onSizeChange () {
-      this.$emit('resize', this.uniqueKey, this.getCurrentSize())
+      this.$parent[this.event](this.uniqueKey, this.getCurrentSize())
     },
     getCurrentSize () {
       return this.$el ? this.$el.offsetHeight : 0
@@ -57,8 +57,8 @@ const mixin = {
         // 拖拽前后不一致，改变拖拽节点位置
         if (oldItem != newItem) {
           if (newNode && newNode.animated) return
-          const oldIndex = this.dataSource.indexOf(oldItem)
-          const newIndex = this.dataSource.indexOf(newItem)
+          const oldIndex = this.$parent.list.indexOf(oldItem)
+          const newIndex = this.$parent.list.indexOf(newItem)
           const oldRect = oldNode.getBoundingClientRect()
           const newRect = newNode.getBoundingClientRect()
           this.$parent.dragState.oldIndex = oldIndex
@@ -81,7 +81,7 @@ const mixin = {
           const { oldItem, oldIndex, newIndex } = this.$parent.dragState
           // 拖拽前后不一致，数组重新赋值
           if (oldIndex != newIndex) {
-            const newArr = [...this.dataSource]
+            const newArr = [...this.$parent.list]
             newArr.splice(oldIndex, 1)
             newArr.splice(newIndex, 0, oldItem)
             this.$parent.list = newArr
@@ -97,7 +97,7 @@ const mixin = {
         for (const key in this.dragStyle) {
           this.setStyle(this.mask, key, this.dragStyle[key])
         }
-        this.mask.style.position = 'absolute'
+        this.mask.style.position = 'fixed'
         this.mask.style.left = left + 'px'
         this.mask.style.top = top + 'px'
         this.mask.innerHTML = this.$el.innerHTML
@@ -126,7 +126,7 @@ const mixin = {
           }
         }
       }
-      const item = this.dataSource.find(item => this.$parent.uniqueId(item) == dataKey)
+      const item = this.$parent.list.find(item => this.$parent.uniqueId(item) == dataKey)
       return { target, item }
     },
     // 设置动画
@@ -172,28 +172,21 @@ export const Items = Vue.component('virtual-draglist-items', {
   mixins: [mixin],
   props: {
     tag: {},
-    index: {},
-    source: {},
+    event: {},
     dragStyle: {},
-    uniqueKey: {},
-    itemStyle: {},
-    itemClass: {},
-    dataSource: {}
+    uniqueKey: {}
   },
   render (h) {
-    const { tag, itemStyle, itemClass, source, index, uniqueKey } = this
+    const { tag, uniqueKey } = this
     return h(tag, {
       key: uniqueKey,
-      style: itemStyle,
-      class: itemClass,
       attrs: {
         'data-key': uniqueKey
       },
-      props: { source, index, uniqueKey },
       on: {
         mousedown: this.mousedown
       }
-    }, [this.$scopedSlots.item({ source, index, uniqueKey })])
+    }, this.$slots.default)
   }
 })
 
@@ -201,7 +194,7 @@ export const Slots = Vue.component('virtual-draglist-slots', {
   mixins: [mixin],
   props: {
     tag: {},
-    slots: {},
+    event: {},
     uniqueKey: {}
   },
   render (h) {
@@ -211,6 +204,6 @@ export const Slots = Vue.component('virtual-draglist-slots', {
       attrs: {
         role: uniqueKey
       }
-    }, this.slots)
+    }, this.$slots.default)
   }
 })

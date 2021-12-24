@@ -1,39 +1,7 @@
-<template>
-  <div ref="virtualDragList" class="virtual-drag-list" :style="{ height, overflow: 'hidden auto', position: 'relative' }" @scroll="handleScroll($event)">
-    <!-- 顶部插槽 -->
-    <Slots v-if="header" :slots="header" :tag="headerTag" uniqueKey="header" @resize="onHeaderResized"></Slots>
-    <!-- 列表项 -->
-    <div ref="content" role="group" :style="{ padding: `${padding.front}px 0px ${padding.behind}px` }">
-      <Items
-        v-for="item in visibleData"
-        :key="uniqueId(item)"
-        :tag="itemTag"
-        :source="item"
-        :dataSource="list"
-        :dragStyle="dragStyle"
-        :index="getIndex(item)"
-        :itemStyle="itemStyle"
-        :itemClass="itemClass"
-        :uniqueKey="uniqueId(item)"
-        @resize="onItemResized"
-      >
-        <template #item="{ source, index, uniqueKey }">
-          <slot name="item" :source="source" :index="index" :dataKey="uniqueKey"></slot>
-        </template>
-      </Items>
-    </div>
-    <!-- 底部插槽 -->
-    <Slots v-if="footer" :slots="footer" :tag="footerTag" uniqueKey="footer" @resize="onFooterResized"></Slots>
-    <!-- 最底部元素 -->
-    <div ref="bottomItem"></div>
-  </div>
-</template>
-
-<script>
+import Vue from 'vue'
 import { Slots, Items } from './slots'
-export default {
-  name: 'infinity-list',
-  components: { Items, Slots },
+
+const virtualDragList = Vue.component('virtual-drag-list', {
   props: {
     // 列表数据
     dataSource: {
@@ -43,7 +11,7 @@ export default {
     // 每一项的key值键值
     dataKey: {
       type: String,
-      required: true
+      // required: true
     },
     // 虚拟列表高度
     height: {
@@ -133,14 +101,10 @@ export default {
     }
   },
   computed: {
-    visibleData() {
-      return this.list.slice(this.start, this.end)
-    },
-    getIndex() {
-      return function(item) {
-        return this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
-      }
-    },
+    // visibleData() {
+    //   // console.log(this.list)
+    //   return this.list.slice(this.start, this.end)
+    // },
     uniqueKeyLen() {
       return this.uniqueKeys.length - 1
     },
@@ -159,11 +123,6 @@ export default {
       deep: true,
       immediate: true
     }
-  },
-  beforeCreate() {
-    const { header, footer } = this.$slots
-    this.header = header
-    this.footer = footer
   },
   mounted() {
     this.end = this.start + this.keeps
@@ -346,6 +305,11 @@ export default {
       this.lastCalcIndex = Math.min(this.lastCalcIndex, this.uniqueKeyLen)
       return offset
     },
+    getItemIndex() {
+      return function(item) {
+        return this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
+      }
+    },
     // 获取每一项的高度
     getItemSize() {
       return this.isFixedType ? this.calcSize.fixed : (this.calcSize.average || this.size)
@@ -357,8 +321,66 @@ export default {
       const keys = this.dataKey
       return (!Array.isArray(keys) ? keys.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : keys).reduce((o, k) => (o || {})[k], obj) || defaultValue
     }
-  }
-}
-</script>
+  },
+  render (h) {
+    const { header, footer } = this.$slots
+    const { height, padding, headerTag, footerTag, itemTag, itemStyle, itemClass, dragStyle, list, start, end } = this
+    return h('div', {
+      ref: 'virtualDragList',
+      on: {
+        '&scroll': this.handleScroll
+      },
+      style: { height, overflow: 'hidden auto', position: 'relative' }
+    }, [
+      // 顶部插槽 
+      header ? h(Slots, {
+        props: {
+          tag: headerTag,
+          uniqueKey: 'header',
+          event: 'onHeaderResized'
+        }
+      }, header) : null,
+      
+      // 中间内容区域和列表项
+      h('div', {
+        attrs: {
+          role: 'group'
+        },
+        style: { padding: `${padding.front}px 0px ${padding.behind}px` }
+      }, list.slice(start, end).map(val => {
+        const index = this.getItemIndex(val)
+        const uniqueKey = this.uniqueId(val)
+          return (
+            h(Items, {
+              props: {
+                tag: itemTag,
+                dragStyle: dragStyle,
+                uniqueKey: uniqueKey,
+                event: 'onItemResized'
+              },
+              key: uniqueKey,
+              style: itemStyle,
+              class: itemClass
+            }, this.$scopedSlots.item({ source: val, index, uniqueKey }))
+          )
+        })
+      ),
 
-<style></style>
+      // 底部插槽 
+      footer ? h(Slots, {
+        props: {
+          tag: footerTag,
+          uniqueKey: 'footer',
+          event: 'onFooterResized'
+        }
+      }, footer) : null,
+
+      // 最底部元素
+      h('div', {
+        ref: 'bottomItem'
+      })
+    ])
+  }
+})
+
+export default virtualDragList

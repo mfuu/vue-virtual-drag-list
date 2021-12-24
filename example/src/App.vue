@@ -1,15 +1,17 @@
 <template>
   <div id="app">
     <div class="content">
-      <virtual-drag-list class="asdas" />
-      <!-- <drag-list /> -->
+      <!-- <virtual-drag-list class="asdas" /> -->
+      <drag-list />
     </div>
   </div>
 </template>
 
 <script>
+import dragList from './components/dragList.vue'
 export default {
-  name: 'App'
+  name: 'App',
+  components: { dragList }
 }
 </script>
 

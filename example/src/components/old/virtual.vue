@@ -1,5 +1,5 @@
 <template>
-  <div ref="virtualDragList" class="virtual-drag-list" :style="{ height, overflow: 'hidden auto', position: 'relative' }" @scroll="handleScroll($event)">
+  <div ref="virtualDragList" :style="{ height, overflow: 'hidden auto', position: 'relative' }" @scroll="handleScroll($event)">
     <!-- 顶部插槽 -->
     <Slots v-if="header" :slots="header" :tag="headerTag" uniqueKey="header" @resize="onHeaderResized"></Slots>
     <!-- 列表项 -->

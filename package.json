@@ -1,6 +1,6 @@
 {
   "name": "vue-virtual-draglist",
-  "version": "2.0.8",
+  "version": "2.1.0",
   "description": "一个支持拖拽排序和虚拟滚动的列表组件",
   "main": "dist/index.js",
   "files": [
@@ -44,6 +44,8 @@
     "eslint-plugin-vue": "^8.2.0",
     "rollup": "^2.61.1",
     "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-vue": "^4.2.0",
     "rollup-plugin-vue2": "^0.8.1",
     "uglifyjs-webpack-plugin": "^2.2.0",

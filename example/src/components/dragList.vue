@@ -1,19 +1,19 @@
 <template>
   <div id="v-draggable-virtual-list">
     <!-- <button @click="toBottom">bottom</button> -->
-    <virtual-list ref="list" :dataSource="dataSource" dataKey="id" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
+    <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template #item="{ source, index }">
         <div class="test-item">
           <span class="index" draggable="true">{{ source.index }}</span>
           <span>{{ source.desc }}</span>
         </div>
       </template>
-      <!-- <template slot="header">
+      <template slot="header">
         <div class="loading">加载中...</div>
       </template>
       <template slot="footer">
         <div class="loading">加载中...</div>
-      </template> -->
+      </template>
     </virtual-list>
     <!-- <div class="content">
       <div v-for="item in dataSource" :key="item.id" class="test-item">
@@ -27,6 +27,8 @@
 
 <script>
 import virtualList from 'vue-virtual-draglist'
+
+// import virtualList from './virtual'
 
 // import virtualList from '../dist/index'
 
@@ -85,15 +87,9 @@ export default {
       ]
     }
   },
-  mounted() {
-    const scrollElement = document.getElementById('v-draggable-virtual-list')
-    // scrollElement.addEventListener('scroll', this.onScroll, {
-    //   passive: false
-    // })
-  },
   methods: {
-    ondragend(list, e) {
-      console.log(list, e)
+    ondragend(list) {
+      // console.log(list)
     },
     handleTop() {
       setTimeout(() => {
@@ -107,11 +103,7 @@ export default {
       
     },
     toBottom() {
-      console.log(this.$refs.list)
       this.$refs.list.scrollToBottom()
-    },
-    onScroll(event) {
-      console.log('scroll', event)
     }
   }
 }
