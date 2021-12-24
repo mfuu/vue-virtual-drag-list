@@ -139,7 +139,7 @@ Root component:
       <td><code>dragStyle</code></td>
       <td>Object</td>
       <td><code>{ backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)' }</code></td>
-      <td>item样式</td>
+      <td>拖拽时的蒙版样式</td>
     </tr>
   </table>
 </details>
