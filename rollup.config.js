@@ -1,5 +1,5 @@
 import babel from 'rollup-plugin-babel'
-import vue from 'rollup-plugin-vue'
+import vue from 'rollup-plugin-vue2'
 const packageJson = require('./package.json')
 const version = packageJson.version
 const homepage = packageJson.homepage

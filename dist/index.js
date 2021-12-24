@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.0.5
+ * vue-virtual-drag-list v2.0.8
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -329,19 +329,20 @@
     }
   });
 
-  var script = {
+  var virtualDragList = {
+  render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{ref:"virtualDragList",staticClass:"virtual-drag-list",style:({ height: _vm.height, overflow: 'hidden auto', position: 'relative' }),on:{"scroll":function($event){return _vm.handleScroll($event)}}},[(_vm.header)?_c('Slots',{attrs:{"slots":_vm.header,"tag":_vm.headerTag,"uniqueKey":"header"},on:{"resize":_vm.onHeaderResized}}):_vm._e(),_vm._v(" "),_c('div',{ref:"content",style:({ padding: ((_vm.padding.front) + "px 0px " + (_vm.padding.behind) + "px") }),attrs:{"role":"group"}},_vm._l((_vm.visibleData),function(item){return _c('Items',{key:_vm.uniqueId(item),attrs:{"tag":_vm.itemTag,"source":item,"dataSource":_vm.list,"dragStyle":_vm.dragStyle,"index":_vm.getIndex(item),"itemStyle":_vm.itemStyle,"itemClass":_vm.itemClass,"uniqueKey":_vm.uniqueId(item)},on:{"resize":_vm.onItemResized},scopedSlots:_vm._u([{key:"item",fn:function(ref){
+  var source = ref.source;
+  var index = ref.index;
+  var uniqueKey = ref.uniqueKey;
+  return [_vm._t("item",null,{"source":source,"index":index,"dataKey":uniqueKey})]}}],null,true)})}),1),_vm._v(" "),(_vm.footer)?_c('Slots',{attrs:{"slots":_vm.footer,"tag":_vm.footerTag,"uniqueKey":"footer"},on:{"resize":_vm.onFooterResized}}):_vm._e(),_vm._v(" "),_c('div',{ref:"bottomItem"})],1)},
+  staticRenderFns: [],
     name: 'infinity-list',
-    components: {
-      Items: Items,
-      Slots: Slots
-    },
+    components: { Items, Slots },
     props: {
       // 列表数据
       dataSource: {
         type: Array,
-        "default": function _default() {
-          return [];
-        }
+        default: () => []
       },
       // 每一项的key值键值
       dataKey: {
@@ -351,12 +352,12 @@
       // 虚拟列表高度
       height: {
         type: String,
-        "default": '100%'
+        default: '100%'
       },
       // 列表展示多少条数据，为0或者不传会自动计算
       keeps: {
         type: Number,
-        "default": 30
+        default: 30
       },
       // 每一行预估高度
       size: {
@@ -365,118 +366,97 @@
       // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
       draggable: {
         type: Boolean,
-        "default": true
+        default: true
       },
       headerTag: {
         type: String,
-        "default": 'div'
+        default: 'div'
       },
       footerTag: {
         type: String,
-        "default": 'div'
+        default: 'div'
       },
       itemTag: {
         type: String,
-        "default": 'div'
+        default: 'div'
       },
       itemStyle: {
         type: Object,
-        "default": function _default() {}
+        default: () => {}
       },
       itemClass: {
         type: String,
-        "default": ''
+        default: ''
       },
       // 拖拽时的样式
       dragStyle: {
         type: Object,
-        "default": function _default() {
+        default: () => {
           return {
             backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
-          };
+          }
         }
       }
     },
-    data: function data() {
+    data() {
       return {
-        list: [],
-        // 将dataSource深克隆一份
-        sizeStack: new Map(),
-        // 保存每个item的高度
-        start: 0,
-        // 起始索引
-        end: 0,
-        // 结束索引
-        offset: 0,
-        // 记录滚动高度
-        direction: '',
-        // 记录滚动方向
-        uniqueKeys: [],
-        // 通过dataKey获取所有数据的唯一键值
-        lastCalcIndex: 0,
-        calcType: 'INIT',
-        // 初始化标致
-        calcSize: {
-          average: 0,
-          // 计算首次加载每一项的评价高度
-          total: 0,
-          // 首次加载的总高度
-          fixed: 0,
-          // 记录固定高度值
-          header: 0,
-          // 顶部插槽高度
-          footer: 0 // 底部插槽高度
+        list: [], // 将dataSource深克隆一份
 
+        sizeStack: new Map(), // 保存每个item的高度
+
+        start: 0, // 起始索引
+        end: 0, // 结束索引
+        offset: 0, // 记录滚动高度
+        direction: '', // 记录滚动方向
+
+        uniqueKeys: [], // 通过dataKey获取所有数据的唯一键值
+
+        lastCalcIndex: 0,
+        calcType: 'INIT', // 初始化标致
+        calcSize: {
+          average: 0, // 计算首次加载每一项的评价高度
+          total: 0, // 首次加载的总高度
+          fixed: 0, // 记录固定高度值
+          header: 0, // 顶部插槽高度
+          footer: 0 // 底部插槽高度
         },
+
         padding: {
           front: 0,
           behind: 0
         },
-        dragState: {
-          oldNode: null,
-          // 拖拽起始dom元素
-          oldItem: null,
-          // 拖拽起始节点数据
-          oldIndex: null,
-          // 拖拽起始节点索引
-          newNode: null,
-          // 拖拽结束目标dom元素
-          newItem: null,
-          // 拖拽结束节点数据
-          newIndex: null // 拖拽结束节点索引
 
+        dragState: {
+          oldNode: null, // 拖拽起始dom元素
+          oldItem: null, // 拖拽起始节点数据
+          oldIndex: null, // 拖拽起始节点索引
+          newNode: null, // 拖拽结束目标dom元素
+          newItem: null, // 拖拽结束节点数据
+          newIndex: null // 拖拽结束节点索引
         }
-      };
+      }
     },
     computed: {
-      visibleData: function visibleData() {
-        return this.list.slice(this.start, this.end);
+      visibleData() {
+        return this.list.slice(this.start, this.end)
       },
-      getIndex: function getIndex() {
-        return function (item) {
-          var _this = this;
-
-          return this.list.findIndex(function (el) {
-            return _this.uniqueId(item) == _this.uniqueId(el);
-          });
-        };
+      getIndex() {
+        return function(item) {
+          return this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
+        }
       },
-      uniqueKeyLen: function uniqueKeyLen() {
-        return this.uniqueKeys.length - 1;
+      uniqueKeyLen() {
+        return this.uniqueKeys.length - 1
       },
-      isFixedType: function isFixedType() {
-        return this.calcType === 'FIXED';
+      isFixedType() {
+        return this.calcType === 'FIXED'
       }
     },
     watch: {
       dataSource: {
-        handler: function handler(val) {
-          var _this2 = this;
-
+        handler(val) {
           this.list = JSON.parse(JSON.stringify(val));
-          this.uniqueKeys = this.list.map(function (item) {
-            return _this2.uniqueId(item);
-          });
+          this.uniqueKeys = this.list.map(item => this.uniqueId(item));
           this.handleSourceDataChange();
           this.updateSizeStack();
         },
@@ -484,66 +464,57 @@
         immediate: true
       }
     },
-    beforeCreate: function beforeCreate() {
-      var _this$$slots = this.$slots,
-          header = _this$$slots.header,
-          footer = _this$$slots.footer;
+    beforeCreate() {
+      const { header, footer } = this.$slots;
       this.header = header;
       this.footer = footer;
     },
-    mounted: function mounted() {
+    mounted() {
       this.end = this.start + this.keeps;
     },
     methods: {
       // 滚动到底部
-      scrollToBottom: function scrollToBottom() {
-        var _this3 = this;
-
-        var _this$$refs = this.$refs,
-            bottomItem = _this$$refs.bottomItem,
-            virtualDragList = _this$$refs.virtualDragList;
-
+      scrollToBottom() {
+        const { bottomItem, virtualDragList } = this.$refs;
         if (bottomItem) {
-          var offset = bottomItem.offsetTop;
+          const offset = bottomItem.offsetTop;
           this.scrollToOffset(offset);
         }
-
-        var clientHeight = this.$el.clientHeight;
-        var scrollTop = virtualDragList.scrollTop;
-        var scrollHeight = virtualDragList.scrollHeight; // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
-
-        setTimeout(function () {
+        const clientHeight = this.$el.clientHeight;
+        const scrollTop = virtualDragList.scrollTop;
+        const scrollHeight = virtualDragList.scrollHeight;
+        // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+        setTimeout(() => {
           if (scrollTop + clientHeight < scrollHeight) {
-            _this3.scrollToBottom();
+            this.scrollToBottom();
           }
         }, 10);
       },
       // 滚动到指定高度
-      scrollToOffset: function scrollToOffset(offset) {
-        var virtualDragList = this.$refs.virtualDragList;
+      scrollToOffset(offset) {
+        const { virtualDragList } = this.$refs;
         virtualDragList.scrollTop = offset;
       },
       // 滚动到指定索引值位置
-      scrollToIndex: function scrollToIndex(index) {
+      scrollToIndex(index) {
         if (index >= this.list.length - 1) {
           this.scrollToBottom();
         } else {
-          var offset = this.getOffsetByIndex(index);
+          const offset = this.getOffsetByIndex(index);
           this.scrollToOffset(offset);
         }
       },
-      handleScroll: function handleScroll(event) {
-        var virtualDragList = this.$refs.virtualDragList;
-        var clientHeight = Math.ceil(this.$el.clientHeight);
-        var scrollTop = Math.ceil(virtualDragList.scrollTop);
-        var scrollHeight = Math.ceil(virtualDragList.scrollHeight); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
-
-        if (scrollTop < 0 || scrollTop + clientHeight > scrollHeight + 1 || !scrollHeight) return; // 记录上一次滚动的距离，判断当前滚动方向
-
+      handleScroll(event) {
+        const { virtualDragList } = this.$refs;
+        const clientHeight = Math.ceil(this.$el.clientHeight);
+        const scrollTop = Math.ceil(virtualDragList.scrollTop);
+        const scrollHeight = Math.ceil(virtualDragList.scrollHeight);
+        // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+        if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) return
+        // 记录上一次滚动的距离，判断当前滚动方向
         this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND';
         this.offset = scrollTop;
-        var overs = this.getScrollOvers();
-
+        const overs = this.getScrollOvers();
         if (this.direction === 'FRONT') {
           this.handleFront(overs);
           if (!!this.list.length && scrollTop <= 0) this.$emit('top');
@@ -552,25 +523,23 @@
           if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom');
         }
       },
-      handleFront: function handleFront(overs) {
+      handleFront(overs) {
         if (overs > this.start) {
-          return;
+          return
         }
-
-        var start = Math.max(overs - Math.round(this.keeps / 3), 0);
+        const start = Math.max(overs - Math.round(this.keeps / 3), 0);
         this.checkRange(start, this.getEndByStart(start));
       },
-      handleBehind: function handleBehind(overs) {
+      handleBehind(overs) {
         if (overs < this.start + Math.round(this.keeps / 3)) {
-          return;
+          return
         }
-
         this.checkRange(overs, this.getEndByStart(overs));
       },
       // 更新每个子组件高度
-      onItemResized: function onItemResized(uniqueKey, size) {
-        this.sizeStack.set(uniqueKey, size); // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
-
+      onItemResized(uniqueKey, size) {
+        this.sizeStack.set(uniqueKey, size);
+        // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
         if (this.calcType === 'INIT') {
           this.calcSize.fixed = size;
           this.calcType = 'FIXED';
@@ -578,55 +547,48 @@
           this.calcType = 'DYNAMIC';
           delete this.calcSize.fixed;
         }
-
         if (this.calcType !== 'FIXED' && this.calcSize.total !== 'undefined') {
           if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
-            this.calcSize.total = _toConsumableArray(this.sizeStack.values()).reduce(function (acc, cur) {
-              return acc + cur;
-            }, 0);
+            this.calcSize.total = [...this.sizeStack.values()].reduce((acc, cur) => acc + cur, 0);
             this.calcSize.average = Math.round(this.calcSize.total / this.sizeStack.size);
           } else {
             delete this.calcSize.total;
           }
         }
       },
-      onHeaderResized: function onHeaderResized(id, size) {
+      onHeaderResized(id, size) {
         this.calcSize.header = size;
       },
-      onFooterResized: function onFooterResized(id, size) {
+      onFooterResized(id, size) {
         this.calcSize.footer = size;
       },
       // 原数组改变重新计算
-      handleSourceDataChange: function handleSourceDataChange() {
-        var start = Math.max(this.start, 0);
+      handleSourceDataChange() {
+        let start = Math.max(this.start, 0);
         this.updateRange(this.start, this.getEndByStart(start));
       },
       // 更新缓存
-      updateSizeStack: function updateSizeStack() {
-        var _this4 = this;
-
-        this.sizeStack.forEach(function (v, key) {
-          if (!_this4.uniqueKeys.includes(key)) {
-            _this4.sizeStack["delete"](key);
+      updateSizeStack() {
+        this.sizeStack.forEach((v, key) => {
+          if (!this.uniqueKeys.includes(key)) {
+            this.sizeStack.delete(key);
           }
         });
       },
-      checkRange: function checkRange(start, end) {
-        var keeps = this.keeps;
-        var total = this.uniqueKeys.length;
-
+      checkRange(start, end) {
+        const keeps = this.keeps;
+        const total = this.uniqueKeys.length;
         if (total <= keeps) {
           start = 0;
           end = this.uniqueKeyLen;
         } else if (end - start < keeps - 1) {
           start = end - keeps + 1;
         }
-
         if (this.start !== start) {
           this.updateRange(start, end);
         }
       },
-      updateRange: function updateRange(start, end) {
+      updateRange(start, end) {
         this.start = start;
         this.end = end;
         this.padding = {
@@ -635,315 +597,72 @@
         };
       },
       // 二分法查找
-      getScrollOvers: function getScrollOvers() {
+      getScrollOvers() {
         // 如果有header插槽，需要减去header的高度
-        var offset = this.offset - this.calcSize.header;
-        if (offset <= 0) return 0;
-        if (this.isFixedType) return Math.floor(offset / this.calcSize.fixed);
-        var low = 0;
-        var middle = 0;
-        var middleOffset = 0;
-        var high = this.uniqueKeys.length;
-
+        const offset = this.offset - this.calcSize.header;
+        if (offset <= 0) return 0
+        if (this.isFixedType) return Math.floor(offset / this.calcSize.fixed)
+        let low = 0;
+        let middle = 0;
+        let middleOffset = 0;
+        let high = this.uniqueKeys.length;
         while (low <= high) {
           middle = low + Math.floor((high - low) / 2);
           middleOffset = this.getOffsetByIndex(middle);
-
           if (middleOffset === offset) {
-            return middle;
+            return middle
           } else if (middleOffset < offset) {
             low = middle + 1;
           } else if (middleOffset > offset) {
             high = middle - 1;
           }
         }
-
-        return low > 0 ? --low : 0;
+        return low > 0 ? --low : 0
       },
-      getFront: function getFront() {
+      getFront() {
         if (this.isFixedType) {
-          return this.calcSize.fixed * this.start;
+          return this.calcSize.fixed * this.start
         } else {
-          return this.getOffsetByIndex(this.start);
+          return this.getOffsetByIndex(this.start)
         }
       },
-      getBehind: function getBehind() {
-        var last = this.uniqueKeyLen;
-
+      getBehind() {
+        const last = this.uniqueKeyLen;
         if (this.isFixedType) {
-          return (last - this.end) * this.calcSize.fixed;
+          return (last - this.end) * this.calcSize.fixed
         }
-
         if (this.lastCalcIndex === last) {
-          return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.end);
+          return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.end)
         } else {
-          return (last - this.end) * this.getItemSize();
+          return (last - this.end) * this.getItemSize()
         }
       },
       // 通过滚动高度获取索引
-      getOffsetByIndex: function getOffsetByIndex(index) {
-        if (!index) return 0;
-        var offset = 0;
-        var indexSize = 0;
-
-        for (var i = 0; i < index; i++) {
+      getOffsetByIndex(index) {
+        if (!index) return 0
+        let offset = 0;
+        let indexSize = 0;
+        for (let i = 0; i < index; i++) {
           indexSize = this.sizeStack.get(this.uniqueKeys[i]);
           offset = offset + (typeof indexSize === 'number' ? indexSize : this.getItemSize());
         }
-
         this.lastCalcIndex = Math.max(this.lastCalcIndex, index - 1);
         this.lastCalcIndex = Math.min(this.lastCalcIndex, this.uniqueKeyLen);
-        return offset;
+        return offset
       },
       // 获取每一项的高度
-      getItemSize: function getItemSize() {
-        return this.isFixedType ? this.calcSize.fixed : this.calcSize.average || this.size;
+      getItemSize() {
+        return this.isFixedType ? this.calcSize.fixed : (this.calcSize.average || this.size)
       },
-      getEndByStart: function getEndByStart(start) {
-        return Math.min(start + this.keeps, this.uniqueKeyLen);
+      getEndByStart(start) {
+        return Math.min(start + this.keeps, this.uniqueKeyLen)
       },
-      uniqueId: function uniqueId(obj) {
-        var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-        var keys = this.dataKey;
-        return (!Array.isArray(keys) ? keys.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : keys).reduce(function (o, k) {
-          return (o || {})[k];
-        }, obj) || defaultValue;
+      uniqueId(obj, defaultValue = '') {
+        const keys = this.dataKey;
+        return (!Array.isArray(keys) ? keys.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : keys).reduce((o, k) => (o || {})[k], obj) || defaultValue
       }
     }
   };
-
-  /* script */
-              const __vue_script__ = script;
-              
-  /* template */
-  var __vue_render__ = function() {
-    var _vm = this;
-    var _h = _vm.$createElement;
-    var _c = _vm._self._c || _h;
-    return _c(
-      "div",
-      {
-        ref: "virtualDragList",
-        staticClass: "virtual-drag-list",
-        style: {
-          height: _vm.height,
-          overflow: "hidden auto",
-          position: "relative"
-        },
-        on: {
-          scroll: function($event) {
-            return _vm.handleScroll($event)
-          }
-        }
-      },
-      [
-        _vm.header
-          ? _c("Slots", {
-              attrs: {
-                slots: _vm.header,
-                tag: _vm.headerTag,
-                uniqueKey: "header"
-              },
-              on: { resize: _vm.onHeaderResized }
-            })
-          : _vm._e(),
-        _vm._v(" "),
-        _c(
-          "div",
-          {
-            ref: "content",
-            style: {
-              padding: _vm.padding.front + "px 0px " + _vm.padding.behind + "px"
-            },
-            attrs: { role: "group" }
-          },
-          _vm._l(_vm.visibleData, function(item) {
-            return _c("Items", {
-              key: _vm.uniqueId(item),
-              attrs: {
-                tag: _vm.itemTag,
-                source: item,
-                dataSource: _vm.list,
-                dragStyle: _vm.dragStyle,
-                index: _vm.getIndex(item),
-                itemStyle: _vm.itemStyle,
-                itemClass: _vm.itemClass,
-                uniqueKey: _vm.uniqueId(item)
-              },
-              on: { resize: _vm.onItemResized },
-              scopedSlots: _vm._u(
-                [
-                  {
-                    key: "item",
-                    fn: function(ref) {
-                      var source = ref.source;
-                      var index = ref.index;
-                      var uniqueKey = ref.uniqueKey;
-                      return [
-                        _vm._t("item", null, {
-                          source: source,
-                          index: index,
-                          dataKey: uniqueKey
-                        })
-                      ]
-                    }
-                  }
-                ],
-                null,
-                true
-              )
-            })
-          }),
-          1
-        ),
-        _vm._v(" "),
-        _vm.footer
-          ? _c("Slots", {
-              attrs: {
-                slots: _vm.footer,
-                tag: _vm.footerTag,
-                uniqueKey: "footer"
-              },
-              on: { resize: _vm.onFooterResized }
-            })
-          : _vm._e(),
-        _vm._v(" "),
-        _c("div", { ref: "bottomItem" })
-      ],
-      1
-    )
-  };
-  var __vue_staticRenderFns__ = [];
-  __vue_render__._withStripped = true;
-
-    /* style */
-    const __vue_inject_styles__ = function (inject) {
-      if (!inject) return
-      inject("data-v-6fca4980_0", { source: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", map: {"version":3,"sources":[],"names":[],"mappings":"","file":"Virtual.vue"}, media: undefined });
-
-    };
-    /* scoped */
-    const __vue_scope_id__ = undefined;
-    /* module identifier */
-    const __vue_module_identifier__ = undefined;
-    /* functional template */
-    const __vue_is_functional_template__ = false;
-    /* component normalizer */
-    function __vue_normalize__(
-      template, style, script,
-      scope, functional, moduleIdentifier,
-      createInjector, createInjectorSSR
-    ) {
-      const component = (typeof script === 'function' ? script.options : script) || {};
-
-      // For security concerns, we use only base name in production mode.
-      component.__file = "D:\\mf-testcode\\drag-list\\src\\Virtual.vue";
-
-      if (!component.render) {
-        component.render = template.render;
-        component.staticRenderFns = template.staticRenderFns;
-        component._compiled = true;
-
-        if (functional) component.functional = true;
-      }
-
-      component._scopeId = scope;
-
-      {
-        let hook;
-        if (style) {
-          hook = function(context) {
-            style.call(this, createInjector(context));
-          };
-        }
-
-        if (hook !== undefined) {
-          if (component.functional) {
-            // register for functional component in vue file
-            const originalRender = component.render;
-            component.render = function renderWithStyleInjection(h, context) {
-              hook.call(context);
-              return originalRender(h, context)
-            };
-          } else {
-            // inject component registration as beforeCreate hook
-            const existing = component.beforeCreate;
-            component.beforeCreate = existing ? [].concat(existing, hook) : [hook];
-          }
-        }
-      }
-
-      return component
-    }
-    /* style inject */
-    function __vue_create_injector__() {
-      const head = document.head || document.getElementsByTagName('head')[0];
-      const styles = __vue_create_injector__.styles || (__vue_create_injector__.styles = {});
-      const isOldIE =
-        typeof navigator !== 'undefined' &&
-        /msie [6-9]\\b/.test(navigator.userAgent.toLowerCase());
-
-      return function addStyle(id, css) {
-        if (document.querySelector('style[data-vue-ssr-id~="' + id + '"]')) return // SSR styles are present.
-
-        const group = isOldIE ? css.media || 'default' : id;
-        const style = styles[group] || (styles[group] = { ids: [], parts: [], element: undefined });
-
-        if (!style.ids.includes(id)) {
-          let code = css.source;
-          let index = style.ids.length;
-
-          style.ids.push(id);
-
-          if (isOldIE) {
-            style.element = style.element || document.querySelector('style[data-group=' + group + ']');
-          }
-
-          if (!style.element) {
-            const el = style.element = document.createElement('style');
-            el.type = 'text/css';
-
-            if (css.media) el.setAttribute('media', css.media);
-            if (isOldIE) {
-              el.setAttribute('data-group', group);
-              el.setAttribute('data-next-index', '0');
-            }
-
-            head.appendChild(el);
-          }
-
-          if (isOldIE) {
-            index = parseInt(style.element.getAttribute('data-next-index'));
-            style.element.setAttribute('data-next-index', index + 1);
-          }
-
-          if (style.element.styleSheet) {
-            style.parts.push(code);
-            style.element.styleSheet.cssText = style.parts
-              .filter(Boolean)
-              .join('\n');
-          } else {
-            const textNode = document.createTextNode(code);
-            const nodes = style.element.childNodes;
-            if (nodes[index]) style.element.removeChild(nodes[index]);
-            if (nodes.length) style.element.insertBefore(textNode, nodes[index]);
-            else style.element.appendChild(textNode);
-          }
-        }
-      }
-    }
-    /* style inject SSR */
-    
-
-    
-    var virtualDragList = __vue_normalize__(
-      { render: __vue_render__, staticRenderFns: __vue_staticRenderFns__ },
-      __vue_inject_styles__,
-      __vue_script__,
-      __vue_scope_id__,
-      __vue_is_functional_template__,
-      __vue_module_identifier__,
-      __vue_create_injector__);
 
   return virtualDragList;
 

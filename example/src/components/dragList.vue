@@ -26,9 +26,9 @@
 </template>
 
 <script>
-// import virtualList from 'vue-virtual-draglist'
+import virtualList from 'vue-virtual-draglist'
 
-import virtualList from '../dist/index'
+// import virtualList from '../dist/index'
 
 import { Table } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.css'
