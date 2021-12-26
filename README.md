@@ -102,43 +102,43 @@ Root component:
     <tr>
       <td><code>headerTag</code></td>
       <td>String</td>
-      <td>div</td>
+      <td><code>div</code></td>
       <td>顶部插槽的标签类型</td>
     </tr>
     <tr>
       <td><code>footerTag</code></td>
       <td>String</td>
-      <td>div</td>
+      <td><code>div</code></td>
       <td>底部插槽的标签类型</td>
     </tr>
     <tr>
       <td><code>itemTag</code></td>
       <td>String</td>
-      <td>div</td>
+      <td><code>div</code></td>
       <td>item的标签类型</td>
     </tr>
     <tr>
       <td><code>itemStyle</code></td>
       <td>Object</td>
-      <td>{}</td>
+      <td><code>{}</code></td>
       <td>item样式</td>
     </tr>
     <tr>
       <td><code>itemClass</code></td>
       <td>String</td>
-      <td>''</td>
+      <td><code>''</code></td>
       <td>item类名</td>
     </tr>
     <tr>
       <td><code>draggable</code></td>
       <td>Boolean</td>
-      <td>true</td>
+      <td><code>true</code></td>
       <td>是否可拖拽</td>
     </tr>
     <tr>
       <td><code>dragStyle</code></td>
       <td>Object</td>
-      <td><code>{ backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)' }</code></td>
+      <td><code>{}</code></td>
       <td>拖拽时的蒙版样式</td>
     </tr>
   </table>
