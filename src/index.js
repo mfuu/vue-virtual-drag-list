@@ -301,10 +301,8 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       this.lastCalcIndex = Math.min(this.lastCalcIndex, this.uniqueKeyLen)
       return offset
     },
-    getItemIndex() {
-      return function(item) {
-        return this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
-      }
+    getItemIndex(item) {
+      this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
     },
     // 获取每一项的高度
     getItemSize() {
