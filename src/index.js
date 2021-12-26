@@ -11,7 +11,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     // 每一项的key值键值
     dataKey: {
       type: String,
-      // required: true
+      required: true
     },
     // 虚拟列表高度
     height: {
