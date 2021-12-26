@@ -64,7 +64,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
   },
   data() {
     return {
-      list: [], // 将dataSource深克隆一份
+      list: [], // 将dataSource克隆一份
 
       sizeStack: new Map(), // 保存每个item的高度
 
@@ -101,10 +101,6 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     }
   },
   computed: {
-    // visibleData() {
-    //   // console.log(this.list)
-    //   return this.list.slice(this.start, this.end)
-    // },
     uniqueKeyLen() {
       return this.uniqueKeys.length - 1
     },
@@ -115,7 +111,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
   watch: {
     dataSource: {
       handler(val) {
-        this.list = JSON.parse(JSON.stringify(val))
+        this.list = val
         this.uniqueKeys = this.list.map(item => this.uniqueId(item))
         this.handleSourceDataChange()
         this.updateSizeStack()

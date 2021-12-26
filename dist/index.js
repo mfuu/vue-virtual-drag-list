@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.0
+ * vue-virtual-drag-list v2.1.1
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -170,7 +170,7 @@
             }
           }
 
-          document.body.style.cursor = 'auto';
+          document.body.style.cursor = 'unset';
         };
       },
       setMask: function setMask(type, left, top) {
@@ -321,8 +321,8 @@
       },
       // 每一项的key值键值
       dataKey: {
-        type: String // required: true
-
+        type: String,
+        required: true
       },
       // 虚拟列表高度
       height: {
@@ -376,7 +376,7 @@
     data: function data() {
       return {
         list: [],
-        // 将dataSource深克隆一份
+        // 将dataSource克隆一份
         sizeStack: new Map(),
         // 保存每个item的高度
         start: 0,
@@ -425,10 +425,6 @@
       };
     },
     computed: {
-      // visibleData() {
-      //   // console.log(this.list)
-      //   return this.list.slice(this.start, this.end)
-      // },
       uniqueKeyLen: function uniqueKeyLen() {
         return this.uniqueKeys.length - 1;
       },
@@ -441,7 +437,7 @@
         handler: function handler(val) {
           var _this = this;
 
-          this.list = JSON.parse(JSON.stringify(val));
+          this.list = val;
           this.uniqueKeys = this.list.map(function (item) {
             return _this.uniqueId(item);
           });
