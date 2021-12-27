@@ -88,7 +88,7 @@ const mixin = {
             this.$parent.$emit('ondragend', newArr)
           }
         }
-        document.body.style.cursor = 'unset'
+        document.body.style.cursor = ''
       }
     },
     setMask (type, left, top) {
