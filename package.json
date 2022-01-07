@@ -18,9 +18,13 @@
   },
   "keywords": [
     "vue",
+    "sort",
     "drag",
-    "list",
-    "virtual"
+    "virtual",
+    "virtual-list",
+    "big-data",
+    "big-list",
+    "infinite"
   ],
   "author": "mf-note",
   "license": "ISC",
