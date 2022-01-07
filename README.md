@@ -16,14 +16,20 @@ Root component:
     <virtual-drag-list
       :data-key="'id'"
       :data-source="list"
+      @top="handleToTop"
+      @bottom="handleToBottom"
       @ondragend="ondragend"
     >
       <template #item="{ record, index, dataKey }">
         <span draggable="true">{{ record.id }}</span>
         {{ record.text }}
       </template>
-      <template slot="header"></template>
-      <template slot="footer"></template>
+      <template slot="header">
+        <div class="loading">top loading...</div>
+      </template>
+      <template slot="footer">
+        <div class="loading">bottom loading...</div>
+      </template>
     </virtual-drag-list>
   </div>
 </template>
@@ -40,6 +46,12 @@ Root component:
     },
     components: { virtualDragList },
     methods: {
+      handleToTop() {
+        ...
+      },
+      handleToBottom() {
+        ...
+      },
       ondragend(list) {
         console.log(list)
       }
@@ -47,16 +59,22 @@ Root component:
   }
 </script>
 ```
+## Emits
 
+| **emit** | **Description** |
+|-------------|--------------|
+| `top`       | 滚动到顶部时触发的事件 |
+| `bottom`    | 滚动到底部时触发的事件 |
+| `ondragend` | 拖拽完成时触发的事件 |
 
 ## Props type
 
 ### Required props
 
 | **Prop** | **Type**  | **Description** |
-|------------------|------------------|------------------|
-| `data-key`       | String | 每一条数据的唯一标识 |
-| `data-source`   | Array    | 数据源 |
+|------------------|-------------|------------------|
+| `data-key`       | String      | 每一条数据的唯一标识 |
+| `data-source`    | Array       | 数据源 |
 
 ### Optional props
 

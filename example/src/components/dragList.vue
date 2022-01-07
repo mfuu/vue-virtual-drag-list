@@ -9,10 +9,10 @@
         </div>
       </template>
       <template slot="header">
-        <div class="loading">加载中...</div>
+        <div class="loading">top loading...</div>
       </template>
       <template slot="footer">
-        <div class="loading">加载中...</div>
+        <div class="loading">bottom loading...</div>
       </template>
     </virtual-list>
     <!-- <div class="content">
