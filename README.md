@@ -1,6 +1,5 @@
 可拖拽排序的虚拟滚动列表组件 
 
-文章链接<a href="https://github.com/mf-note/note/blob/main/vue-virtual-draglist.md">点这里</a>
 
 
 ## Simple usage
