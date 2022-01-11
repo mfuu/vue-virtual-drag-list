@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.1
+ * vue-virtual-drag-list v2.1.3
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -13,6 +13,47 @@
   function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
   var Vue__default = /*#__PURE__*/_interopDefaultLegacy(Vue);
+
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      enumerableOnly && (symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      })), keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = null != arguments[i] ? arguments[i] : {};
+      i % 2 ? ownKeys(Object(source), !0).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
+    }
+
+    return target;
+  }
+
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
 
   function _toConsumableArray(arr) {
     return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
@@ -170,7 +211,7 @@
             }
           }
 
-          document.body.style.cursor = 'unset';
+          document.body.style.cursor = '';
         };
       },
       setMask: function setMask(type, left, top) {
@@ -652,14 +693,12 @@
         this.lastCalcIndex = Math.min(this.lastCalcIndex, this.uniqueKeyLen);
         return offset;
       },
-      getItemIndex: function getItemIndex() {
-        return function (item) {
-          var _this4 = this;
+      getItemIndex: function getItemIndex(item) {
+        var _this4 = this;
 
-          return this.list.findIndex(function (el) {
-            return _this4.uniqueId(item) == _this4.uniqueId(el);
-          });
-        };
+        this.list.findIndex(function (el) {
+          return _this4.uniqueId(item) == _this4.uniqueId(el);
+        });
       },
       // 获取每一项的高度
       getItemSize: function getItemSize() {
@@ -681,7 +720,8 @@
 
       var _this$$slots = this.$slots,
           header = _this$$slots.header,
-          footer = _this$$slots.footer;
+          footer = _this$$slots.footer,
+          item = _this$$slots.item;
       var height = this.height,
           padding = this.padding,
           headerTag = this.headerTag,
@@ -713,7 +753,7 @@
       }, header) : null, // 中间内容区域和列表项
       h('div', {
         attrs: {
-          role: 'group'
+          role: 'content'
         },
         style: {
           padding: "".concat(padding.front, "px 0px ").concat(padding.behind, "px")
@@ -723,7 +763,7 @@
 
         var uniqueKey = _this5.uniqueId(val);
 
-        return h(Items, {
+        return item ? h(Items, {
           props: {
             tag: itemTag,
             dragStyle: dragStyle,
@@ -737,7 +777,16 @@
           source: val,
           index: index,
           uniqueKey: uniqueKey
-        }));
+        })) : h(itemTag, {
+          key: uniqueKey,
+          attrs: {
+            'data-key': uniqueKey
+          },
+          style: _objectSpread2({
+            height: "".concat(_this5.size, "px")
+          }, itemStyle),
+          "class": itemClass
+        }, uniqueKey);
       })), // 底部插槽 
       footer ? h(Slots, {
         props: {

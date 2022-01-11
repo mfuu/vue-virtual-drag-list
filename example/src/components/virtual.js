@@ -317,7 +317,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     }
   },
   render (h) {
-    const { header, footer } = this.$slots
+    const { header, footer, item } = this.$slots
     const { height, padding, headerTag, footerTag, itemTag, itemStyle, itemClass, dragStyle, list, start, end } = this
     return h('div', {
       ref: 'virtualDragList',
@@ -338,13 +338,13 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       // 中间内容区域和列表项
       h('div', {
         attrs: {
-          role: 'group'
+          role: 'content'
         },
         style: { padding: `${padding.front}px 0px ${padding.behind}px` }
       }, list.slice(start, end).map(val => {
         const index = this.getItemIndex(val)
         const uniqueKey = this.uniqueId(val)
-          return (
+          return item ? (
             h(Items, {
               props: {
                 tag: itemTag,
@@ -356,6 +356,18 @@ const virtualDragList = Vue.component('virtual-drag-list', {
               style: itemStyle,
               class: itemClass
             }, this.$scopedSlots.item({ source: val, index, uniqueKey }))
+          ) : (
+            h(itemTag, {
+              key: uniqueKey,
+              attrs: {
+                'data-key': uniqueKey
+              },
+              style: {
+                height: `${this.size}px`,
+                ...itemStyle 
+              },
+              class: itemClass
+            }, uniqueKey)
           )
         })
       ),
