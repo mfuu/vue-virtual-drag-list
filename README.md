@@ -72,7 +72,7 @@ Root component:
 
 | **Prop** | **Type**  | **Description** |
 |------------------|-------------|------------------|
-| `data-key`       | String      | 每一条数据的唯一标识 |
+| `data-key`       | String      | 每一条数据的唯一标识`'a.b.c'`形式 |
 | `data-source`    | Array       | 数据源 |
 
 ### Optional props
