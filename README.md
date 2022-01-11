@@ -2,6 +2,9 @@
   <a href="https://npm-stat.com/charts.html?package=vue-virtual-draglist">
     <img alt="Downloads" src="https://img.shields.io/npm/dm/vue-virtual-draglist.svg">
   </a>
+  <a href="https://www.npmjs.com/package/vue-virtual-draglist">
+    <img alt="Version" src="https://img.shields.io/npm/v/vue-virtual-draglist.svg"/>
+  </a>
 </p>
 
 可拖拽排序的虚拟滚动列表组件 
