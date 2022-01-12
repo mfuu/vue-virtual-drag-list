@@ -111,6 +111,7 @@ const mixin = {
     },
     // 找到目标dom在数组中的位置
     getTarget (e) {
+      const { list, uniqueId } = this.$parent
       let dataKey = e.target.getAttribute('data-key')
       let target = e.target
       if (!dataKey) {
@@ -126,7 +127,7 @@ const mixin = {
           }
         }
       }
-      const item = this.$parent.list.find(item => this.$parent.uniqueId(item) == dataKey)
+      const item = list.find(item => uniqueId(item) == dataKey)
       return { target, item }
     },
     // 设置动画

@@ -2,7 +2,7 @@
   <div id="v-draggable-virtual-list">
     <!-- <button @click="toBottom">bottom</button> -->
     <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
-      <template #item="{ source, index }">
+      <template slot="item" slot-scope="{ source, index }">
         <div class="test-item">
           <span class="index" draggable="true">{{ source.index }}</span>
           <span>{{ source.desc }}</span>
@@ -26,9 +26,9 @@
 </template>
 
 <script>
-import virtualList from 'vue-virtual-draglist'
+// import virtualList from 'vue-virtual-draglist'
 
-// import virtualList from './virtual'
+import virtualList from './virtual'
 
 // import virtualList from '../dist/index'
 

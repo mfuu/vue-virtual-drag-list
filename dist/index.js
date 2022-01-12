@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.3
+ * vue-virtual-drag-list v2.1.4
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -236,8 +236,9 @@
       },
       // 找到目标dom在数组中的位置
       getTarget: function getTarget(e) {
-        var _this3 = this;
-
+        var _this$$parent = this.$parent,
+            list = _this$$parent.list,
+            uniqueId = _this$$parent.uniqueId;
         var dataKey = e.target.getAttribute('data-key');
         var target = e.target;
 
@@ -256,8 +257,8 @@
           }
         }
 
-        var item = this.$parent.list.find(function (item) {
-          return _this3.$parent.uniqueId(item) == dataKey;
+        var item = list.find(function (item) {
+          return uniqueId(item) == dataKey;
         });
         return {
           target: target,
@@ -266,7 +267,7 @@
       },
       // 设置动画
       animate: function animate(rect, target) {
-        var _this4 = this;
+        var _this3 = this;
 
         var delay = 300;
 
@@ -281,9 +282,9 @@
           this.setStyle(target, 'transform', 'translate3d(0, 0, 0)');
           clearTimeout(target.animated);
           target.animated = setTimeout(function () {
-            _this4.setStyle(target, 'transition', '');
+            _this3.setStyle(target, 'transition', '');
 
-            _this4.setStyle(target, 'transform', '');
+            _this3.setStyle(target, 'transform', '');
 
             target.animated = false;
           }, delay);
@@ -720,8 +721,7 @@
 
       var _this$$slots = this.$slots,
           header = _this$$slots.header,
-          footer = _this$$slots.footer,
-          item = _this$$slots.item;
+          footer = _this$$slots.footer;
       var height = this.height,
           padding = this.padding,
           headerTag = this.headerTag,
@@ -763,7 +763,7 @@
 
         var uniqueKey = _this5.uniqueId(val);
 
-        return item ? h(Items, {
+        return _this5.$scopedSlots.item ? h(Items, {
           props: {
             tag: itemTag,
             dragStyle: dragStyle,
