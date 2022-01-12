@@ -341,21 +341,21 @@ const virtualDragList = Vue.component('virtual-drag-list', {
           role: 'content'
         },
         style: { padding: `${padding.front}px 0px ${padding.behind}px` }
-      }, list.slice(start, end).map(val => {
-        const index = this.getItemIndex(val)
-        const uniqueKey = this.uniqueId(val)
+      }, list.slice(start, end).map(source => {
+        const index = this.getItemIndex(source)
+        const uniqueKey = this.uniqueId(source)
           return this.$scopedSlots.item ? (
             h(Items, {
               props: {
+                uniqueKey,
+                dragStyle,
                 tag: itemTag,
-                dragStyle: dragStyle,
-                uniqueKey: uniqueKey,
                 event: 'onItemResized'
               },
               key: uniqueKey,
               style: itemStyle,
               class: itemClass
-            }, this.$scopedSlots.item({ source: val, index, uniqueKey }))
+            }, this.$scopedSlots.item({ source, index, dataKey: uniqueKey }))
           ) : (
             h(itemTag, {
               key: uniqueKey,

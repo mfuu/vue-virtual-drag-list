@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.4
+ * vue-virtual-drag-list v2.1.5
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -758,25 +758,25 @@
         style: {
           padding: "".concat(padding.front, "px 0px ").concat(padding.behind, "px")
         }
-      }, list.slice(start, end).map(function (val) {
-        var index = _this5.getItemIndex(val);
+      }, list.slice(start, end).map(function (source) {
+        var index = _this5.getItemIndex(source);
 
-        var uniqueKey = _this5.uniqueId(val);
+        var uniqueKey = _this5.uniqueId(source);
 
         return _this5.$scopedSlots.item ? h(Items, {
           props: {
-            tag: itemTag,
-            dragStyle: dragStyle,
             uniqueKey: uniqueKey,
+            dragStyle: dragStyle,
+            tag: itemTag,
             event: 'onItemResized'
           },
           key: uniqueKey,
           style: itemStyle,
           "class": itemClass
         }, _this5.$scopedSlots.item({
-          source: val,
+          source: source,
           index: index,
-          uniqueKey: uniqueKey
+          dataKey: uniqueKey
         })) : h(itemTag, {
           key: uniqueKey,
           attrs: {
