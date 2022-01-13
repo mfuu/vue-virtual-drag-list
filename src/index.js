@@ -302,7 +302,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       return offset
     },
     getItemIndex(item) {
-      this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
+      return this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
     },
     // 获取每一项的高度
     getItemSize() {
@@ -312,8 +312,8 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       return Math.min(start + this.keeps, this.uniqueKeyLen)
     },
     uniqueId(obj, defaultValue = '') {
-      const keys = this.dataKey
-      return (!Array.isArray(keys) ? keys.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : keys).reduce((o, k) => (o || {})[k], obj) || defaultValue
+      const { dataKey } = this
+      return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce((o, k) => (o || {})[k], obj) || defaultValue
     }
   },
   render (h) {
@@ -341,9 +341,9 @@ const virtualDragList = Vue.component('virtual-drag-list', {
           role: 'content'
         },
         style: { padding: `${padding.front}px 0px ${padding.behind}px` }
-      }, list.slice(start, end).map(source => {
-        const index = this.getItemIndex(source)
-        const uniqueKey = this.uniqueId(source)
+      }, list.slice(start, end).map(record => {
+        const index = this.getItemIndex(record)
+        const uniqueKey = this.uniqueId(record)
           return this.$scopedSlots.item ? (
             h(Items, {
               props: {
@@ -355,7 +355,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
               key: uniqueKey,
               style: itemStyle,
               class: itemClass
-            }, this.$scopedSlots.item({ source, index, dataKey: uniqueKey }))
+            }, this.$scopedSlots.item({ record, index, dataKey: uniqueKey }))
           ) : (
             h(itemTag, {
               key: uniqueKey,

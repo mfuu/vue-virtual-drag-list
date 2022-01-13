@@ -2,10 +2,10 @@
   <div id="v-draggable-virtual-list">
     <!-- <button @click="toBottom">bottom</button> -->
     <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
-      <template slot="item" slot-scope="{ source, index, dataKey }">
+      <template slot="item" slot-scope="{ record, index, dataKey }">
         <div class="test-item">
-          <span class="index" draggable="true">{{ source.index }}</span>
-          <span>{{ source.desc }}</span>
+          <span class="index" draggable="true">{{ record.index }}</span>
+          <span>{{ record.desc }}</span>
         </div>
       </template>
       <template slot="header">

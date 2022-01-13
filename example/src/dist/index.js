@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.5
+ * vue-virtual-drag-list v2.1.6
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -697,7 +697,7 @@
       getItemIndex: function getItemIndex(item) {
         var _this4 = this;
 
-        this.list.findIndex(function (el) {
+        return this.list.findIndex(function (el) {
           return _this4.uniqueId(item) == _this4.uniqueId(el);
         });
       },
@@ -710,8 +710,8 @@
       },
       uniqueId: function uniqueId(obj) {
         var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-        var keys = this.dataKey;
-        return (!Array.isArray(keys) ? keys.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : keys).reduce(function (o, k) {
+        var dataKey = this.dataKey;
+        return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
           return (o || {})[k];
         }, obj) || defaultValue;
       }
@@ -758,10 +758,10 @@
         style: {
           padding: "".concat(padding.front, "px 0px ").concat(padding.behind, "px")
         }
-      }, list.slice(start, end).map(function (source) {
-        var index = _this5.getItemIndex(source);
+      }, list.slice(start, end).map(function (record) {
+        var index = _this5.getItemIndex(record);
 
-        var uniqueKey = _this5.uniqueId(source);
+        var uniqueKey = _this5.uniqueId(record);
 
         return _this5.$scopedSlots.item ? h(Items, {
           props: {
@@ -774,7 +774,7 @@
           style: itemStyle,
           "class": itemClass
         }, _this5.$scopedSlots.item({
-          source: source,
+          record: record,
           index: index,
           dataKey: uniqueKey
         })) : h(itemTag, {

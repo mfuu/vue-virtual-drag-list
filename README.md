@@ -28,9 +28,9 @@ Root component:
       @bottom="handleToBottom"
       @ondragend="ondragend"
     >
-      <template slot="item" slot-scope="{ source, index, dataKey }">
-        <span draggable="true">{{ source.id }}</span>
-        {{ source.text }}
+      <template slot="item" slot-scope="{ record, index, dataKey }">
+        <span draggable="true">{{ record.id }}</span>
+        {{ record.text }}
       </template>
       <template slot="header">
         <div class="loading">top loading...</div>
