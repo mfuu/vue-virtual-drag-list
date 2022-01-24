@@ -124,6 +124,14 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     this.end = this.start + this.keeps
   },
   methods: {
+    // 通过key值获取当前行的高度
+    getSize(key) {
+      return this.sizeStack.get(key)
+    },
+    // 返回当前滚动高度
+    getOffset() {
+      return this.offset
+    },
     // 滚动到底部
     scrollToBottom() {
       const { bottomItem, virtualDragList } = this.$refs
@@ -288,7 +296,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         return (last - this.end) * this.getItemSize()
       }
     },
-    // 通过滚动高度获取索引
+    // 通过索引值获取滚动高度
     getOffsetByIndex(index) {
       if (!index) return 0
       let offset = 0

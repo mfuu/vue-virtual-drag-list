@@ -28,7 +28,7 @@
 <script>
 import virtualList from 'vue-virtual-draglist'
 
-// import virtualList from './virtual'
+// import virtualList from './List/index.js'
 
 // import virtualList from '../dist/index'
 

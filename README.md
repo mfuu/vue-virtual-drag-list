@@ -195,5 +195,13 @@ Root component:
       <td><code>scrollToOffset(offset)</code></td>
       <td>滚动到指定高度</td>
     </tr>
+    <tr>
+      <td><code>getSize(dataKey)</code></td>
+      <td>通过key值获取当前项的高度</td>
+    </tr>
+    <tr>
+      <td><code>getOffset()</code></td>
+      <td>获取当前滚动高度</td>
+    </tr>
   </table>
 </details>

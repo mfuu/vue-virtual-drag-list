@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.6
+ * vue-virtual-drag-list v2.1.7
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -494,6 +494,14 @@
       this.end = this.start + this.keeps;
     },
     methods: {
+      // 通过key值获取当前行的高度
+      getSize: function getSize(key) {
+        return this.sizeStack.get(key);
+      },
+      // 返回当前滚动高度
+      getOffset: function getOffset() {
+        return this.offset;
+      },
       // 滚动到底部
       scrollToBottom: function scrollToBottom() {
         var _this2 = this;
@@ -679,7 +687,7 @@
           return (last - this.end) * this.getItemSize();
         }
       },
-      // 通过滚动高度获取索引
+      // 通过索引值获取滚动高度
       getOffsetByIndex: function getOffsetByIndex(index) {
         if (!index) return 0;
         var offset = 0;
