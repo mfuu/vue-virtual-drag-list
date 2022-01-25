@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.7
+ * vue-virtual-drag-list v2.1.8
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -121,14 +121,14 @@
       getCurrentSize: function getCurrentSize() {
         return this.$el ? this.$el.offsetHeight : 0;
       },
-      mousedown: function mousedown(e) {
+      mousedown: function mousedown(e, vm) {
         var _this2 = this;
 
         // 仅设置了draggable=true的元素才可拖动
         var draggable = e.target.getAttribute('draggable');
         if (!draggable) return; // 记录初始拖拽元素
 
-        var _this$getTarget = this.getTarget(e),
+        var _this$getTarget = this.getTarget(e, vm),
             target = _this$getTarget.target,
             item = _this$getTarget.item;
 
@@ -235,31 +235,34 @@
         }
       },
       // 找到目标dom在数组中的位置
-      getTarget: function getTarget(e) {
+      getTarget: function getTarget(e, vm) {
         var _this$$parent = this.$parent,
             list = _this$$parent.list,
             uniqueId = _this$$parent.uniqueId;
-        var dataKey = e.target.getAttribute('data-key');
-        var target = e.target;
+        var dataKey, target;
 
-        if (!dataKey) {
-          // 如果当前拖拽超出了item范围，则不允许拖拽，否则向上查找dataKey属性
-          if (target.contains(this.$el)) return {};
+        if (vm) {
+          target = vm.$el;
+          dataKey = target.getAttribute('data-key');
+        } else {
+          // 如果当前拖拽超出了item范围，则不允许拖拽，否则查找dataKey属性
+          target = e.target;
+          dataKey = target.getAttribute('data-key');
 
-          for (var node = e.target; node = node.parentNode;) {
-            if (node) {
-              target = node;
-              dataKey = node.getAttribute('data-key');
-              if (node == document.documentElement || dataKey) break;
-            } else {
-              break;
+          if (!dataKey) {
+            var path = e.path || [];
+
+            for (var i = 0; i < path.length; i++) {
+              target = path[i];
+              dataKey = target.getAttribute('data-key');
+              if (dataKey || target == document.documentElement) break;
             }
           }
         }
 
-        var item = list.find(function (item) {
+        var item = dataKey ? list.find(function (item) {
           return uniqueId(item) == dataKey;
-        });
+        }) : null;
         return {
           target: target,
           item: item
@@ -320,6 +323,8 @@
       uniqueKey: {}
     },
     render: function render(h) {
+      var _this4 = this;
+
       var tag = this.tag,
           uniqueKey = this.uniqueKey;
       return h(tag, {
@@ -328,7 +333,9 @@
           'data-key': uniqueKey
         },
         on: {
-          mousedown: this.mousedown
+          mousedown: function mousedown(e) {
+            return _this4.mousedown(e, _this4);
+          }
         }
       }, this.$slots["default"]);
     }

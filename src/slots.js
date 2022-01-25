@@ -31,12 +31,12 @@ const mixin = {
     getCurrentSize () {
       return this.$el ? this.$el.offsetHeight : 0
     },
-    mousedown (e) {
+    mousedown (e, vm) {
       // 仅设置了draggable=true的元素才可拖动
       const draggable = e.target.getAttribute('draggable')
       if (!draggable) return
       // 记录初始拖拽元素
-      const { target, item } = this.getTarget(e)
+      const { target, item } = this.getTarget(e, vm)
       this.$parent.dragState.oldNode = target
       this.$parent.dragState.oldItem = item
       this.setMask('init', e.clientX, e.clientY)
@@ -110,24 +110,26 @@ const mixin = {
       }
     },
     // 找到目标dom在数组中的位置
-    getTarget (e) {
+    getTarget (e, vm) {
       const { list, uniqueId } = this.$parent
-      let dataKey = e.target.getAttribute('data-key')
-      let target = e.target
-      if (!dataKey) {
-        // 如果当前拖拽超出了item范围，则不允许拖拽，否则向上查找dataKey属性
-        if (target.contains(this.$el)) return {}
-        for (let node = e.target; (node = node.parentNode);) {
-          if (node) {
-            target = node
-            dataKey = node.getAttribute('data-key')
-            if (node == document.documentElement || dataKey) break
-          } else {
-            break
+      let dataKey, target
+      if (vm) {
+        target = vm.$el
+        dataKey = target.getAttribute('data-key')
+      } else {
+        // 如果当前拖拽超出了item范围，则不允许拖拽，否则查找dataKey属性
+        target = e.target
+        dataKey = target.getAttribute('data-key')
+        if (!dataKey) {
+          const path = e.path || []
+          for(let i = 0; i < path.length; i++) {
+            target = path[i]
+            dataKey = target.getAttribute('data-key')
+            if (dataKey || target == document.documentElement) break
           }
         }
       }
-      const item = list.find(item => uniqueId(item) == dataKey)
+      const item = dataKey ? list.find(item => uniqueId(item) == dataKey) : null
       return { target, item }
     },
     // 设置动画
@@ -185,7 +187,7 @@ export const Items = Vue.component('virtual-draglist-items', {
         'data-key': uniqueKey
       },
       on: {
-        mousedown: this.mousedown
+        mousedown: (e) => this.mousedown(e, this)
       }
     }, this.$slots.default)
   }
