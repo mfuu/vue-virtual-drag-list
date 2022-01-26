@@ -7,7 +7,7 @@
   </a>
 </p>
 
-可拖拽排序的虚拟滚动列表组件 
+A virtual scrolling list component that can be sorted by dragging , for Vue
 
 
 
@@ -71,9 +71,9 @@ Root component:
 
 | **emit** | **Description** |
 |-------------|--------------|
-| `top`       | 滚动到顶部时触发的事件 |
-| `bottom`    | 滚动到底部时触发的事件 |
-| `ondragend` | 拖拽完成时触发的事件 |
+| `top`       | event fired when scroll to top |
+| `bottom`    | event fired when scroll to bottom |
+| `ondragend` | event fired when the drag is complete, return a new array |
 
 ## Props type
 
@@ -81,8 +81,8 @@ Root component:
 
 | **Prop** | **Type**  | **Description** |
 |------------------|-------------|------------------|
-| `data-key`       | String      | 每一条数据的唯一标识`'a.b.c'`形式 |
-| `data-source`    | Array       | 数据源 |
+| `data-key`       | String      | The unique identifier of each piece of data, in the form of `'a.b.c'` |
+| `data-source`    | Array       | data list  |
 
 ### Optional props
 
@@ -100,19 +100,19 @@ Root component:
       <td><code>keeps</code></td>
       <td>Number</td>
       <td>30</td>
-      <td>虚拟滚动展示的数据量</td>
+      <td>the number of lines rendered by the virtual scroll</td>
     </tr>
     <tr>
       <td><code>size</code></td>
       <td>Number</td>
       <td>50</td>
-      <td>每一条数据的预估高度，可选择传或不传，会自动计算</td>
+      <td>The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated</td>
     </tr>
     <tr>
       <td><code>draggable</code></td>
       <td>Boolean</td>
       <td>true</td>
-      <td>默认可拖拽，需要手动指定拖拽元素，设置draggable="true"</td>
+      <td>whether to support drag and drop. You need to specify a draggable element and set the `draggable` attribute for it</td>
     </tr>
   </table>
 </details>
@@ -131,43 +131,37 @@ Root component:
       <td><code>headerTag</code></td>
       <td>String</td>
       <td><code>div</code></td>
-      <td>顶部插槽的标签类型</td>
+      <td>Label type for header slot</td>
     </tr>
     <tr>
       <td><code>footerTag</code></td>
       <td>String</td>
       <td><code>div</code></td>
-      <td>底部插槽的标签类型</td>
+      <td>Label type for footer slot</td>
     </tr>
     <tr>
       <td><code>itemTag</code></td>
       <td>String</td>
       <td><code>div</code></td>
-      <td>item的标签类型</td>
+      <td>item's tag type</td>
     </tr>
     <tr>
       <td><code>itemStyle</code></td>
       <td>Object</td>
       <td><code>{}</code></td>
-      <td>item样式</td>
+      <td>item's style</td>
     </tr>
     <tr>
       <td><code>itemClass</code></td>
       <td>String</td>
       <td><code>''</code></td>
-      <td>item类名</td>
-    </tr>
-    <tr>
-      <td><code>draggable</code></td>
-      <td>Boolean</td>
-      <td><code>true</code></td>
-      <td>是否可拖拽</td>
+      <td>item's class</td>
     </tr>
     <tr>
       <td><code>dragStyle</code></td>
       <td>Object</td>
       <td><code>{}</code></td>
-      <td>拖拽时的蒙版样式</td>
+      <td>mask style when dragging</td>
     </tr>
   </table>
 </details>
@@ -177,7 +171,7 @@ Root component:
 <details open>
   <summary><strong>Usefull public methods</strong></summary>
   <p></p>
-  <p>使用 <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements">ref</a></code> 去获取组件内部的方法</p>
+  <p>Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements">ref</a></code> to get the method inside the component</p>
   <table>
     <tr>
       <th>Method</th>
@@ -185,23 +179,23 @@ Root component:
     </tr>
     <tr>
       <td><code>scrollToBottom()</code></td>
-      <td>滚动到底部</td>
+      <td>scroll to bottom of list</td>
     </tr>
     <tr>
       <td><code>scrollToIndex(index)</code></td>
-      <td>滚动到指定index值位置</td>
+      <td>scroll to the specified index position</td>
     </tr>
     <tr>
       <td><code>scrollToOffset(offset)</code></td>
-      <td>滚动到指定高度</td>
+      <td>scroll to the specified height</td>
     </tr>
     <tr>
       <td><code>getSize(dataKey)</code></td>
-      <td>通过key值获取当前项的高度</td>
+      <td>get the height of the current item by unique key value</td>
     </tr>
     <tr>
       <td><code>getOffset()</code></td>
-      <td>获取当前滚动高度</td>
+      <td>get the current scroll height</td>
     </tr>
   </table>
 </details>
