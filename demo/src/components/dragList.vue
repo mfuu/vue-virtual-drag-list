@@ -1,5 +1,6 @@
 <template>
   <div id="v-draggable-virtual-list">
+    <button @click="reset">reset</button>
     <!-- <button @click="toBottom">bottom</button> -->
     <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template slot="item" slot-scope="{ record, index, dataKey }">
@@ -104,6 +105,9 @@ export default {
     },
     toBottom() {
       this.$refs.list.scrollToBottom()
+    },
+    reset() {
+      this.$refs.list.reset()
     }
   }
 }

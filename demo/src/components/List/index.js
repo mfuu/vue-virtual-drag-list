@@ -111,10 +111,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
   watch: {
     dataSource: {
       handler(val) {
-        this.list = val
-        this.uniqueKeys = this.list.map(item => this.uniqueId(item))
-        this.handleSourceDataChange()
-        this.updateSizeStack()
+        this.init(val)
       },
       deep: true,
       immediate: true
@@ -124,6 +121,10 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     this.end = this.start + this.keeps
   },
   methods: {
+    reset() {
+      this.scrollToTop()
+      this.init(this.dataSource)
+    },
     // 通过key值获取当前行的高度
     getSize(key) {
       return this.sizeStack.get(key)
@@ -149,6 +150,11 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         }
       }, 10)
     },
+    // 滚动到顶部
+    scrollToTop() {
+      const { virtualDragList } = this.$refs
+      virtualDragList.scrollTop = 0
+    },
     // 滚动到指定高度
     scrollToOffset(offset) {
       const { virtualDragList } = this.$refs
@@ -162,6 +168,12 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         const offset = this.getOffsetByIndex(index)
         this.scrollToOffset(offset)
       }
+    },
+    init(list) {
+      this.list = list
+      this.uniqueKeys = this.list.map(item => this.uniqueId(item))
+      this.handleSourceDataChange()
+      this.updateSizeStack()
     },
     handleScroll(event) {
       const { virtualDragList } = this.$refs

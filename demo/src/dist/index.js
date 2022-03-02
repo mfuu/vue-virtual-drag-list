@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.1.8
+ * vue-virtual-drag-list v2.1.10
  * open source under the MIT license
  * https://github.com/mf-note/vue-virtual-drag-list#readme
  */
@@ -88,11 +88,10 @@
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  var mixin = {
+  var observer = {
     data: function data() {
       return {
-        observer: null,
-        mask: null
+        observer: null
       };
     },
     mounted: function mounted() {
@@ -120,7 +119,16 @@
       },
       getCurrentSize: function getCurrentSize() {
         return this.$el ? this.$el.offsetHeight : 0;
-      },
+      }
+    }
+  };
+  var draggable = {
+    data: function data() {
+      return {
+        mask: null
+      };
+    },
+    methods: {
       mousedown: function mousedown(e, vm) {
         var _this2 = this;
 
@@ -314,16 +322,12 @@
       }
     }
   };
+
   var Items = Vue__default["default"].component('virtual-draglist-items', {
-    mixins: [mixin],
-    props: {
-      tag: {},
-      event: {},
-      dragStyle: {},
-      uniqueKey: {}
-    },
+    mixins: [observer, draggable],
+    props: ['tag', 'event', 'dragStyle', 'uniqueKey'],
     render: function render(h) {
-      var _this4 = this;
+      var _this = this;
 
       var tag = this.tag,
           uniqueKey = this.uniqueKey;
@@ -334,19 +338,15 @@
         },
         on: {
           mousedown: function mousedown(e) {
-            return _this4.mousedown(e, _this4);
+            return _this.mousedown(e, _this);
           }
         }
       }, this.$slots["default"]);
     }
   });
   var Slots = Vue__default["default"].component('virtual-draglist-slots', {
-    mixins: [mixin],
-    props: {
-      tag: {},
-      event: {},
-      uniqueKey: {}
-    },
+    mixins: [observer, draggable],
+    props: ['tag', 'event', 'uniqueKey'],
     render: function render(h) {
       var tag = this.tag,
           uniqueKey = this.uniqueKey;
@@ -484,14 +484,7 @@
     watch: {
       dataSource: {
         handler: function handler(val) {
-          var _this = this;
-
-          this.list = val;
-          this.uniqueKeys = this.list.map(function (item) {
-            return _this.uniqueId(item);
-          });
-          this.handleSourceDataChange();
-          this.updateSizeStack();
+          this.init(val);
         },
         deep: true,
         immediate: true
@@ -501,6 +494,10 @@
       this.end = this.start + this.keeps;
     },
     methods: {
+      reset: function reset() {
+        this.scrollToTop();
+        this.init(this.dataSource);
+      },
       // 通过key值获取当前行的高度
       getSize: function getSize(key) {
         return this.sizeStack.get(key);
@@ -511,7 +508,7 @@
       },
       // 滚动到底部
       scrollToBottom: function scrollToBottom() {
-        var _this2 = this;
+        var _this = this;
 
         var _this$$refs = this.$refs,
             bottomItem = _this$$refs.bottomItem,
@@ -528,9 +525,14 @@
 
         setTimeout(function () {
           if (scrollTop + clientHeight < scrollHeight) {
-            _this2.scrollToBottom();
+            _this.scrollToBottom();
           }
         }, 10);
+      },
+      // 滚动到顶部
+      scrollToTop: function scrollToTop() {
+        var virtualDragList = this.$refs.virtualDragList;
+        virtualDragList.scrollTop = 0;
       },
       // 滚动到指定高度
       scrollToOffset: function scrollToOffset(offset) {
@@ -545,6 +547,16 @@
           var offset = this.getOffsetByIndex(index);
           this.scrollToOffset(offset);
         }
+      },
+      init: function init(list) {
+        var _this2 = this;
+
+        this.list = list;
+        this.uniqueKeys = this.list.map(function (item) {
+          return _this2.uniqueId(item);
+        });
+        this.handleSourceDataChange();
+        this.updateSizeStack();
       },
       handleScroll: function handleScroll(event) {
         var virtualDragList = this.$refs.virtualDragList;

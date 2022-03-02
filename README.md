@@ -182,6 +182,10 @@ Root component:
       <td>scroll to bottom of list</td>
     </tr>
     <tr>
+      <td><code>scrollToTop()</code></td>
+      <td>scroll to top of list</td>
+    </tr>
+    <tr>
       <td><code>scrollToIndex(index)</code></td>
       <td>scroll to the specified index position</td>
     </tr>
@@ -196,6 +200,10 @@ Root component:
     <tr>
       <td><code>getOffset()</code></td>
       <td>get the current scroll height</td>
+    </tr>
+    <tr>
+      <td><code>reset()</code></td>
+      <td>reset to initial</td>
     </tr>
   </table>
 </details>
