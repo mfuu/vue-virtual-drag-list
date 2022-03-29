@@ -1,7 +1,7 @@
 /*!
- * vue-virtual-drag-list v2.1.10
+ * vue-virtual-drag-list v2.2.0
  * open source under the MIT license
- * https://github.com/mf-note/vue-virtual-drag-list#readme
+ * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
 
 (function (global, factory) {
@@ -323,9 +323,92 @@
     }
   };
 
+  var VirtualProps = {
+    // 列表数据
+    dataSource: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
+    },
+    // 每一项的key值键值
+    dataKey: {
+      type: String,
+      required: true
+    },
+    // 虚拟列表高度
+    height: {
+      type: String,
+      "default": '100%'
+    },
+    // 列表展示多少条数据，为0或者不传会自动计算
+    keeps: {
+      type: Number,
+      "default": 30
+    },
+    // 每一行预估高度
+    size: {
+      type: Number
+    },
+    // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
+    draggable: {
+      type: Boolean,
+      "default": true
+    },
+    headerTag: {
+      type: String,
+      "default": 'div'
+    },
+    footerTag: {
+      type: String,
+      "default": 'div'
+    },
+    itemTag: {
+      type: String,
+      "default": 'div'
+    },
+    itemStyle: {
+      type: Object,
+      "default": function _default() {
+        return {};
+      }
+    },
+    itemClass: {
+      type: String,
+      "default": ''
+    },
+    // 拖拽时的样式
+    dragStyle: {
+      type: Object,
+      "default": function _default() {
+        return {
+          backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
+        };
+      }
+    }
+  };
+  var SlotItemProps = {
+    tag: {
+      type: String,
+      "default": 'div'
+    },
+    event: {
+      type: String
+    },
+    dragStyle: {
+      type: Object,
+      "default": function _default() {
+        return {};
+      }
+    },
+    uniqueKey: {
+      type: [String, Number]
+    }
+  };
+
   var Items = Vue__default["default"].component('virtual-draglist-items', {
     mixins: [observer, draggable],
-    props: ['tag', 'event', 'dragStyle', 'uniqueKey'],
+    props: SlotItemProps,
     render: function render(h) {
       var _this = this;
 
@@ -345,8 +428,8 @@
     }
   });
   var Slots = Vue__default["default"].component('virtual-draglist-slots', {
-    mixins: [observer, draggable],
-    props: ['tag', 'event', 'uniqueKey'],
+    mixins: [observer],
+    props: SlotItemProps,
     render: function render(h) {
       var tag = this.tag,
           uniqueKey = this.uniqueKey;
@@ -360,68 +443,7 @@
   });
 
   var virtualDragList = Vue__default["default"].component('virtual-drag-list', {
-    props: {
-      // 列表数据
-      dataSource: {
-        type: Array,
-        "default": function _default() {
-          return [];
-        }
-      },
-      // 每一项的key值键值
-      dataKey: {
-        type: String,
-        required: true
-      },
-      // 虚拟列表高度
-      height: {
-        type: String,
-        "default": '100%'
-      },
-      // 列表展示多少条数据，为0或者不传会自动计算
-      keeps: {
-        type: Number,
-        "default": 30
-      },
-      // 每一行预估高度
-      size: {
-        type: Number
-      },
-      // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
-      draggable: {
-        type: Boolean,
-        "default": true
-      },
-      headerTag: {
-        type: String,
-        "default": 'div'
-      },
-      footerTag: {
-        type: String,
-        "default": 'div'
-      },
-      itemTag: {
-        type: String,
-        "default": 'div'
-      },
-      itemStyle: {
-        type: Object,
-        "default": function _default() {}
-      },
-      itemClass: {
-        type: String,
-        "default": ''
-      },
-      // 拖拽时的样式
-      dragStyle: {
-        type: Object,
-        "default": function _default() {
-          return {
-            backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
-          };
-        }
-      }
-    },
+    props: VirtualProps,
     data: function data() {
       return {
         list: [],

@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import { observer, draggable } from './mixins'
+import { SlotItemProps } from './props'
 
 export const Items = Vue.component('virtual-draglist-items', {
   mixins: [observer, draggable],
-  props: ['tag', 'event', 'dragStyle', 'uniqueKey'],
+  props: SlotItemProps,
   render (h) {
     const { tag, uniqueKey } = this
     return h(tag, {
@@ -19,8 +20,8 @@ export const Items = Vue.component('virtual-draglist-items', {
 })
 
 export const Slots = Vue.component('virtual-draglist-slots', {
-  mixins: [observer, draggable],
-  props: ['tag', 'event', 'uniqueKey'],
+  mixins: [observer],
+  props: SlotItemProps,
   render (h) {
     const { tag, uniqueKey } = this
     return h(tag, {
