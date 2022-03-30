@@ -5,7 +5,7 @@
     <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template slot="item" slot-scope="{ record, index, dataKey }">
         <div class="test-item">
-          <span class="index" draggable="true">{{ record.index }}</span>
+          <span class="index" draggable="true">{{ record.id }}</span>
           <span>{{ record.desc }}</span>
         </div>
       </template>
@@ -29,9 +29,9 @@
 <script>
 // import virtualList from 'vue-virtual-draglist'
 
-import virtualList from './List/index.js'
+// import virtualList from './List/index.js'
 
-// import virtualList from '../dist/index'
+import virtualList from '../dist/index'
 
 import { Table } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.css'

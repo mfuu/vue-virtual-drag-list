@@ -1,67 +1,10 @@
 import Vue from 'vue'
 import { Slots, Items } from './slots'
+import { VirtualProps } from './props'
+import utils from './utils'
 
 const virtualDragList = Vue.component('virtual-drag-list', {
-  props: {
-    // 列表数据
-    dataSource: {
-      type: Array,
-      default: () => []
-    },
-    // 每一项的key值键值
-    dataKey: {
-      type: String,
-      required: true
-    },
-    // 虚拟列表高度
-    height: {
-      type: String,
-      default: '100%'
-    },
-    // 列表展示多少条数据，为0或者不传会自动计算
-    keeps: {
-      type: Number,
-      default: 30
-    },
-    // 每一行预估高度
-    size: {
-      type: Number
-    },
-    // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
-    draggable: {
-      type: Boolean,
-      default: true
-    },
-    headerTag: {
-      type: String,
-      default: 'div'
-    },
-    footerTag: {
-      type: String,
-      default: 'div'
-    },
-    itemTag: {
-      type: String,
-      default: 'div'
-    },
-    itemStyle: {
-      type: Object,
-      default: () => {}
-    },
-    itemClass: {
-      type: String,
-      default: ''
-    },
-    // 拖拽时的样式
-    dragStyle: {
-      type: Object,
-      default: () => {
-        return {
-          backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
-        }
-      }
-    }
-  },
+  props: VirtualProps,
   data() {
     return {
       list: [], // 将dataSource克隆一份
@@ -98,6 +41,11 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         newItem: null, // 拖拽结束节点数据
         newIndex: null // 拖拽结束节点索引
       }
+    }
+  },
+  provide() {
+    return {
+      virtual: this
     }
   },
   computed: {
@@ -169,30 +117,41 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         this.scrollToOffset(offset)
       }
     },
-    init(list) {
+    setList(list) {
       this.list = list
+    },
+    setDragState(state) {
+      this.dragState = Object.assign({}, this.dragState, state)
+    },
+    handleDragEnd(list) {
+      this.$emit('ondragend', list)
+    },
+    init(list) {
+      this.list = [...list]
       this.uniqueKeys = this.list.map(item => this.uniqueId(item))
       this.handleSourceDataChange()
       this.updateSizeStack()
     },
     handleScroll(event) {
-      const { virtualDragList } = this.$refs
-      const clientHeight = Math.ceil(this.$el.clientHeight)
-      const scrollTop = Math.ceil(virtualDragList.scrollTop)
-      const scrollHeight = Math.ceil(virtualDragList.scrollHeight)
-      // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
-      if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) return
-      // 记录上一次滚动的距离，判断当前滚动方向
-      this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
-      this.offset = scrollTop
-      const overs = this.getScrollOvers()
-      if (this.direction === 'FRONT') {
-        this.handleFront(overs)
-        if (!!this.list.length && scrollTop <= 0) this.$emit('top')
-      } else if (this.direction === 'BEHIND') {
-        this.handleBehind(overs)
-        if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom')
-      }
+      utils.debounce(() => {
+        const { virtualDragList } = this.$refs
+        const clientHeight = Math.ceil(this.$el.clientHeight)
+        const scrollTop = Math.ceil(virtualDragList.scrollTop)
+        const scrollHeight = Math.ceil(virtualDragList.scrollHeight)
+        // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+        if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) return
+        // 记录上一次滚动的距离，判断当前滚动方向
+        this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
+        this.offset = scrollTop
+        const overs = this.getScrollOvers()
+        if (this.direction === 'FRONT') {
+          this.handleFront(overs)
+          if (!!this.list.length && scrollTop <= 0) this.$emit('top')
+        } else if (this.direction === 'BEHIND') {
+          this.handleBehind(overs)
+          if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom')
+        }
+      }, 50)()
     },
     handleFront(overs) {
       if (overs > this.start) {
@@ -361,7 +320,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
           role: 'content'
         },
         style: { padding: `${padding.front}px 0px ${padding.behind}px` }
-      }, list.slice(start, end).map(record => {
+      }, list.slice(start, end + 1).map(record => {
         const index = this.getItemIndex(record)
         const uniqueKey = this.uniqueId(record)
           return this.$scopedSlots.item ? (
