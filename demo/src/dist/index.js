@@ -5,14 +5,15 @@
  */
 
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('vue')) :
-  typeof define === 'function' && define.amd ? define(['vue'], factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.VirtualDragList = factory(global.Vue));
-})(this, (function (Vue) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('vue'), require('js-draggable-list')) :
+  typeof define === 'function' && define.amd ? define(['vue', 'js-draggable-list'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.VirtualDragList = factory(global.Vue, global.Draggable));
+})(this, (function (Vue, Draggable) { 'use strict';
 
   function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
   var Vue__default = /*#__PURE__*/_interopDefaultLegacy(Vue);
+  var Draggable__default = /*#__PURE__*/_interopDefaultLegacy(Draggable);
 
   function ownKeys(object, enumerableOnly) {
     var keys = Object.keys(object);
@@ -88,149 +89,6 @@
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  var utils = {
-    /**
-     * 防抖
-     * @param {Function} func callback function
-     * @param {Number} delay delay time
-     * @param {Boolean} immediate whether to execute immediately
-     * @returns function
-     */
-    debounce: function debounce(func) {
-      var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
-      var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      var timer = null;
-      var result;
-
-      var debounced = function debounced() {
-        var _this = this;
-
-        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
-        }
-
-        if (timer) clearTimeout(timer);
-
-        if (immediate) {
-          var callNow = !timer;
-          timer = setTimeout(function () {
-            timer = null;
-          }, delay);
-          if (callNow) result = func.apply(this, args);
-        } else {
-          timer = setTimeout(function () {
-            func.apply(_this, args);
-          }, delay);
-        }
-
-        return result;
-      };
-
-      debounced.cancel = function () {
-        clearTimeout(timer);
-        timer = null;
-      };
-
-      return debounced;
-    },
-
-    /**
-     * 找到目标 dom 在数组中的位置
-     * @param {Object} e event
-     * @param {Object} vm vue实例
-     * @param {Object} virtual 父组件 provide
-     * @returns 
-     */
-    getSwitchTarget: function getSwitchTarget(e, vm, virtual) {
-      var list = virtual.list,
-          uniqueId = virtual.uniqueId;
-      var dataKey, target;
-
-      if (vm) {
-        target = vm.$el;
-        dataKey = target.getAttribute('data-key');
-      } else {
-        // 如果当前拖拽超出了item范围，则不允许拖拽，否则查找dataKey属性
-        target = e.target;
-        dataKey = target.getAttribute('data-key');
-
-        if (!dataKey) {
-          var path = e.path || [];
-
-          for (var i = 0; i < path.length; i++) {
-            target = path[i];
-            dataKey = target.getAttribute('data-key');
-            if (dataKey || target == document.documentElement) break;
-          }
-        }
-      }
-
-      var item = dataKey ? list.find(function (item) {
-        return uniqueId(item) == dataKey;
-      }) : null;
-      return {
-        target: target,
-        item: item
-      };
-    },
-
-    /**
-     * 设置动画
-     * @param {Object} rect getBoundingClientRect()
-     * @param {HTMLElement} target DOM
-     */
-    setAnimate: function setAnimate(rect, target) {
-      var _this2 = this;
-
-      var delay = 300;
-
-      {
-        var cRect = target.getBoundingClientRect();
-        if (rect.nodeType === 1) rect = rect.getBoundingClientRect();
-        this.setStyle(target, 'transition', 'none');
-        this.setStyle(target, 'transform', "translate3d(".concat(rect.left - cRect.left, "px, ").concat(rect.top - cRect.top, "px, 0)"));
-        target.offsetWidth; // 触发重绘
-
-        this.setStyle(target, 'transition', "all ".concat(delay, "ms"));
-        this.setStyle(target, 'transform', 'translate3d(0, 0, 0)');
-        clearTimeout(target.animated);
-        target.animated = setTimeout(function () {
-          _this2.setStyle(target, 'transition', '');
-
-          _this2.setStyle(target, 'transform', '');
-
-          target.animated = false;
-        }, delay);
-      }
-    },
-
-    /**
-     * 为dom添加样式
-     * @param {HTMLElement} el 
-     * @param {String} prop style name
-     * @param {String} val style value
-     * @returns 
-     */
-    setStyle: function setStyle(el, prop, val) {
-      var style = el && el.style;
-
-      if (style) {
-        if (val === void 0) {
-          if (document.defaultView && document.defaultView.getComputedStyle) {
-            val = document.defaultView.getComputedStyle(el, '');
-          } else if (el.currentStyle) {
-            val = el.currentStyle;
-          }
-
-          return prop === void 0 ? val : val[prop];
-        } else {
-          if (!(prop in style)) prop = '-webkit-' + prop;
-          style[prop] = val + (typeof val === 'string' ? '' : 'px');
-        }
-      }
-    }
-  };
-
   var observer = {
     inject: ['virtual'],
     data: function data() {
@@ -263,142 +121,6 @@
       },
       getCurrentSize: function getCurrentSize() {
         return this.$el ? this.$el.offsetHeight : 0;
-      }
-    }
-  };
-  var draggable = {
-    data: function data() {
-      return {
-        mask: null,
-        switched: false
-      };
-    },
-    methods: {
-      mousedown: function mousedown(e, vm) {
-        var _this2 = this;
-
-        // 每次拖拽将状态重置
-        this.switched = false; // 仅设置了draggable=true的元素才可拖动
-
-        var draggable = e.target.getAttribute('draggable');
-        if (!draggable) return; // 记录初始拖拽元素
-
-        var _utils$getSwitchTarge = utils.getSwitchTarget(e, vm, this.virtual),
-            target = _utils$getSwitchTarge.target,
-            item = _utils$getSwitchTarge.item;
-
-        this.virtual.setDragState({
-          oldNode: target,
-          oldItem: item
-        });
-        this.setMask('init', e.clientX, e.clientY);
-
-        document.onmousemove = function (evt) {
-          evt.preventDefault();
-
-          _this2.setMask('move', evt.clientX, evt.clientY);
-
-          var _utils$getSwitchTarge2 = utils.getSwitchTarget(evt, null, _this2.virtual),
-              _utils$getSwitchTarge3 = _utils$getSwitchTarge2.target,
-              target = _utils$getSwitchTarge3 === void 0 ? null : _utils$getSwitchTarge3,
-              _utils$getSwitchTarge4 = _utils$getSwitchTarge2.item,
-              item = _utils$getSwitchTarge4 === void 0 ? null : _utils$getSwitchTarge4; // 如果没找到目标节点，取消拖拽事件
-
-
-          if (!target || !item) {
-            document.body.style.cursor = 'not-allowed';
-            return;
-          }
-
-          document.body.style.cursor = 'grabbing'; // 记录拖拽目标元素
-
-          _this2.virtual.setDragState({
-            newNode: target,
-            newItem: item
-          });
-
-          var _this2$virtual$dragSt = _this2.virtual.dragState,
-              oldNode = _this2$virtual$dragSt.oldNode,
-              newNode = _this2$virtual$dragSt.newNode,
-              oldItem = _this2$virtual$dragSt.oldItem,
-              newItem = _this2$virtual$dragSt.newItem; // 拖拽前后不一致，改变拖拽节点位置
-
-          if (oldItem != newItem) {
-            if (newNode && newNode.animated) return;
-            _this2.switched = true;
-
-            var oldIndex = _this2.virtual.list.indexOf(oldItem);
-
-            var newIndex = _this2.virtual.list.indexOf(newItem);
-
-            var oldRect = oldNode.getBoundingClientRect();
-            var newRect = newNode.getBoundingClientRect(); // 记录前后位置
-
-            _this2.virtual.setDragState({
-              oldIndex: oldIndex,
-              newIndex: newIndex
-            });
-
-            if (oldIndex < newIndex) {
-              newNode.parentNode.insertBefore(oldNode, newNode.nextSibling);
-            } else {
-              newNode.parentNode.insertBefore(oldNode, newNode);
-            }
-
-            utils.setAnimate(oldRect, oldNode);
-            utils.setAnimate(newRect, newNode);
-          }
-        };
-
-        document.onmouseup = function () {
-          document.onmousemove = null;
-          document.onmouseup = null;
-
-          _this2.setMask('destory'); // 当前拖拽位置不在允许的范围内时不需要对数组重新赋值
-
-
-          if (_this2.switched) {
-            var _this2$virtual$dragSt2 = _this2.virtual.dragState,
-                oldItem = _this2$virtual$dragSt2.oldItem,
-                oldIndex = _this2$virtual$dragSt2.oldIndex,
-                newIndex = _this2$virtual$dragSt2.newIndex; // 拖拽前后不一致，数组重新赋值
-
-            if (oldIndex != newIndex) {
-              var newArr = _toConsumableArray(_this2.virtual.list);
-
-              newArr.splice(oldIndex, 1);
-              newArr.splice(newIndex, 0, oldItem);
-
-              _this2.virtual.setList(newArr);
-
-              _this2.virtual.handleDragEnd(newArr);
-            }
-
-            _this2.switched = false;
-          }
-
-          document.body.style.cursor = '';
-        };
-      },
-      setMask: function setMask(type, left, top) {
-        if (type == 'init') {
-          this.mask = document.createElement('div');
-
-          for (var key in this.dragStyle) {
-            utils.setStyle(this.mask, key, this.dragStyle[key]);
-          }
-
-          this.mask.style.position = 'fixed';
-          this.mask.style.left = left + 'px';
-          this.mask.style.top = top + 'px';
-          this.mask.innerHTML = this.$el.innerHTML;
-          document.body.appendChild(this.mask);
-        } else if (type == 'move') {
-          this.mask.style.left = left + 'px';
-          this.mask.style.top = top + 'px';
-        } else {
-          document.body.removeChild(this.mask);
-        }
       }
     }
   };
@@ -487,22 +209,15 @@
   };
 
   var Items = Vue__default["default"].component('virtual-draglist-items', {
-    mixins: [observer, draggable],
+    mixins: [observer],
     props: SlotItemProps,
     render: function render(h) {
-      var _this = this;
-
       var tag = this.tag,
           uniqueKey = this.uniqueKey;
       return h(tag, {
         key: uniqueKey,
         attrs: {
           'data-key': uniqueKey
-        },
-        on: {
-          mousedown: function mousedown(e) {
-            return _this.mousedown(e, _this);
-          }
         }
       }, this.$slots["default"]);
     }
@@ -521,6 +236,53 @@
       }, this.$slots["default"]);
     }
   });
+
+  var utils = {
+    /**
+     * 防抖
+     * @param {Function} func callback function
+     * @param {Number} delay delay time
+     * @param {Boolean} immediate whether to execute immediately
+     * @returns function
+     */
+    debounce: function debounce(func) {
+      var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
+      var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      var timer = null;
+      var result;
+
+      var debounced = function debounced() {
+        var _this = this;
+
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+
+        if (timer) clearTimeout(timer);
+
+        if (immediate) {
+          var callNow = !timer;
+          timer = setTimeout(function () {
+            timer = null;
+          }, delay);
+          if (callNow) result = func.apply(this, args);
+        } else {
+          timer = setTimeout(function () {
+            func.apply(_this, args);
+          }, delay);
+        }
+
+        return result;
+      };
+
+      debounced.cancel = function () {
+        clearTimeout(timer);
+        timer = null;
+      };
+
+      return debounced;
+    }
+  };
 
   var virtualDragList = Vue__default["default"].component('virtual-drag-list', {
     props: VirtualProps,
@@ -572,7 +334,8 @@
           // 拖拽结束节点数据
           newIndex: null // 拖拽结束节点索引
 
-        }
+        },
+        drag: null
       };
     },
     provide: function provide() {
@@ -598,7 +361,48 @@
       }
     },
     mounted: function mounted() {
+      var _this = this;
+
       this.end = this.start + this.keeps;
+      this.drag = new Draggable__default["default"]({
+        groupElement: this.$refs.content,
+        cloneElementStyle: this.dragStyle,
+        scrollElement: this.$refs.virtualDragList,
+        dragElement: function dragElement(e) {
+          return e.target.parentNode.parentNode;
+        },
+        dragEnd: function dragEnd(pre, cur) {
+          if (pre.rect.top === cur.rect.top) return;
+          var oldKey = pre.node.getAttribute('data-key');
+          var newKey = cur.node.getAttribute('data-key');
+          _this.dragState.oldNode = pre.node;
+          _this.dragState.newNode = cur.node;
+
+          _this.list.forEach(function (el, index) {
+            if (_this.uniqueId(el) === oldKey) {
+              _this.dragState.oldItem = el;
+              _this.dragState.oldIndex = index;
+            }
+
+            if (_this.uniqueId(el) === newKey) {
+              _this.dragState.newItem = el;
+              _this.dragState.newIndex = index;
+            }
+          });
+
+          var newArr = _toConsumableArray(_this.list);
+
+          newArr.splice(_this.dragState.oldIndex, 1);
+          newArr.splice(_this.dragState.newIndex, 0, _this.dragState.oldItem);
+
+          _this.setList(newArr);
+
+          _this.handleDragEnd(newArr);
+        }
+      });
+    },
+    beforeDestroy: function beforeDestroy() {
+      this.drag.destroy();
     },
     methods: {
       reset: function reset() {
@@ -615,7 +419,7 @@
       },
       // 滚动到底部
       scrollToBottom: function scrollToBottom() {
-        var _this = this;
+        var _this2 = this;
 
         var _this$$refs = this.$refs,
             bottomItem = _this$$refs.bottomItem,
@@ -632,7 +436,7 @@
 
         setTimeout(function () {
           if (scrollTop + clientHeight < scrollHeight) {
-            _this.scrollToBottom();
+            _this2.scrollToBottom();
           }
         }, 10);
       },
@@ -665,41 +469,34 @@
         this.$emit('ondragend', list);
       },
       init: function init(list) {
-        var _this2 = this;
+        var _this3 = this;
 
         this.list = _toConsumableArray(list);
         this.uniqueKeys = this.list.map(function (item) {
-          return _this2.uniqueId(item);
+          return _this3.uniqueId(item);
         });
         this.handleSourceDataChange();
         this.updateSizeStack();
       },
       handleScroll: function handleScroll(event) {
-        var _this3 = this;
+        var virtualDragList = this.$refs.virtualDragList;
+        var clientHeight = Math.ceil(this.$el.clientHeight);
+        var scrollTop = Math.ceil(virtualDragList.scrollTop);
+        var scrollHeight = Math.ceil(virtualDragList.scrollHeight); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
 
-        utils.debounce(function () {
-          var virtualDragList = _this3.$refs.virtualDragList;
-          var clientHeight = Math.ceil(_this3.$el.clientHeight);
-          var scrollTop = Math.ceil(virtualDragList.scrollTop);
-          var scrollHeight = Math.ceil(virtualDragList.scrollHeight); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+        if (scrollTop < 0 || scrollTop + clientHeight > scrollHeight + 1 || !scrollHeight) return; // 记录上一次滚动的距离，判断当前滚动方向
 
-          if (scrollTop < 0 || scrollTop + clientHeight > scrollHeight + 1 || !scrollHeight) return; // 记录上一次滚动的距离，判断当前滚动方向
+        this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND';
+        this.offset = scrollTop;
+        var overs = this.getScrollOvers();
 
-          _this3.direction = scrollTop < _this3.offset ? 'FRONT' : 'BEHIND';
-          _this3.offset = scrollTop;
-
-          var overs = _this3.getScrollOvers();
-
-          if (_this3.direction === 'FRONT') {
-            _this3.handleFront(overs);
-
-            if (!!_this3.list.length && scrollTop <= 0) _this3.$emit('top');
-          } else if (_this3.direction === 'BEHIND') {
-            _this3.handleBehind(overs);
-
-            if (clientHeight + scrollTop >= scrollHeight) _this3.$emit('bottom');
-          }
-        }, 50)();
+        if (this.direction === 'FRONT') {
+          this.handleFront(overs);
+          if (!!this.list.length && scrollTop <= 0) this.$emit('top');
+        } else if (this.direction === 'BEHIND') {
+          this.handleBehind(overs);
+          if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom');
+        }
       },
       handleFront: function handleFront(overs) {
         if (overs > this.start) {
@@ -886,7 +683,7 @@
       return h('div', {
         ref: 'virtualDragList',
         on: {
-          '&scroll': this.handleScroll
+          '&scroll': utils.debounce(this.handleScroll, 10)
         },
         style: {
           height: height,
@@ -902,6 +699,7 @@
         }
       }, header) : null, // 中间内容区域和列表项
       h('div', {
+        ref: 'content',
         attrs: {
           role: 'content'
         },
@@ -914,13 +712,13 @@
         var uniqueKey = _this6.uniqueId(record);
 
         return _this6.$scopedSlots.item ? h(Items, {
+          key: uniqueKey,
           props: {
             uniqueKey: uniqueKey,
             dragStyle: dragStyle,
             tag: itemTag,
             event: 'onItemResized'
           },
-          key: uniqueKey,
           style: itemStyle,
           "class": itemClass
         }, _this6.$scopedSlots.item({

@@ -1,9 +1,9 @@
 import Vue from 'vue'
-import { observer, draggable } from './mixins'
+import { observer } from './observer'
 import { SlotItemProps } from './props'
 
 export const Items = Vue.component('virtual-draglist-items', {
-  mixins: [observer, draggable],
+  mixins: [observer],
   props: SlotItemProps,
   render (h) {
     const { tag, uniqueKey } = this
@@ -12,9 +12,6 @@ export const Items = Vue.component('virtual-draglist-items', {
       attrs: {
         'data-key': uniqueKey
       },
-      on: {
-        mousedown: (e) => this.mousedown(e, this)
-      }
     }, this.$slots.default)
   }
 })

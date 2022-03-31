@@ -1,6 +1,7 @@
 <template>
   <div id="v-draggable-virtual-list">
     <button @click="reset">reset</button>
+    <!-- <Table v-virtual :columns="columns" :dataSource="dataSource" rowKey="id" :pagination="false" /> -->
     <!-- <button @click="toBottom">bottom</button> -->
     <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template slot="item" slot-scope="{ record, index, dataKey }">
