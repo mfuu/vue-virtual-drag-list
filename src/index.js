@@ -74,7 +74,15 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       cloneElementStyle: this.dragStyle,
       scrollElement: this.$refs.virtualDragList,
       dragElement: (e) => {
-        return e.target.parentNode.parentNode
+        if (this.dragElement) {
+          return this.dragElement(e, this.$refs.content)
+        } else {
+          let result = e.target
+          while([].indexOf.call(this.$refs.content.children, result) < 0) {
+            result = result.parentNode
+          }
+          return result
+        }
       },
       dragEnd: (pre, cur) => {
         if (pre.rect.top === cur.rect.top) return
@@ -334,7 +342,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     return h('div', {
       ref: 'virtualDragList',
       on: {
-        '&scroll': utils.debounce(this.handleScroll, 10)
+        '&scroll': utils.debounce(this.handleScroll, this.delay)
       },
       style: { height, overflow: 'hidden auto', position: 'relative' }
     }, [

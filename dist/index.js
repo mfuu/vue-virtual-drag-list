@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.3.0
+ * vue-virtual-drag-list v2.4.2
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -152,6 +152,11 @@
     size: {
       type: Number
     },
+    // 防抖延迟时间
+    delay: {
+      type: Number,
+      "default": 10
+    },
     // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
     draggable: {
       type: Boolean,
@@ -187,6 +192,9 @@
           backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
         };
       }
+    },
+    dragElement: {
+      type: Function
     }
   };
   var SlotItemProps = {
@@ -369,7 +377,17 @@
         cloneElementStyle: this.dragStyle,
         scrollElement: this.$refs.virtualDragList,
         dragElement: function dragElement(e) {
-          return e.target.parentNode.parentNode;
+          if (_this.dragElement) {
+            return _this.dragElement(e, _this.$refs.content);
+          } else {
+            var result = e.target;
+
+            while ([].indexOf.call(_this.$refs.content.children, result) < 0) {
+              result = result.parentNode;
+            }
+
+            return result;
+          }
         },
         dragEnd: function dragEnd(pre, cur) {
           if (pre.rect.top === cur.rect.top) return;
@@ -683,7 +701,7 @@
       return h('div', {
         ref: 'virtualDragList',
         on: {
-          '&scroll': utils.debounce(this.handleScroll, 10)
+          '&scroll': utils.debounce(this.handleScroll, this.delay)
         },
         style: {
           height: height,

@@ -25,6 +25,11 @@ export const VirtualProps = {
   size: {
     type: Number
   },
+  // 防抖延迟时间
+  delay: {
+    type: Number,
+    default: 10
+  },
   // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
   draggable: {
     type: Boolean,
@@ -60,6 +65,9 @@ export const VirtualProps = {
         backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
       }
     }
+  },
+  dragElement: {
+    type: Function
   }
 }
 

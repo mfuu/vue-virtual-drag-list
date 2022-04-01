@@ -128,6 +128,18 @@ Root component:
       <th>Description</th>
     </tr>
     <tr>
+      <td><code>delay</code></td>
+      <td>Number</td>
+      <td><code>10</code></td>
+      <td>Delay time of debounce function</td>
+    </tr>
+    <tr>
+      <td><code>dragElement</code></td>
+      <td>Function</td>
+      <td><code>-</code></td>
+      <td>The function that selects the dragged element, <b>must have a return value with a dom node</b>, has two parameters: e(the currently selected element), parent(the parent node of the list)</td>
+    </tr>
+    <tr>
       <td><code>headerTag</code></td>
       <td>String</td>
       <td><code>div</code></td>
