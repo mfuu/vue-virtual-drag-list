@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.5.0
+ * vue-virtual-drag-list v2.5.1
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -892,11 +892,11 @@
           var _this = this;
 
           if (val) {
-            if (!this.drag) this.$nextTick(function () {
+            this.$nextTick(function () {
               _this.initDraggable();
             });
           } else {
-            if (this.drag) this.destroyDraggable();
+            this.destroyDraggable();
           }
         },
         deep: true,
@@ -907,7 +907,7 @@
       this.end = this.start + this.keeps;
     },
     beforeDestroy: function beforeDestroy() {
-      this.drag.destroy();
+      this.destroyDraggable();
     },
     methods: {
       // 通过key值获取当前行的高度
@@ -1166,6 +1166,7 @@
       initDraggable: function initDraggable() {
         var _this6 = this;
 
+        this.destroyDraggable();
         this.drag = new draggable({
           groupElement: this.$refs.content,
           cloneElementStyle: this.dragStyle,
@@ -1217,7 +1218,7 @@
         });
       },
       destroyDraggable: function destroyDraggable() {
-        this.drag.destroy();
+        this.drag && this.drag.destroy();
         this.drag = null;
       },
       reset: function reset() {

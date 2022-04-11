@@ -28,7 +28,7 @@
     "eslint-plugin-vue": "^5.0.0",
     "js-draggable-list": "0.0.7",
     "vue-template-compiler": "^2.6.11",
-    "vue-virtual-draglist": "^2.5.0"
+    "vue-virtual-draglist": "^2.5.1"
   },
   "eslintConfig": {
     "root": true,
