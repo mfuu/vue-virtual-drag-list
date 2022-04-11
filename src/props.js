@@ -35,6 +35,11 @@ export const VirtualProps = {
     type: Boolean,
     default: true
   },
+  // 是否只允许拖拽设置了draggable属性的元素，为 true 时选中父元素也不会产生拖拽效果
+  draggableOnly: {
+    type: Boolean,
+    default: true
+  },
   headerTag: {
     type: String,
     default: 'div'

@@ -1,13 +1,20 @@
 <template>
   <div id="v-draggable-virtual-list">
     <button @click="reset">reset</button>
+    <button @click="editing = !editing">change editing</button>
     <!-- <Table v-virtual :columns="columns" :dataSource="dataSource" rowKey="id" :pagination="false" /> -->
     <!-- <button @click="toBottom">bottom</button> -->
-    <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
+    <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" :draggable="editing" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template slot="item" slot-scope="{ record, index, dataKey }">
-        <div class="test-item">
+        <!-- <div class="test-item">
           <span class="index" draggable="true">{{ record.id }}</span>
           <span>{{ record.desc }}</span>
+        </div> -->
+        <div class="test-item">
+          <span>{{ record.desc }}</span>
+          <div class="sort" draggable="true" v-if="editing" @click="handleClick">
+            <i class="f7-icons">sort_ios</i>
+          </div>
         </div>
       </template>
       <template slot="header">
@@ -30,9 +37,9 @@
 <script>
 // import virtualList from 'vue-virtual-draglist'
 
-// import virtualList from './List/index.js'
+import virtualList from './List/index.js'
 
-import virtualList from '../dist/index'
+// import virtualList from '../dist/index'
 
 import { Table } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.css'
@@ -63,6 +70,7 @@ export default {
   components: { virtualList, Table },
   data() {
     return {
+      editing: true,
       dataSource: getPageData(60, 0),
       columns: [
         {
@@ -90,6 +98,9 @@ export default {
     }
   },
   methods: {
+    handleClick(e) {
+      console.log(e)
+    },
     ondragend(list) {
       // console.log(list)
     },

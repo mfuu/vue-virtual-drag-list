@@ -65,57 +65,26 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       },
       deep: true,
       immediate: true
+    },
+    draggable: {
+      handler(val) {
+        if (val) {
+          if (!this.drag) this.$nextTick(() => { this.initDraggable() })
+        } else {
+          if (this.drag) this.destroyDraggable()
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   mounted() {
     this.end = this.start + this.keeps
-    this.drag = new Draggable({
-      groupElement: this.$refs.content,
-      cloneElementStyle: this.dragStyle,
-      scrollElement: this.$refs.virtualDragList,
-      dragElement: (e) => {
-        if (this.dragElement) {
-          return this.dragElement(e, this.$refs.content)
-        } else {
-          let result = e.target
-          while([].indexOf.call(this.$refs.content.children, result) < 0) {
-            result = result.parentNode
-          }
-          return result
-        }
-      },
-      dragEnd: (pre, cur) => {
-        if (pre.rect.top === cur.rect.top) return
-        const oldKey = pre.node.getAttribute('data-key')
-        const newKey = cur.node.getAttribute('data-key')
-        this.dragState.oldNode = pre.node
-        this.dragState.newNode = cur.node
-        this.list.forEach((el, index) => {
-          if (this.uniqueId(el) === oldKey) {
-            this.dragState.oldItem = el
-            this.dragState.oldIndex = index
-          }
-          if (this.uniqueId(el) === newKey) {
-            this.dragState.newItem = el
-            this.dragState.newIndex = index
-          }
-        })
-        const newArr = [...this.list]
-        newArr.splice(this.dragState.oldIndex, 1)
-        newArr.splice(this.dragState.newIndex, 0, this.dragState.oldItem)
-        this.setList(newArr)
-        this.handleDragEnd(newArr)
-      }
-    })
   },
   beforeDestroy() {
     this.drag.destroy()
   },
   methods: {
-    reset() {
-      this.scrollToTop()
-      this.init(this.dataSource)
-    },
     // 通过key值获取当前行的高度
     getSize(key) {
       return this.sizeStack.get(key)
@@ -334,6 +303,56 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     uniqueId(obj, defaultValue = '') {
       const { dataKey } = this
       return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce((o, k) => (o || {})[k], obj) || defaultValue
+    },
+    initDraggable() {
+      this.drag = new Draggable({
+        groupElement: this.$refs.content,
+        cloneElementStyle: this.dragStyle,
+        scrollElement: this.$refs.virtualDragList,
+        dragElement: (e) => {
+          const draggable = e.target.getAttribute('draggable')
+          if (this.draggableOnly && !draggable) return null
+          if (this.dragElement) {
+            return this.dragElement(e, this.$refs.content)
+          } else {
+            let result = e.target
+            while([].indexOf.call(this.$refs.content.children, result) < 0) {
+              result = result.parentNode
+            }
+            return result
+          }
+        },
+        dragEnd: (pre, cur) => {
+          if (pre.rect.top === cur.rect.top) return
+          const oldKey = pre.node.getAttribute('data-key')
+          const newKey = cur.node.getAttribute('data-key')
+          this.dragState.oldNode = pre.node
+          this.dragState.newNode = cur.node
+          this.list.forEach((el, index) => {
+            if (this.uniqueId(el) === oldKey) {
+              this.dragState.oldItem = el
+              this.dragState.oldIndex = index
+            }
+            if (this.uniqueId(el) === newKey) {
+              this.dragState.newItem = el
+              this.dragState.newIndex = index
+            }
+          })
+          const newArr = [...this.list]
+          newArr.splice(this.dragState.oldIndex, 1)
+          newArr.splice(this.dragState.newIndex, 0, this.dragState.oldItem)
+          this.setList(newArr)
+          this.handleDragEnd(newArr)
+        }
+      })
+    },
+    destroyDraggable() {
+      this.drag.destroy()
+      this.drag = null
+    },
+    reset() {
+      this.scrollToTop()
+      this.init(this.dataSource)
     }
   },
   render (h) {

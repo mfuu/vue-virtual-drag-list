@@ -140,6 +140,12 @@ Root component:
       <td>The function that selects the dragged element, <b>must have a return value with a dom node</b>, has two parameters: e(the currently selected element), parent(the parent node of the list)</td>
     </tr>
     <tr>
+      <td><code>draggableOnly</code></td>
+      <td>Boolean</td>
+      <td><code>true</code></td>
+      <td>Whether to drag and drop only elements with the draggable attribute set. When true, selecting the parent element will not produce a dragging effect.</td>
+    </tr>
+    <tr>
       <td><code>headerTag</code></td>
       <td>String</td>
       <td><code>div</code></td>
