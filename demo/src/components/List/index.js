@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Draggable from 'js-draggable-list'
+import Sortable from 'sortable-dnd'
 import { Slots, Items } from './slots'
 import { VirtualProps } from './props'
 import utils from './utils'
@@ -69,9 +69,9 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     draggable: {
       handler(val) {
         if (val) {
-          if (!this.drag) this.$nextTick(() => { this.initDraggable() })
+          this.$nextTick(() => { this.initDraggable() })
         } else {
-          if (this.drag) this.destroyDraggable()
+          this.destroyDraggable()
         }
       },
       deep: true,
@@ -82,7 +82,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     this.end = this.start + this.keeps
   },
   beforeDestroy() {
-    this.drag.destroy()
+    this.destroyDraggable()
   },
   methods: {
     // 通过key值获取当前行的高度
@@ -305,11 +305,11 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce((o, k) => (o || {})[k], obj) || defaultValue
     },
     initDraggable() {
-      this.drag = new Draggable({
-        groupElement: this.$refs.content,
-        cloneElementStyle: this.dragStyle,
-        scrollElement: this.$refs.virtualDragList,
-        dragElement: (e) => {
+      this.destroyDraggable()
+      this.drag = new Sortable({
+        group: this.$refs.content,
+        ghostStyle: this.dragStyle,
+        dragging: (e) => {
           const draggable = e.target.getAttribute('draggable')
           if (this.draggableOnly && !draggable) return null
           if (this.dragElement) {
@@ -347,7 +347,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       })
     },
     destroyDraggable() {
-      this.drag.destroy()
+      this.drag && this.drag.destroy()
       this.drag = null
     },
     reset() {

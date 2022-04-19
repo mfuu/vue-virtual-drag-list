@@ -26,9 +26,9 @@
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-vue": "^5.0.0",
-    "js-draggable-list": "0.0.7",
+    "sortable-dnd": "0.0.6",
     "vue-template-compiler": "^2.6.11",
-    "vue-virtual-draglist": "^2.5.1"
+    "vue-virtual-draglist": "^2.5.2"
   },
   "eslintConfig": {
     "root": true,

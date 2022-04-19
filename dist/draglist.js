@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.5.1
+ * vue-virtual-drag-list v2.5.2
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -94,11 +94,11 @@
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
   }
 
-  var draggable = createCommonjsModule(function (module, exports) {
+  var sortable = createCommonjsModule(function (module, exports) {
   /*!
-   * js-draggable-list v0.0.7
+   * sortable-dnd v0.0.6
    * open source under the MIT license
-   * https://github.com/mfuu/js-draggable-list#readme
+   * https://github.com/mfuu/sortable-dnd#readme
    */
   (function (global, factory) {
     module.exports = factory() ;
@@ -129,6 +129,18 @@
       return Constructor;
     }
 
+    function _toConsumableArray(arr) {
+      return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+    }
+
+    function _arrayWithoutHoles(arr) {
+      if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+    }
+
+    function _iterableToArray(iter) {
+      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+    }
+
     function _unsupportedIterableToArray(o, minLen) {
       if (!o) return;
       if (typeof o === "string") return _arrayLikeToArray(o, minLen);
@@ -146,144 +158,337 @@
       return arr2;
     }
 
-    function _createForOfIteratorHelper(o, allowArrayLike) {
-      var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+    function _nonIterableSpread() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+    }
 
-      if (!it) {
-        if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
-          if (it) o = it;
-          var i = 0;
+    function userAgent(pattern) {
+      if (typeof window !== 'undefined' && window.navigator) {
+        return !! /*@__PURE__*/navigator.userAgent.match(pattern);
+      }
+    }
 
-          var F = function () {};
+    var IE11OrLess = userAgent(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i);
+    var Safari = userAgent(/safari/i) && !userAgent(/chrome/i) && !userAgent(/android/i);
+    var captureMode = {
+      capture: false,
+      passive: false
+    };
+    var utils = {
+      on: function on(el, event, fn) {
+        el.addEventListener(event, fn, !IE11OrLess && captureMode);
+      },
+      off: function off(el, event, fn) {
+        el.removeEventListener(event, fn, !IE11OrLess && captureMode);
+      },
+      getWindowScrollingElement: function getWindowScrollingElement() {
+        var scrollingElement = document.scrollingElement;
 
-          return {
-            s: F,
-            n: function () {
-              if (i >= o.length) return {
-                done: true
-              };
-              return {
-                done: false,
-                value: o[i++]
-              };
-            },
-            e: function (e) {
-              throw e;
-            },
-            f: F
-          };
+        if (scrollingElement) {
+          return scrollingElement;
+        } else {
+          return document.documentElement;
+        }
+      },
+      index: function index(group, el) {
+        if (!el || !el.parentNode) return -1;
+
+        var children = _toConsumableArray(Array.from(group.children));
+
+        return children.indexOf(el);
+      },
+      getRect: function getRect(children, index) {
+        if (!children.length) return {};
+        if (index < 0) return {};
+        return children[index].getBoundingClientRect();
+      },
+      getElement: function getElement(group, dragging) {
+        var result = {
+          index: -1,
+          el: null,
+          rect: {}
+        };
+
+        var children = _toConsumableArray(Array.from(group.children)); // 如果能直接在子元素中找到，返回对应的index
+
+
+        var index = children.indexOf(dragging);
+        if (index > -1) Object.assign(result, {
+          index: index,
+          el: children[index],
+          rect: children[index].getBoundingClientRect()
+        }); // children 中无法直接找到对应的dom时，需要向下寻找
+
+        for (var i = 0; i < children.length; i++) {
+          if (this.isChildOf(dragging, children[i])) Object.assign(result, {
+            index: i,
+            el: children[i],
+            rect: children[i].getBoundingClientRect()
+          });
         }
 
-        throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-      }
+        return result;
+      },
+      // 判断子元素是否包含在父元素中
+      isChildOf: function isChildOf(child, parent) {
+        var parentNode;
 
-      var normalCompletion = true,
-          didErr = false,
-          err;
-      return {
-        s: function () {
-          it = it.call(o);
-        },
-        n: function () {
-          var step = it.next();
-          normalCompletion = step.done;
-          return step;
-        },
-        e: function (e) {
-          didErr = true;
-          err = e;
-        },
-        f: function () {
-          try {
-            if (!normalCompletion && it.return != null) it.return();
-          } finally {
-            if (didErr) throw err;
+        if (child && parent) {
+          parentNode = child.parentNode;
+
+          while (parentNode) {
+            if (parent === parentNode) return true;
+            parentNode = parentNode.parentNode;
           }
         }
-      };
-    }
+
+        return false;
+      },
+      animate: function animate(el, preRect) {
+        var _this = this;
+
+        var animation = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 300;
+        var curRect = el.getBoundingClientRect();
+        var left = preRect.left - curRect.left;
+        var top = preRect.top - curRect.top;
+        this.css(el, 'transition', 'none');
+        this.css(el, 'transform', "translate3d(".concat(left, "px, ").concat(top, "px, 0)"));
+        el.offsetLeft; // 触发重绘
+
+        this.css(el, 'transition', "all ".concat(animation, "ms"));
+        this.css(el, 'transform', 'translate3d(0px, 0px, 0px)');
+        clearTimeout(el.animated);
+        el.animated = setTimeout(function () {
+          _this.css(el, 'transition', '');
+
+          _this.css(el, 'transform', '');
+
+          el.animated = null;
+        }, animation);
+      },
+      css: function css(el, prop, val) {
+        var style = el && el.style;
+
+        if (style) {
+          if (val === void 0) {
+            if (document.defaultView && document.defaultView.getComputedStyle) {
+              val = document.defaultView.getComputedStyle(el, '');
+            } else if (el.currentStyle) {
+              val = el.currentStyle;
+            }
+
+            return prop === void 0 ? val : val[prop];
+          } else {
+            if (!(prop in style) && prop.indexOf('webkit') === -1) {
+              prop = '-webkit-' + prop;
+            }
+
+            style[prop] = val + (typeof val === 'string' ? '' : 'px');
+          }
+        }
+      },
+      debounce: function debounce(fn, delay) {
+        return function () {
+          var _this2 = this;
+
+          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          clearTimeout(fn.id);
+          fn.id = setTimeout(function () {
+            fn.call.apply(fn, [_this2].concat(args));
+          }, delay);
+        };
+      }
+    };
+    /**
+     * 拖拽前后差异初始化
+     */
+
+    var Diff = /*#__PURE__*/function () {
+      function Diff() {
+        _classCallCheck(this, Diff);
+
+        this.old = {
+          node: null,
+          rect: {}
+        };
+        this["new"] = {
+          node: null,
+          rect: {}
+        };
+      }
+
+      _createClass(Diff, [{
+        key: "get",
+        value: function get(key) {
+          return this[key];
+        }
+      }, {
+        key: "set",
+        value: function set(key, value) {
+          this[key] = value;
+        }
+      }, {
+        key: "destroy",
+        value: function destroy() {
+          this.old = {
+            node: null,
+            rect: {}
+          };
+          this["new"] = {
+            node: null,
+            rect: {}
+          };
+        }
+      }]);
+
+      return Diff;
+    }();
+    /**
+     * 拖拽中的元素
+     */
+
+
+    var Ghost = /*#__PURE__*/function () {
+      function Ghost(options) {
+        _classCallCheck(this, Ghost);
+
+        this.options = options;
+        this.x = 0;
+        this.y = 0;
+        this.exist = false;
+      }
+
+      _createClass(Ghost, [{
+        key: "init",
+        value: function init(el, rect) {
+          if (!el) {
+            console.error('Ghost Element is required');
+            return;
+          }
+
+          this.$el = el;
+          this.rect = rect;
+          var _this$options = this.options,
+              ghostClass = _this$options.ghostClass,
+              _this$options$ghostSt = _this$options.ghostStyle,
+              ghostStyle = _this$options$ghostSt === void 0 ? {} : _this$options$ghostSt;
+          var width = rect.width,
+              height = rect.height;
+          this.$el["class"] = ghostClass;
+          this.$el.style.width = width + 'px';
+          this.$el.style.height = height + 'px';
+          this.$el.style.transform = '';
+          this.$el.style.transition = '';
+          this.$el.style.position = 'fixed';
+          this.$el.style.left = 0;
+          this.$el.style.top = 0;
+          this.$el.style.zIndex = 100000;
+          this.$el.style.opacity = 0.8;
+          this.$el.style.pointerEvents = 'none';
+
+          for (var key in ghostStyle) {
+            utils.css(this.$el, key, ghostStyle[key]);
+          }
+        }
+      }, {
+        key: "get",
+        value: function get(key) {
+          return this[key];
+        }
+      }, {
+        key: "set",
+        value: function set(key, value) {
+          this[key] = value;
+          this[key] = value;
+        }
+      }, {
+        key: "move",
+        value: function move() {
+          // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
+          if (!this.exist) {
+            document.body.appendChild(this.$el);
+            this.exist = true;
+          }
+
+          this.$el.style.transform = "translate3d(".concat(this.x, "px, ").concat(this.y, "px, 0)");
+        }
+      }, {
+        key: "destroy",
+        value: function destroy() {
+          if (this.$el) this.$el.remove();
+          this.exist = false;
+        }
+      }]);
+
+      return Ghost;
+    }();
     /**
      * @interface Options {
-     * @groupElement: HTMLElement
-     * @scrollElement?: HTMLElement, // if not set, same as `groupElement`
-     * @dragElement?: Function, return element node selected when dragging, or null
-     * @dragEnd?: Function, The callback function when the drag is completed
-     * @cloneElementStyle?: Object
-     * @cloneElementClass?: String
-     * @
+     * 
+     * group: HTMLElement,
+     * 
+     * draggable?: Function, return element node selected when dragging, or null
+     * 
+     * dragEnd?: Function, The callback function when the drag is completed
+     * 
+     * ghostStyle?: Object,
+     * 
+     * ghostClass?: String,
+     * 
      * }
      */
 
 
-    var Draggable = /*#__PURE__*/function () {
-      function Draggable(options) {
-        _classCallCheck(this, Draggable);
+    var Sortable = /*#__PURE__*/function () {
+      function Sortable(options) {
+        _classCallCheck(this, Sortable);
 
-        this.parent = options.groupElement; // 父级元素
+        this.group = options.group; // 父级元素
 
-        this.scrollElement = options.scrollElement || options.groupElement; // 滚动节点
-
-        this.dragElement = options.dragElement; // 必须为函数且必须返回一个 HTMLElement (e) => return e.target
+        this.dragging = options.dragging; // 必须为函数且必须返回一个 HTMLElement (e) => return e.target
 
         this.dragEnd = options.dragEnd; // 拖拽完成时的回调函数，返回两个值(olddom, newdom) => {}
 
-        this.cloneElementStyle = options.cloneElementStyle; // 克隆元素包含的属性
+        this.ghostStyle = options.ghostStyle; // 克隆元素包含的属性
 
-        this.cloneElementClass = options.cloneElementClass; // 克隆元素的类名
+        this.ghostClass = options.ghostClass; // 克隆元素的类名
 
-        this.delay = options.delay || 300; // 动画延迟
-
-        this.rectList = []; // 用于保存拖拽项getBoundingClientRect()方法获得的数据
+        this.animation = options.animation || 300; // 动画延迟
 
         this.isMousedown = false; // 记录鼠标按下
 
         this.isMousemove = false; // 记录鼠标移动
 
-        this.drag = {
-          element: null,
-          index: 0,
-          lastIndex: 0
-        }; // 拖拽元素
+        this.dragEl = null; // 拖拽元素
 
-        this.drop = {
-          element: null,
-          index: 0,
-          lastIndex: 0
-        }; // 释放元素
+        this.dropEl = null; // 释放元素
 
-        this.clone = {
-          element: null,
+        this.diff = new Diff(); // 记录拖拽前后差异
+
+        this.ghost = new Ghost({
+          ghostClass: this.ghostClass,
+          ghostStyle: this.ghostStyle
+        });
+        this.supportPointer = 'PointerEvent' in window && !Safari;
+        this.calcXY = {
           x: 0,
-          y: 0,
-          exist: false
-        }; // 拖拽蒙版
-
-        this.diff = {
-          old: {
-            node: null,
-            rect: {}
-          },
-          "new": {
-            node: null,
-            rect: {}
-          }
-        }; // 记录拖拽前后差异
-
-        this._debounce(this.init(), 50); // 避免重复执行多次
-
+          y: 0
+        };
+        utils.debounce(this.init(), 50); // 避免重复执行多次
       }
 
-      _createClass(Draggable, [{
+      _createClass(Sortable, [{
         key: "init",
         value: function init() {
-          if (!this.parent) {
-            console.error('Error: groupElement is required');
+          if (!this.group) {
+            console.error('Error: group is required');
             return;
           }
 
           this._bindEventListener();
-
-          this._getChildrenRect();
         }
       }, {
         key: "destroy",
@@ -291,237 +496,134 @@
           this._unbindEventListener();
 
           this._resetState();
-        } // 获取元素位置信息
-
-      }, {
-        key: "_getChildrenRect",
-        value: function _getChildrenRect() {
-          this.rectList.length = 0;
-
-          var _iterator = _createForOfIteratorHelper(this.parent.children),
-              _step;
-
-          try {
-            for (_iterator.s(); !(_step = _iterator.n()).done;) {
-              var item = _step.value;
-              this.rectList.push(item.getBoundingClientRect());
-            }
-          } catch (err) {
-            _iterator.e(err);
-          } finally {
-            _iterator.f();
-          }
         }
       }, {
-        key: "_handleMousedown",
-        value: function _handleMousedown(e) {
-          var _this = this;
-
+        key: "_onStart",
+        value: function _onStart(e) {
           if (e.button !== 0) return true;
-          if (e.target === this.parent) return true;
-          if (!this.rectList.length) this._getChildrenRect();
+          if (e.target === this.group) return true;
 
           try {
             // 获取拖拽元素
-            var element = this.dragElement ? this.dragElement(e) : e.target; // 不存在拖拽元素时不允许拖拽
+            var element = this.dragging ? this.dragging(e) : e.target; // 不存在拖拽元素时不允许拖拽
 
             if (!element) return true;
-            this.drag.element = element;
+            if (element.animated) return;
+            this.dragEl = element;
           } catch (e) {
             //
             return true;
           }
 
-          this.isMousedown = true; // 记录拖拽移动时坐标
+          this.isMousedown = true; // 获取当前元素在列表中的位置
 
-          var calcXY = {
+          var _utils$getElement = utils.getElement(this.group, this.dragEl),
+              index = _utils$getElement.index,
+              el = _utils$getElement.el,
+              rect = _utils$getElement.rect;
+
+          if (!el || index < 0) return true; // 将拖拽元素克隆一份作为蒙版
+
+          var ghostEl = this.dragEl.cloneNode(true);
+          this.ghost.init(ghostEl, rect);
+          this.diff.old.rect = rect;
+          this.ghost.set('x', rect.left);
+          this.ghost.set('y', rect.top); // 记录拖拽移动时坐标
+
+          this.calcXY = {
             x: e.clientX,
             y: e.clientY
-          }; // 将拖拽元素克隆一份作为蒙版
-
-          this.clone.element = this.drag.element.cloneNode(true); // 获取当前元素在列表中的位置
-
-          var index = this._getElementIndex();
-
-          this.diff.old.rect = this.rectList[index];
-          this.clone.x = this.rectList[index].left;
-          this.clone.y = this.rectList[index].top;
-          this.drag.index = index;
-          this.drag.lastIndex = index;
-
-          document.onmousemove = function (e) {
-            // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
-            _this._initCloneElement();
-
-            _this._handleCloneMove();
-
-            e.preventDefault();
-            if (!_this.isMousedown) return;
-            _this.isMousemove = true;
-            _this.clone.x += e.clientX - calcXY.x;
-            _this.clone.y += e.clientY - calcXY.y;
-            calcXY.x = e.clientX;
-            calcXY.y = e.clientY;
-
-            _this._handleCloneMove();
-
-            for (var i = 0; i < _this.rectList.length; i++) {
-              var _this$rectList$i = _this.rectList[i],
-                  left = _this$rectList$i.left,
-                  right = _this$rectList$i.right,
-                  top = _this$rectList$i.top,
-                  bottom = _this$rectList$i.bottom;
-
-              if (e.clientX > left && e.clientX < right && e.clientY > top && e.clientY < bottom) {
-                _this.drop.element = _this.parent.children[i];
-                _this.drop.lastIndex = i;
-
-                if (_this.drag.element !== _this.drop.element) {
-                  if (_this.drag.index < i) {
-                    _this.parent.insertBefore(_this.drag.element, _this.drop.element.nextElementSibling);
-
-                    _this.drop.index = i - 1;
-                  } else {
-                    _this.parent.insertBefore(_this.drag.element, _this.drop.element);
-
-                    _this.drop.index = i + 1;
-                  }
-
-                  _this.drag.index = i; // 设置动画
-
-                  _this._animate(_this.drag.element, _this.rectList[_this.drag.index], _this.rectList[_this.drag.lastIndex]);
-
-                  _this._animate(_this.drop.element, _this.rectList[_this.drop.index], _this.rectList[_this.drop.lastIndex]);
-
-                  _this.drag.lastIndex = i;
-                  _this.diff.old.node = _this.drag.element;
-                  _this.diff["new"].node = _this.drop.element;
-                }
-
-                _this.diff["new"].rect = _this.rectList[i];
-                break;
-              }
-            }
           };
 
-          document.onmouseup = function () {
-            document.onmousemove = null;
-            document.onmouseup = null;
+          this._onMoveEvents();
 
-            if (_this.isMousedown && _this.isMousemove) {
-              // 拖拽完成触发回调函数
-              if (_this.dragEnd) _this.dragEnd(_this.diff.old, _this.diff["new"]);
-            }
-
-            _this.isMousedown = false;
-            _this.isMousemove = false;
-
-            _this._destroyClone();
-
-            _this._clearDiff();
+          this._onUpEvents();
+        }
+      }, {
+        key: "_onMove",
+        value: function _onMove(e) {
+          this.ghost.move();
+          e.preventDefault();
+          if (!this.isMousedown) return;
+          if (e.clientX < 0 || e.clientY < 0) return;
+          document.body.style.cursor = 'grabbing';
+          this.isMousemove = true;
+          this.ghost.set('x', this.ghost.x + e.clientX - this.calcXY.x);
+          this.ghost.set('y', this.ghost.y + e.clientY - this.calcXY.y);
+          this.calcXY = {
+            x: e.clientX,
+            y: e.clientY
           };
-        }
-      }, {
-        key: "_initCloneElement",
-        value: function _initCloneElement() {
-          this.clone.element["class"] = this.cloneElementClass;
-          this.clone.element.style.transition = 'none';
-          this.clone.element.style.position = 'fixed';
-          this.clone.element.style.left = 0;
-          this.clone.element.style.top = 0;
+          this.ghost.move();
 
-          for (var key in this.cloneElementStyle) {
-            this._styled(this.clone.element, key, this.cloneElementStyle[key]);
-          }
+          this._checkRange(e);
 
-          if (!this.clone.element.exist) {
-            document.body.appendChild(this.clone.element);
-            this.clone.element.exist = true;
-          }
-        }
-      }, {
-        key: "_handleCloneMove",
-        value: function _handleCloneMove() {
-          this.clone.element.style.transform = "translate3d(".concat(this.clone.x, "px, ").concat(this.clone.y, "px, 0)");
-        }
-      }, {
-        key: "_destroyClone",
-        value: function _destroyClone() {
-          if (this.clone.element) this.clone.element.remove();
-          this.clone = {
-            element: null,
-            x: 0,
-            y: 0,
-            exist: false
-          };
-        }
-      }, {
-        key: "_getElementIndex",
-        value: function _getElementIndex() {
-          var children = Array.from(this.parent.children);
-          var element = this.drag.element; // 如果能直接在子元素中找到，返回对应的index
+          var _utils$getElement2 = utils.getElement(this.group, e.target),
+              index = _utils$getElement2.index,
+              el = _utils$getElement2.el,
+              rect = _utils$getElement2.rect;
 
-          var index = children.indexOf(element);
-          if (index > -1) return index; // children 中无法直接找到对应的dom时，需要向下寻找
+          var left = rect.left,
+              right = rect.right,
+              top = rect.top,
+              bottom = rect.bottom;
+          if (!el || index < 0) return;
+          if (top < 0 || top - this.ghost.rect.height / 3 < 0) return;
 
-          for (var i = 0; i < children.length; i++) {
-            if (this._isChildOf(element, children[i])) return i;
-          }
-        } // 判断子元素是否包含在父元素中
+          if (e.clientX > left && e.clientX < right && e.clientY > top && e.clientY < bottom) {
+            this.dropEl = el; // 拖拽前后元素不一致时交换
 
-      }, {
-        key: "_isChildOf",
-        value: function _isChildOf(child, parent) {
-          var parentNode;
+            if (this.dropEl !== this.dragEl) {
+              var dragRect = this.dragEl.getBoundingClientRect();
+              var dropRect = this.dropEl.getBoundingClientRect();
+              if (this.dropEl.animated) return;
 
-          if (child && parent) {
-            parentNode = child.parentNode;
+              if (utils.index(this.group, this.dragEl) < index) {
+                this.group.insertBefore(this.dragEl, this.dropEl.nextElementSibling);
+              } else {
+                this.group.insertBefore(this.dragEl, this.dropEl);
+              } // 设置动画
 
-            while (parentNode) {
-              if (parent === parentNode) return true;
-              parentNode = parentNode.parentNode;
+
+              utils.animate(this.dragEl, dragRect, this.animation);
+              utils.animate(this.dropEl, dropRect, this.animation);
+              this.diff.old.node = this.dragEl;
+              this.diff["new"].node = this.dropEl;
             }
+
+            this.diff["new"].rect = this.dropEl.getBoundingClientRect();
+          }
+        }
+      }, {
+        key: "_onDrop",
+        value: function _onDrop() {
+          this._offMoveEvents();
+
+          this._offUpEvents();
+
+          document.body.style.cursor = '';
+
+          if (this.isMousedown && this.isMousemove) {
+            // 拖拽完成触发回调函数
+            if (this.dragEnd && typeof this.dragEnd === 'function') this.dragEnd(this.diff.old, this.diff["new"]);
           }
 
-          return false;
+          this.isMousedown = false;
+          this.isMousemove = false;
+          this.diff.destroy();
+          this.ghost.destroy();
         }
       }, {
-        key: "_animate",
-        value: function _animate(element, rect, lastRect) {
-          var _this2 = this;
+        key: "_checkRange",
+        value: function _checkRange(e) {
+          var _this$group$getBoundi = this.group.getBoundingClientRect(),
+              top = _this$group$getBoundi.top,
+              left = _this$group$getBoundi.left,
+              right = _this$group$getBoundi.right,
+              bottom = _this$group$getBoundi.bottom;
 
-          this._styled(element, 'transition', 'none');
-
-          this._styled(element, 'transform', "translate3d(".concat(lastRect.left - rect.left, "px, ").concat(lastRect.top - rect.top, "px, 0)"));
-
-          element.offsetLeft; // 触发重绘
-
-          this._styled(element, 'transition', "all ".concat(this.delay, "ms"));
-
-          this._styled(element, 'transform', 'translate3d(0px, 0px, 0px)');
-
-          clearTimeout(element.animated);
-          element.animated = setTimeout(function () {
-            _this2._styled(element, 'transition', '');
-
-            _this2._styled(element, 'transform', '');
-
-            element.animated = null;
-          }, this.delay);
-        }
-      }, {
-        key: "_styled",
-        value: function _styled(el, prop, val) {
-          var style = el && el.style;
-
-          if (style) {
-            if (val === void 0) {
-              if (document.defaultView && document.defaultView.getComputedStyle) val = document.defaultView.getComputedStyle(el, '');else if (el.currentStyle) val = el.currentStyle;
-              return prop === void 0 ? val : val[prop];
-            } else {
-              if (!(prop in style)) prop = '-webkit-' + prop;
-              style[prop] = val + (typeof val === 'string' ? '' : 'px');
-            }
+          if (e.clientX < left || e.clientX > right || e.clientY < top || e.clientY > bottom) {
+            document.body.style.cursor = 'not-allowed';
           }
         }
       }, {
@@ -529,78 +631,66 @@
         value: function _resetState() {
           this.isMousedown = false;
           this.isMousemove = false;
-          this.rectList.length = 0;
-          this.drag = {
-            element: null,
-            index: 0,
-            lastIndex: 0
-          };
-          this.drop = {
-            element: null,
-            index: 0,
-            lastIndex: 0
-          };
-
-          this._destroyClone();
-
-          this._clearDiff();
-        }
-      }, {
-        key: "_clearDiff",
-        value: function _clearDiff() {
-          this.diff = {
-            old: {
-              node: null,
-              rect: {}
-            },
-            "new": {
-              node: null,
-              rect: {}
-            }
-          };
+          this.dragEl = null;
+          this.dropEl = null;
+          this.ghost.destroy();
+          this.diff = new Diff();
         }
       }, {
         key: "_bindEventListener",
         value: function _bindEventListener() {
-          this._handleMousedown = this._handleMousedown.bind(this);
-          this._getChildrenRect = this._getChildrenRect.bind(this);
-          this.parent.addEventListener('mousedown', this._handleMousedown);
-          this.scrollElement.addEventListener('scroll', this._debounce(this._getChildrenRect, 50));
-          window.addEventListener('scroll', this._debounce(this._getChildrenRect, 50));
-          window.addEventListener('resize', this._debounce(this._getChildrenRect, 50));
-          window.addEventListener('orientationchange', this._debounce(this._getChildrenRect, 50));
+          this._onStart = this._onStart.bind(this);
+          this._onMove = this._onMove.bind(this);
+          this._onDrop = this._onDrop.bind(this);
+
+          if (this.supportPointer) {
+            utils.on(this.group, 'pointerdown', this._onStart);
+          } else {
+            utils.on(this.group, 'mousedown', this._onStart);
+          }
+        }
+      }, {
+        key: "_onMoveEvents",
+        value: function _onMoveEvents() {
+          if (this.supportPointer) {
+            utils.on(document, 'pointermove', this._onMove);
+          } else {
+            utils.on(document, 'mousemove', this._onMove);
+          }
+        }
+      }, {
+        key: "_onUpEvents",
+        value: function _onUpEvents() {
+          if (this.supportPointer) {
+            utils.on(document, 'pointerup', this._onDrop);
+          } else {
+            utils.on(document, 'mouseup', this._onDrop);
+          }
         }
       }, {
         key: "_unbindEventListener",
         value: function _unbindEventListener() {
-          this.parent.removeEventListener('mousedown', this._handleMousedown);
-          this.scrollElement.removeEventListener('scroll', this._getChildrenRect);
-          window.removeEventListener('scroll', this._getChildrenRect);
-          window.removeEventListener('resize', this._getChildrenRect);
-          window.removeEventListener('orientationchange', this._getChildrenRect);
+          utils.off(this.group, 'mousedown', this._onStart);
+          utils.off(this.group, 'pointerdown', this._onStart);
         }
       }, {
-        key: "_debounce",
-        value: function _debounce(fn, delay) {
-          return function () {
-            var _this3 = this;
-
-            for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-              args[_key] = arguments[_key];
-            }
-
-            clearTimeout(fn.id);
-            fn.id = setTimeout(function () {
-              fn.call.apply(fn, [_this3].concat(args));
-            }, delay);
-          };
+        key: "_offMoveEvents",
+        value: function _offMoveEvents() {
+          utils.off(document, 'mousemove', this._onMove);
+          utils.off(document, 'pointermove', this._onMove);
+        }
+      }, {
+        key: "_offUpEvents",
+        value: function _offUpEvents() {
+          utils.off(document, 'mouseup', this._onDrop);
+          utils.off(document, 'pointerup', this._onDrop);
         }
       }]);
 
-      return Draggable;
+      return Sortable;
     }();
 
-    return Draggable;
+    return Sortable;
   });
   });
 
@@ -1167,11 +1257,10 @@
         var _this6 = this;
 
         this.destroyDraggable();
-        this.drag = new draggable({
-          groupElement: this.$refs.content,
-          cloneElementStyle: this.dragStyle,
-          scrollElement: this.$refs.virtualDragList,
-          dragElement: function dragElement(e) {
+        this.drag = new sortable({
+          group: this.$refs.content,
+          ghostStyle: this.dragStyle,
+          dragging: function dragging(e) {
             var draggable = e.target.getAttribute('draggable');
             if (_this6.draggableOnly && !draggable) return null;
 

@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Draggable from 'js-draggable-list'
+import Sortable from 'sortable-dnd'
 import { Slots, Items } from './slots'
 import { VirtualProps } from './props'
 import utils from './utils'
@@ -306,11 +306,10 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     },
     initDraggable() {
       this.destroyDraggable()
-      this.drag = new Draggable({
-        groupElement: this.$refs.content,
-        cloneElementStyle: this.dragStyle,
-        scrollElement: this.$refs.virtualDragList,
-        dragElement: (e) => {
+      this.drag = new Sortable({
+        group: this.$refs.content,
+        ghostStyle: this.dragStyle,
+        dragging: (e) => {
           const draggable = e.target.getAttribute('draggable')
           if (this.draggableOnly && !draggable) return null
           if (this.dragElement) {

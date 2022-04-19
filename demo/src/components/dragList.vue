@@ -6,16 +6,16 @@
     <!-- <button @click="toBottom">bottom</button> -->
     <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" :draggable="editing" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template slot="item" slot-scope="{ record, index, dataKey }">
-        <!-- <div class="test-item">
-          <span class="index" draggable="true">{{ record.id }}</span>
-          <span>{{ record.desc }}</span>
-        </div> -->
         <div class="test-item">
+          <div v-if="editing" @click="handleClick" class="index" draggable="true">{{ record.id }}</div>
+          <span>{{ record.desc }}</span>
+        </div>
+        <!-- <div class="test-item">
           <span>{{ record.desc }}</span>
           <div class="sort" draggable="true" v-if="editing" @click="handleClick">
             <i class="f7-icons">sort_ios</i>
           </div>
-        </div>
+        </div> -->
       </template>
       <template slot="header">
         <div class="loading">top loading...</div>
@@ -39,7 +39,7 @@ import virtualList from 'vue-virtual-draglist'
 
 // import virtualList from './List/index.js'
 
-// import virtualList from '../dist/draglist'
+// import virtualList from '../dist/draglist.min.js'
 
 import { Table } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.css'
@@ -127,8 +127,8 @@ export default {
 
 <style scoped>
 #v-draggable-virtual-list {
-  height: 100%;
-  /* height: 500px; */
+  /* height: 100%; */
+  height: 500px;
   /* overflow: hidden; */
   position: relative;
 }
@@ -137,7 +137,6 @@ export default {
   overflow: auto;
 }
 .index {
-  display: inline-block;
   min-width: 30px;
   color: #1984ff;
   cursor: grab;
