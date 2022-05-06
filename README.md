@@ -24,12 +24,13 @@ Root component:
     <virtual-drag-list
       :data-key="'id'"
       :data-source="list"
+      :draggable="'.drag'"
       @top="handleToTop"
       @bottom="handleToBottom"
       @ondragend="ondragend"
     >
       <template slot="item" slot-scope="{ record, index, dataKey }">
-        <span draggable="true">{{ record.id }}</span>
+        <span class="drag">{{ record.id }}</span>
         {{ record.text }}
       </template>
       <template slot="header">
@@ -60,8 +61,8 @@ Root component:
       handleToBottom() {
         ...
       },
-      ondragend(list) {
-        console.log(list)
+      ondragend(list, old, nw, changed) {
+        console.log(list, old, nw, changed)
       }
     }
   }
@@ -108,12 +109,6 @@ Root component:
       <td>50</td>
       <td>The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated</td>
     </tr>
-    <tr>
-      <td><code>draggable</code></td>
-      <td>Boolean</td>
-      <td>true</td>
-      <td>whether to support drag and drop. You need to specify a draggable element and set the `draggable` attribute for it</td>
-    </tr>
   </table>
 </details>
 
@@ -129,57 +124,81 @@ Root component:
     </tr>
     <tr>
       <td><code>delay</code></td>
-      <td>Number</td>
+      <td><code>Number</code></td>
       <td><code>10</code></td>
       <td>Delay time of debounce function</td>
     </tr>
     <tr>
-      <td><code>dragElement</code></td>
-      <td>Function</td>
-      <td><code>-</code></td>
-      <td>The function that selects the dragged element, <b>must have a return value with a dom node</b>, has two parameters: e(the currently selected element), parent(the parent node of the list)</td>
-    </tr>
-    <tr>
-      <td><code>draggableOnly</code></td>
-      <td>Boolean</td>
-      <td><code>true</code></td>
-      <td>Whether to drag and drop only elements with the draggable attribute set. When true, selecting the parent element will not produce a dragging effect.</td>
-    </tr>
-    <tr>
       <td><code>headerTag</code></td>
-      <td>String</td>
+      <td><code>String</code></td>
       <td><code>div</code></td>
       <td>Label type for header slot</td>
     </tr>
     <tr>
       <td><code>footerTag</code></td>
-      <td>String</td>
+      <td><code>String</code></td>
       <td><code>div</code></td>
       <td>Label type for footer slot</td>
     </tr>
     <tr>
       <td><code>itemTag</code></td>
-      <td>String</td>
+      <td><code>String</code></td>
       <td><code>div</code></td>
       <td>item's tag type</td>
     </tr>
     <tr>
       <td><code>itemStyle</code></td>
-      <td>Object</td>
+      <td><code>Object</code></td>
       <td><code>{}</code></td>
       <td>item's style</td>
     </tr>
     <tr>
       <td><code>itemClass</code></td>
-      <td>String</td>
+      <td><code>String</code></td>
       <td><code>''</code></td>
       <td>item's class</td>
     </tr>
     <tr>
-      <td><code>dragStyle</code></td>
-      <td>Object</td>
+      <td><code>disabled</code></td>
+      <td><code>Boolean</code></td>
+      <td><code>false</code></td>
+      <td>Disables the sortable if set to true</td>
+    </tr>
+    <tr>
+      <td><code>draggable</code></td>
+      <td><code>Function/String</code></td>
+      <td><code>undefined</code></td>
+      <td>Specifies which items inside the element should be draggable, the function type must return a boolean</td>
+    </tr>
+    <tr>
+      <td><code>dragging</code></td>
+      <td><code>Function</code></td>
+      <td><code>undefined</code></td>
+      <td>Specifies the drag element, which must return an HTMLElement, such as <code>(e) => e.target</code></td>
+    </tr>
+    <tr>
+      <td><code>ghostStyle</code></td>
+      <td><code>Object</code></td>
       <td><code>{}</code></td>
-      <td>mask style when dragging</td>
+      <td>The style of the mask element when dragging</td>
+    </tr>
+    <tr>
+      <td><code>ghostClass</code></td>
+      <td><code>String</code></td>
+      <td><code>''</code></td>
+      <td>The class of the mask element when dragging</td>
+    </tr>
+    <tr>
+      <td><code>chosenClass</code></td>
+      <td><code>String</code></td>
+      <td><code>''</code></td>
+      <td>The class of the selected element when dragging</td>
+    </tr>
+    <tr>
+      <td><code>animation</code></td>
+      <td><code>Number</code></td>
+      <td><code>150</code></td>
+      <td>Animation delay</td>
     </tr>
   </table>
 </details>
@@ -194,6 +213,10 @@ Root component:
     <tr>
       <th>Method</th>
       <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>ondragend(list, old, new, changed)</code></td>
+      <td>The callback function when the drag is completed, such as <code>(list, old, new, changed) => {}</td>
     </tr>
     <tr>
       <td><code>scrollToBottom()</code></td>

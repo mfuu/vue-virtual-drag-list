@@ -4,10 +4,10 @@
     <button @click="editing = !editing">change editing</button>
     <!-- <Table v-virtual :columns="columns" :dataSource="dataSource" rowKey="id" :pagination="false" /> -->
     <!-- <button @click="toBottom">bottom</button> -->
-    <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" :draggable="editing" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
+    <virtual-list ref="list" :dataSource="dataSource" :data-key="'id'" :keeps="50" :size="60" :disabled="!editing" @top="handleTop" @bottom="handleBottom" @ondragend="ondragend">
       <template slot="item" slot-scope="{ record, index, dataKey }">
         <div class="test-item">
-          <div v-if="editing" @click="handleClick" class="index" draggable="true">{{ record.id }}</div>
+          <div v-if="editing" @click="handleClick" class="index">{{ record.id }}</div>
           <span>{{ record.desc }}</span>
         </div>
         <!-- <div class="test-item">
@@ -101,8 +101,8 @@ export default {
     handleClick(e) {
       console.log(e)
     },
-    ondragend(list) {
-      // console.log(list)
+    ondragend(list, pre, cur, changed) {
+      console.log(list, pre, cur, changed)
     },
     handleTop() {
       setTimeout(() => {

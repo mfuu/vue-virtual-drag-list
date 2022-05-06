@@ -30,16 +30,6 @@ export const VirtualProps = {
     type: Number,
     default: 10
   },
-  // 是否可拖拽，需要指定拖拽元素，设置draggable属性为true
-  draggable: {
-    type: Boolean,
-    default: true
-  },
-  // 是否只允许拖拽设置了draggable属性的元素，为 true 时选中父元素也不会产生拖拽效果
-  draggableOnly: {
-    type: Boolean,
-    default: true
-  },
   headerTag: {
     type: String,
     default: 'div'
@@ -62,8 +52,23 @@ export const VirtualProps = {
     type: String,
     default: ''
   },
+  // 禁用拖拽？
+  disabled: {
+    type: Boolean,
+    default: false
+  },
+  draggable: {
+    type: [Function, String]
+  },
+  dragging: {
+    type: Function
+  },
+  ghostClass: {
+    type: String,
+    default: ''
+  },
   // 拖拽时的样式
-  dragStyle: {
+  ghostStyle: {
     type: Object,
     default: () => {
       return {
@@ -71,8 +76,13 @@ export const VirtualProps = {
       }
     }
   },
-  dragElement: {
-    type: Function
+  chosenClass: {
+    type: String,
+    default: ''
+  },
+  animation: {
+    type: Number,
+    default: 150
   }
 }
 

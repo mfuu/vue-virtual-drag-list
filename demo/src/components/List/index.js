@@ -61,20 +61,16 @@ const virtualDragList = Vue.component('virtual-drag-list', {
   watch: {
     dataSource: {
       handler(val) {
-        this.init(val)
+        this._initVirtual(val)
       },
       deep: true,
       immediate: true
     },
-    draggable: {
+    disabled: {
       handler(val) {
-        if (val) {
-          this.$nextTick(() => { this.initDraggable() })
-        } else {
-          this.destroyDraggable()
-        }
+        if (!val) this.$nextTick(() => this._initDraggable())
+        else this._destroyDraggable()
       },
-      deep: true,
       immediate: true
     }
   },
@@ -82,9 +78,13 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     this.end = this.start + this.keeps
   },
   beforeDestroy() {
-    this.destroyDraggable()
+    this._destroyDraggable()
   },
   methods: {
+    reset() {
+      this.scrollToTop()
+      this._initVirtual(this.dataSource)
+    },
     // 通过key值获取当前行的高度
     getSize(key) {
       return this.sizeStack.get(key)
@@ -125,26 +125,23 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       if (index >= this.list.length - 1) {
         this.scrollToBottom()
       } else {
-        const offset = this.getOffsetByIndex(index)
+        const offset = this._getOffsetByIndex(index)
         this.scrollToOffset(offset)
       }
     },
-    setList(list) {
+    _setList(list) {
       this.list = list
     },
-    setDragState(state) {
-      this.dragState = Object.assign({}, this.dragState, state)
+    _handleDragEnd(list, _old, _new, changed) {
+      this.$emit('ondragend', list, _old, _new, changed)
     },
-    handleDragEnd(list) {
-      this.$emit('ondragend', list)
-    },
-    init(list) {
+    _initVirtual(list) {
       this.list = [...list]
-      this.uniqueKeys = this.list.map(item => this.uniqueId(item))
-      this.handleSourceDataChange()
-      this.updateSizeStack()
+      this.uniqueKeys = this.list.map(item => this._uniqueId(item))
+      this._handleSourceDataChange()
+      this._updateSizeStack()
     },
-    handleScroll(event) {
+    _handleScroll(event) {
       const { virtualDragList } = this.$refs
       const clientHeight = Math.ceil(this.$el.clientHeight)
       const scrollTop = Math.ceil(virtualDragList.scrollTop)
@@ -154,30 +151,30 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       // 记录上一次滚动的距离，判断当前滚动方向
       this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
       this.offset = scrollTop
-      const overs = this.getScrollOvers()
+      const overs = this._getScrollOvers()
       if (this.direction === 'FRONT') {
-        this.handleFront(overs)
+        this._handleFront(overs)
         if (!!this.list.length && scrollTop <= 0) this.$emit('top')
       } else if (this.direction === 'BEHIND') {
-        this.handleBehind(overs)
+        this._handleBehind(overs)
         if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom')
       }
     },
-    handleFront(overs) {
+    _handleFront(overs) {
       if (overs > this.start) {
         return
       }
       const start = Math.max(overs - Math.round(this.keeps / 3), 0)
-      this.checkRange(start, this.getEndByStart(start))
+      this._checkRange(start, this._getEndByStart(start))
     },
-    handleBehind(overs) {
+    _handleBehind(overs) {
       if (overs < this.start + Math.round(this.keeps / 3)) {
         return
       }
-      this.checkRange(overs, this.getEndByStart(overs))
+      this._checkRange(overs, this._getEndByStart(overs))
     },
     // 更新每个子组件高度
-    onItemResized(uniqueKey, size) {
+    _onItemResized(uniqueKey, size) {
       this.sizeStack.set(uniqueKey, size)
       // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
       if (this.calcType === 'INIT') {
@@ -196,26 +193,26 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         }
       }
     },
-    onHeaderResized(id, size) {
+    _onHeaderResized(id, size) {
       this.calcSize.header = size
     },
-    onFooterResized(id, size) {
+    _onFooterResized(id, size) {
       this.calcSize.footer = size
     },
     // 原数组改变重新计算
-    handleSourceDataChange() {
+    _handleSourceDataChange() {
       let start = Math.max(this.start, 0)
-      this.updateRange(this.start, this.getEndByStart(start))
+      this.updateRange(this.start, this._getEndByStart(start))
     },
     // 更新缓存
-    updateSizeStack() {
+    _updateSizeStack() {
       this.sizeStack.forEach((v, key) => {
         if (!this.uniqueKeys.includes(key)) {
           this.sizeStack.delete(key)
         }
       })
     },
-    checkRange(start, end) {
+    _checkRange(start, end) {
       const keeps = this.keeps
       const total = this.uniqueKeys.length
       if (total <= keeps) {
@@ -232,12 +229,12 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       this.start = start
       this.end = end
       this.padding = {
-        front: this.getFront(),
-        behind: this.getBehind()
+        front: this._getFront(),
+        behind: this._getBehind()
       }
     },
     // 二分法查找
-    getScrollOvers() {
+    _getScrollOvers() {
       // 如果有header插槽，需要减去header的高度
       const offset = this.offset - this.calcSize.header
       if (offset <= 0) return 0
@@ -248,7 +245,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       let high = this.uniqueKeys.length
       while (low <= high) {
         middle = low + Math.floor((high - low) / 2)
-        middleOffset = this.getOffsetByIndex(middle)
+        middleOffset = this._getOffsetByIndex(middle)
         if (middleOffset === offset) {
           return middle
         } else if (middleOffset < offset) {
@@ -259,100 +256,96 @@ const virtualDragList = Vue.component('virtual-drag-list', {
       }
       return low > 0 ? --low : 0
     },
-    getFront() {
+    _getFront() {
       if (this.isFixedType) {
         return this.calcSize.fixed * this.start
       } else {
-        return this.getOffsetByIndex(this.start)
+        return this._getOffsetByIndex(this.start)
       }
     },
-    getBehind() {
+    _getBehind() {
       const last = this.uniqueKeyLen
       if (this.isFixedType) {
         return (last - this.end) * this.calcSize.fixed
       }
       if (this.lastCalcIndex === last) {
-        return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.end)
+        return this._getOffsetByIndex(last) - this._getOffsetByIndex(this.end)
       } else {
-        return (last - this.end) * this.getItemSize()
+        return (last - this.end) * this._getItemSize()
       }
     },
     // 通过索引值获取滚动高度
-    getOffsetByIndex(index) {
+    _getOffsetByIndex(index) {
       if (!index) return 0
       let offset = 0
       let indexSize = 0
       for (let i = 0; i < index; i++) {
         indexSize = this.sizeStack.get(this.uniqueKeys[i])
-        offset = offset + (typeof indexSize === 'number' ? indexSize : this.getItemSize())
+        offset = offset + (typeof indexSize === 'number' ? indexSize : this._getItemSize())
       }
       this.lastCalcIndex = Math.max(this.lastCalcIndex, index - 1)
       this.lastCalcIndex = Math.min(this.lastCalcIndex, this.uniqueKeyLen)
       return offset
     },
-    getItemIndex(item) {
-      return this.list.findIndex(el => this.uniqueId(item) == this.uniqueId(el))
+    _getItemIndex(item) {
+      return this.list.findIndex(el => this._uniqueId(item) == this._uniqueId(el))
     },
     // 获取每一项的高度
-    getItemSize() {
+    _getItemSize() {
       return this.isFixedType ? this.calcSize.fixed : (this.calcSize.average || this.size)
     },
-    getEndByStart(start) {
+    _getEndByStart(start) {
       return Math.min(start + this.keeps, this.uniqueKeyLen)
     },
-    uniqueId(obj, defaultValue = '') {
+    _uniqueId(obj, defaultValue = '') {
       const { dataKey } = this
       return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce((o, k) => (o || {})[k], obj) || defaultValue
     },
-    initDraggable() {
-      this.destroyDraggable()
-      this.drag = new Sortable({
-        group: this.$refs.content,
-        ghostStyle: this.dragStyle,
-        dragging: (e) => {
-          const draggable = e.target.getAttribute('draggable')
-          if (this.draggableOnly && !draggable) return null
-          if (this.dragElement) {
-            return this.dragElement(e, this.$refs.content)
-          } else {
-            let result = e.target
-            while([].indexOf.call(this.$refs.content.children, result) < 0) {
-              result = result.parentNode
+    _initDraggable() {
+      this._destroyDraggable()
+      this.drag = new Sortable(
+        this.$refs.content,
+        {
+          disabled: this.disabled,
+          ghostStyle: this.dragStyle,
+          draggable: this.draggable,
+          dragging: this.dragging,
+          chosenClass: this.chosenClass,
+          animation: this.animation,
+          dragEnd: (pre, cur, changed) => {
+            const oldKey = pre.node.getAttribute('data-key')
+            const newKey = cur.node.getAttribute('data-key')
+            this.dragState.oldNode = pre.node
+            this.dragState.newNode = cur.node
+            this.list.forEach((el, index) => {
+              if (this._uniqueId(el) === oldKey) {
+                this.dragState.oldItem = el
+                this.dragState.oldIndex = index
+              }
+              if (this._uniqueId(el) === newKey) {
+                this.dragState.newItem = el
+                this.dragState.newIndex = index
+              }
+            })
+            const newArr = [...this.list]
+            if (changed) {
+              newArr.splice(this.dragState.oldIndex, 1)
+              newArr.splice(this.dragState.newIndex, 0, this.dragState.oldItem)
+              this._setList(newArr)
             }
-            return result
+            this._handleDragEnd(
+              newArr,
+              {...pre, item: this.dragState.oldItem, index: this.dragState.oldIndex },
+              { ...cur, item: this.dragState.newItem, index: this.dragState.newIndex },
+              changed
+            )
           }
-        },
-        dragEnd: (pre, cur) => {
-          if (pre.rect.top === cur.rect.top) return
-          const oldKey = pre.node.getAttribute('data-key')
-          const newKey = cur.node.getAttribute('data-key')
-          this.dragState.oldNode = pre.node
-          this.dragState.newNode = cur.node
-          this.list.forEach((el, index) => {
-            if (this.uniqueId(el) === oldKey) {
-              this.dragState.oldItem = el
-              this.dragState.oldIndex = index
-            }
-            if (this.uniqueId(el) === newKey) {
-              this.dragState.newItem = el
-              this.dragState.newIndex = index
-            }
-          })
-          const newArr = [...this.list]
-          newArr.splice(this.dragState.oldIndex, 1)
-          newArr.splice(this.dragState.newIndex, 0, this.dragState.oldItem)
-          this.setList(newArr)
-          this.handleDragEnd(newArr)
         }
-      })
+      )
     },
-    destroyDraggable() {
+    _destroyDraggable() {
       this.drag && this.drag.destroy()
       this.drag = null
-    },
-    reset() {
-      this.scrollToTop()
-      this.init(this.dataSource)
     }
   },
   render (h) {
@@ -361,7 +354,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
     return h('div', {
       ref: 'virtualDragList',
       on: {
-        '&scroll': utils.debounce(this.handleScroll, this.delay)
+        '&scroll': utils.debounce(this._handleScroll, this.delay)
       },
       style: { height, overflow: 'hidden auto', position: 'relative' }
     }, [
@@ -370,7 +363,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         props: {
           tag: headerTag,
           uniqueKey: 'header',
-          event: 'onHeaderResized'
+          event: '_onHeaderResized'
         }
       }, header) : null,
       
@@ -380,8 +373,8 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         attrs: { role: 'content' },
         style: { padding: `${padding.front}px 0px ${padding.behind}px` },
       }, list.slice(start, end + 1).map(record => {
-        const index = this.getItemIndex(record)
-        const uniqueKey = this.uniqueId(record)
+        const index = this._getItemIndex(record)
+        const uniqueKey = this._uniqueId(record)
           return this.$scopedSlots.item ? (
             h(Items, {
               key: uniqueKey,
@@ -389,7 +382,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
                 uniqueKey,
                 dragStyle,
                 tag: itemTag,
-                event: 'onItemResized'
+                event: '_onItemResized'
               },
               style: itemStyle,
               class: itemClass
@@ -415,7 +408,7 @@ const virtualDragList = Vue.component('virtual-drag-list', {
         props: {
           tag: footerTag,
           uniqueKey: 'footer',
-          event: 'onFooterResized'
+          event: '_onFooterResized'
         }
       }, footer) : null,
 
