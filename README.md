@@ -7,7 +7,7 @@
   </a>
 </p>
 
-A virtual scrolling list component that can be sorted by dragging , for Vue
+A virtual scrolling list component that can be sorted by dragging
 
 
 
