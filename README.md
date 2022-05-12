@@ -61,8 +61,8 @@ Root component:
       handleToBottom() {
         ...
       },
-      ondragend(list, old, nw, changed) {
-        console.log(list, old, nw, changed)
+      ondragend(list, from, to, changed) {
+        console.log(list, from, to, changed)
       }
     }
   }
@@ -74,7 +74,7 @@ Root component:
 |-------------|--------------|
 | `top`       | event fired when scroll to top |
 | `bottom`    | event fired when scroll to bottom |
-| `ondragend` | event fired when the drag is complete, return a new array |
+| `ondragend` | event fired when the drag is complete |
 
 ## Props type
 
