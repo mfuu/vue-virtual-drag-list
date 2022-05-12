@@ -215,10 +215,6 @@ Root component:
       <th>Description</th>
     </tr>
     <tr>
-      <td><code>ondragend(list, old, new, changed)</code></td>
-      <td>The callback function when the drag is completed, such as <code>(list, old, new, changed) => {}</td>
-    </tr>
-    <tr>
       <td><code>scrollToBottom()</code></td>
       <td>scroll to bottom of list</td>
     </tr>
