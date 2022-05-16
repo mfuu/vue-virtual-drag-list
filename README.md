@@ -93,7 +93,7 @@ Root component:
 | --------   | -------- | ----------- | --------------- |
 | `keeps`    | `Number` | `30`        | The number of lines rendered by the virtual scroll |
 | `size`     | `Number` | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
-| `direction`| `String` | `vertical`  | `'vertical' || 'horizontal'`, scroll direction |
+| `direction`| `String` | `vertical`  | `'vertical' | 'horizontal'`, scroll direction |
 
 
 **Uncommonly used**
@@ -108,13 +108,13 @@ Root component:
 | `itemTag`    | `String`   | `div`       | Label type for header slot |
 | `headerTag`  | `String`   | `div`       | Label type for header slot |
 | `footerTag`  | `String`   | `div`       | Label type for header slot |
-| `wrapClass`  | `String`   | ``          | List wrapper element class |
+| `wrapClass`  | `String`   | `''`          | List wrapper element class |
 | `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
-| `itemClass`  | `String`   | ``          | List item element class |
+| `itemClass`  | `String`   | `''`          | List item element class |
 | `itemStyle`  | `Object`   | `{}`        | List item element style |
-| `ghostClass` | `String`   | ``          | The class of the mask element when dragging |
+| `ghostClass` | `String`   | `''`          | The class of the mask element when dragging |
 | `ghostStyle` | `Object`   | `{}`        | The style of the mask element when dragging |
-| `chosenClass`| `String`   | ``          | The class of the selected element when dragging |
+| `chosenClass`| `String`   | `''`          | The class of the selected element when dragging |
 
 ### Public methods
 
