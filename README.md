@@ -87,160 +87,46 @@ Root component:
 
 ### Optional props
 
-<details open>
-  <summary><strong>Commonly used</strong></summary>
-  <p></p>
-  <table>
-    <tr>
-      <th>Prop</th>
-      <th>Type</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-    <tr>
-      <td><code>keeps</code></td>
-      <td>Number</td>
-      <td>30</td>
-      <td>the number of lines rendered by the virtual scroll</td>
-    </tr>
-    <tr>
-      <td><code>size</code></td>
-      <td>Number</td>
-      <td>50</td>
-      <td>The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated</td>
-    </tr>
-  </table>
-</details>
+**Commonly used**
 
-<details open>
-  <summary><strong>Uncommonly used</strong></summary>
-  <p></p>
-  <table>
-    <tr>
-      <th>Prop</th>
-      <th>Type</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-    <tr>
-      <td><code>delay</code></td>
-      <td><code>Number</code></td>
-      <td><code>10</code></td>
-      <td>Delay time of debounce function</td>
-    </tr>
-    <tr>
-      <td><code>headerTag</code></td>
-      <td><code>String</code></td>
-      <td><code>div</code></td>
-      <td>Label type for header slot</td>
-    </tr>
-    <tr>
-      <td><code>footerTag</code></td>
-      <td><code>String</code></td>
-      <td><code>div</code></td>
-      <td>Label type for footer slot</td>
-    </tr>
-    <tr>
-      <td><code>itemTag</code></td>
-      <td><code>String</code></td>
-      <td><code>div</code></td>
-      <td>item's tag type</td>
-    </tr>
-    <tr>
-      <td><code>itemStyle</code></td>
-      <td><code>Object</code></td>
-      <td><code>{}</code></td>
-      <td>item's style</td>
-    </tr>
-    <tr>
-      <td><code>itemClass</code></td>
-      <td><code>String</code></td>
-      <td><code>''</code></td>
-      <td>item's class</td>
-    </tr>
-    <tr>
-      <td><code>disabled</code></td>
-      <td><code>Boolean</code></td>
-      <td><code>false</code></td>
-      <td>Disables the sortable if set to true</td>
-    </tr>
-    <tr>
-      <td><code>draggable</code></td>
-      <td><code>Function/String</code></td>
-      <td><code>undefined</code></td>
-      <td>Specifies which items inside the element should be draggable, the function type must return a boolean</td>
-    </tr>
-    <tr>
-      <td><code>dragging</code></td>
-      <td><code>Function</code></td>
-      <td><code>undefined</code></td>
-      <td>Specifies the drag element, which must return an HTMLElement, such as <code>(e) => e.target</code></td>
-    </tr>
-    <tr>
-      <td><code>ghostStyle</code></td>
-      <td><code>Object</code></td>
-      <td><code>{}</code></td>
-      <td>The style of the mask element when dragging</td>
-    </tr>
-    <tr>
-      <td><code>ghostClass</code></td>
-      <td><code>String</code></td>
-      <td><code>''</code></td>
-      <td>The class of the mask element when dragging</td>
-    </tr>
-    <tr>
-      <td><code>chosenClass</code></td>
-      <td><code>String</code></td>
-      <td><code>''</code></td>
-      <td>The class of the selected element when dragging</td>
-    </tr>
-    <tr>
-      <td><code>animation</code></td>
-      <td><code>Number</code></td>
-      <td><code>150</code></td>
-      <td>Animation delay</td>
-    </tr>
-  </table>
-</details>
+| **Prop**   | **Type** | **Default** | **Description** |
+| --------   | -------- | ----------- | --------------- |
+| `keeps`    | `Number` | `30`        | The number of lines rendered by the virtual scroll |
+| `size`     | `Number` | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
+| `direction`| `String` | `vertical`  | `'vertical' || 'horizontal'`, scroll direction |
+
+
+**Uncommonly used**
+
+|  **Prop**    | **Type**   | **Default** | **Description** |
+|  --------    | --------   | ----------- | --------------- |
+| `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
+| `draggable`  | `Function/String` | `undefined`    | Specifies which items inside the element should be draggable, the function type must return a boolean |
+| `dragging`   | `Function` | `undefined` | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
+| `animation`  | `Number`   | `150`       | Animation delay |
+| `delay`      | `Number`   | `10`        | Delay time of debounce function |
+| `itemTag`    | `String`   | `div`       | Label type for header slot |
+| `headerTag`  | `String`   | `div`       | Label type for header slot |
+| `footerTag`  | `String`   | `div`       | Label type for header slot |
+| `wrapClass`  | `String`   | ``          | List wrapper element class |
+| `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
+| `itemClass`  | `String`   | ``          | List item element class |
+| `itemStyle`  | `Object`   | `{}`        | List item element style |
+| `ghostClass` | `String`   | ``          | The class of the mask element when dragging |
+| `ghostStyle` | `Object`   | `{}`        | The style of the mask element when dragging |
+| `chosenClass`| `String`   | ``          | The class of the selected element when dragging |
 
 ### Public methods
 
-<details open>
-  <summary><strong>Usefull public methods</strong></summary>
-  <p></p>
-  <p>Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements">ref</a></code> to get the method inside the component</p>
-  <table>
-    <tr>
-      <th>Method</th>
-      <th>Description</th>
-    </tr>
-    <tr>
-      <td><code>scrollToBottom()</code></td>
-      <td>scroll to bottom of list</td>
-    </tr>
-    <tr>
-      <td><code>scrollToTop()</code></td>
-      <td>scroll to top of list</td>
-    </tr>
-    <tr>
-      <td><code>scrollToIndex(index)</code></td>
-      <td>scroll to the specified index position</td>
-    </tr>
-    <tr>
-      <td><code>scrollToOffset(offset)</code></td>
-      <td>scroll to the specified height</td>
-    </tr>
-    <tr>
-      <td><code>getSize(dataKey)</code></td>
-      <td>get the height of the current item by unique key value</td>
-    </tr>
-    <tr>
-      <td><code>getOffset()</code></td>
-      <td>get the current scroll height</td>
-    </tr>
-    <tr>
-      <td><code>reset()</code></td>
-      <td>reset to initial</td>
-    </tr>
-  </table>
-</details>
+Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements">ref</a></code> to get the method inside the component
+
+
+| **Method**         | **Description** |
+| ------------------ | --------------- |
+| `reset()`          | Reset to initial |
+| `getSize()`        | Get the height of the current item by unique key value |
+| `getOffset()`      | Get the current scroll height |
+| `scrollToTop()`    | Scroll to top of list |
+| `scrollToIndex()`  | Scroll to the specified index position |
+| `scrollToOffset()` | Scroll to the specified height |
+| `scrollToBottom()` | Scroll to bottom of list |
