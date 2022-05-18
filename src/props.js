@@ -11,6 +11,10 @@ export const VirtualProps = {
     type: String,
     required: true
   },
+  direction: {
+    type: String,
+    default: 'vertical' // 纵向滚动(vertical)还是横向滚动(horizontal)
+  },
   // 虚拟列表高度
   height: {
     type: String,
@@ -30,6 +34,13 @@ export const VirtualProps = {
     type: Number,
     default: 10
   },
+  wrapClass: {
+    type: String,
+    default: ''
+  },
+  wrapStyle: {
+    type: Object
+  },
   headerTag: {
     type: String,
     default: 'div'
@@ -43,10 +54,7 @@ export const VirtualProps = {
     default: 'div'
   },
   itemStyle: {
-    type: Object,
-    default: () => {
-      return {}
-    }
+    type: Object
   },
   itemClass: {
     type: String,
@@ -94,13 +102,10 @@ export const SlotItemProps = {
   event: {
     type: String
   },
-  dragStyle: {
-    type: Object,
-    default: () => {
-      return {}
-    }
-  },
   uniqueKey: {
     type: [String, Number]
+  },
+  isHorizontal: {
+    type: Boolean
   }
 }

@@ -52,10 +52,11 @@
         <button @click="toIndex">toIndex30</button>
         <button @click="toOffset">toOffset500</button>
       </div>
-      <visible-list :editing="editing" :data-source="dataSource"></visible-list>
+      <vertical-list :editing="editing" :data-source="dataSource"></vertical-list>
+      <horizontal-list :editing="editing" :data-source="dataSource"></horizontal-list>
     </div>
     <script type="text/javascript">
-      Vue.component('visible-list', {
+      Vue.component('vertical-list', {
         props: {
           editing: {},
           dataSource: {
@@ -95,6 +96,77 @@
                 size: 60,
                 disabled: !this.editing,
                 draggable: '.drag',
+              },
+              on: {
+                top: this.handleTop,
+                bottom: this.handleBottom,
+                ondragend: this.ondragend
+              },
+              scopedSlots: {
+                item: props => {
+                  return h('div', {
+                    class: 'test-item',
+                  }, 
+                  [
+                    this.editing ? h('div', {
+                      class: 'drag index',
+                      on: {
+                        click: this.handleClick
+                      }
+                    }, props.record.id) : null,
+                    h('span', {}, props.record.desc)
+                  ])
+                }
+              }
+            },[
+              h('div', { slot: 'header', class: 'loading' }, 'header'),
+              h('div', { slot: 'footer', class: 'loading' }, 'footer')
+            ])
+          ])
+        }
+      });
+      Vue.component('horizontal-list', {
+        props: {
+          editing: {},
+          dataSource: {
+            type: Array,
+            default: () => {
+              return []
+            }
+          }
+        },
+        methods: {
+          handleTop() {
+            console.log('is to top')
+          },
+          handleBottom() {
+            console.log('is to bottom')
+          },
+          ondragend(arr, _old, _new, chnaged) {
+            console.log(arr, _old, _new, chnaged, 'new states after drag end')
+          },
+          handleClick() {
+            console.log('click')
+          }
+        },
+        render(h) {
+          return h('div', {
+            attrs: {
+              class: 'draggable-virtual-list',
+            }
+          }, 
+          [
+            h(VirtualDragList, {
+              ref: 'list',
+              props: {
+                dataSource: this.dataSource,
+                dataKey: 'id',
+                keeps: 20,
+                size: 110,
+                disabled: !this.editing,
+                draggable: '.drag',
+                direction: 'horizontal',
+                wrapStyle: { display: 'flex' }
               },
               on: {
                 top: this.handleTop,

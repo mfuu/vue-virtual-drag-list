@@ -1169,42 +1169,6 @@
   });
   });
 
-  var observer = {
-    inject: ['virtual'],
-    data: function data() {
-      return {
-        observer: null
-      };
-    },
-    mounted: function mounted() {
-      var _this = this;
-
-      if (typeof ResizeObserver !== 'undefined') {
-        this.observer = new ResizeObserver(function () {
-          _this.onSizeChange();
-        });
-        this.$el && this.observer.observe(this.$el);
-      }
-    },
-    updated: function updated() {
-      this.onSizeChange();
-    },
-    beforeDestroy: function beforeDestroy() {
-      if (this.observer) {
-        this.observer.disconnect();
-        this.observer = null;
-      }
-    },
-    methods: {
-      onSizeChange: function onSizeChange() {
-        this.virtual[this.event](this.uniqueKey, this.getCurrentSize());
-      },
-      getCurrentSize: function getCurrentSize() {
-        return this.$el ? this.$el.offsetHeight : 0;
-      }
-    }
-  };
-
   var VirtualProps = {
     // 列表数据
     dataSource: {
@@ -1217,6 +1181,11 @@
     dataKey: {
       type: String,
       required: true
+    },
+    direction: {
+      type: String,
+      "default": 'vertical' // 纵向滚动(vertical)还是横向滚动(horizontal)
+
     },
     // 虚拟列表高度
     height: {
@@ -1237,6 +1206,13 @@
       type: Number,
       "default": 10
     },
+    wrapClass: {
+      type: String,
+      "default": ''
+    },
+    wrapStyle: {
+      type: Object
+    },
     headerTag: {
       type: String,
       "default": 'div'
@@ -1250,10 +1226,7 @@
       "default": 'div'
     },
     itemStyle: {
-      type: Object,
-      "default": function _default() {
-        return {};
-      }
+      type: Object
     },
     itemClass: {
       type: String,
@@ -1300,17 +1273,50 @@
     event: {
       type: String
     },
-    dragStyle: {
-      type: Object,
-      "default": function _default() {
-        return {};
-      }
-    },
     uniqueKey: {
       type: [String, Number]
+    },
+    isHorizontal: {
+      type: Boolean
     }
   };
 
+  var observer = {
+    inject: ['virtual'],
+    data: function data() {
+      return {
+        observer: null
+      };
+    },
+    mounted: function mounted() {
+      var _this = this;
+
+      if (typeof ResizeObserver !== 'undefined') {
+        this.observer = new ResizeObserver(function () {
+          _this.onSizeChange();
+        });
+        this.$el && this.observer.observe(this.$el);
+      }
+    },
+    updated: function updated() {
+      this.onSizeChange();
+    },
+    beforeDestroy: function beforeDestroy() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
+    },
+    methods: {
+      onSizeChange: function onSizeChange() {
+        this.virtual[this.event](this.uniqueKey, this.getCurrentSize());
+      },
+      getCurrentSize: function getCurrentSize() {
+        var sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
+        return this.$el ? this.$el[sizeKey] : 0;
+      }
+    }
+  };
   var Items = Vue__default["default"].component('virtual-draglist-items', {
     mixins: [observer],
     props: SlotItemProps,
@@ -1401,7 +1407,7 @@
         // 结束索引
         offset: 0,
         // 记录滚动高度
-        direction: '',
+        scrollDir: '',
         // 记录滚动方向
         uniqueKeys: [],
         // 通过dataKey获取所有数据的唯一键值
@@ -1456,6 +1462,21 @@
       },
       isFixedType: function isFixedType() {
         return this.calcType === 'FIXED';
+      },
+      isHorizontal: function isHorizontal() {
+        return this.direction !== 'vertical';
+      },
+      scrollSizeKey: function scrollSizeKey() {
+        return this.isHorizontal ? 'scrollWidth' : 'scrollHeight';
+      },
+      scrollDirectionKey: function scrollDirectionKey() {
+        return this.isHorizontal ? 'scrollLeft' : 'scrollTop';
+      },
+      offsetSizeKey: function offsetSizeKey() {
+        return this.isHorizontal ? 'offsetLeft' : 'offsetTop';
+      },
+      clientSizeKey: function clientSizeKey() {
+        return this.isHorizontal ? 'clientWidth' : 'clientHeight';
       }
     },
     watch: {
@@ -1484,6 +1505,7 @@
       this._destroySortable();
     },
     methods: {
+      // --------------------------- emits ------------------------------
       reset: function reset() {
         this.scrollToTop();
 
@@ -1506,29 +1528,26 @@
             virtualDragList = _this$$refs.virtualDragList;
 
         if (bottomItem) {
-          var offset = bottomItem.offsetTop;
-          this.scrollToOffset(offset);
+          var offset = bottomItem[this.offsetSizeKey];
+          this.scrollToOffset(offset); // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+
+          setTimeout(function () {
+            var clientSize = _this2.$el[_this2.clientSizeKey];
+            var scroll = Math.ceil(virtualDragList[_this2.scrollDirectionKey]);
+            var scrollSize = Math.ceil(virtualDragList[_this2.scrollSizeKey]);
+            if (scroll + clientSize < scrollSize) _this2.scrollToBottom();
+          }, 3);
         }
-
-        var clientHeight = this.$el.clientHeight;
-        var scrollTop = virtualDragList.scrollTop;
-        var scrollHeight = virtualDragList.scrollHeight; // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
-
-        setTimeout(function () {
-          if (scrollTop + clientHeight < scrollHeight) {
-            _this2.scrollToBottom();
-          }
-        }, 10);
       },
       // 滚动到顶部
       scrollToTop: function scrollToTop() {
         var virtualDragList = this.$refs.virtualDragList;
-        virtualDragList.scrollTop = 0;
+        virtualDragList[this.scrollDirectionKey] = 0;
       },
       // 滚动到指定高度
       scrollToOffset: function scrollToOffset(offset) {
         var virtualDragList = this.$refs.virtualDragList;
-        virtualDragList.scrollTop = offset;
+        virtualDragList[this.scrollDirectionKey] = offset;
       },
       // 滚动到指定索引值位置
       scrollToIndex: function scrollToIndex(index) {
@@ -1540,12 +1559,7 @@
           this.scrollToOffset(offset);
         }
       },
-      _setList: function _setList(list) {
-        this.list = list;
-      },
-      _handleDragEnd: function _handleDragEnd(list, _old, _new, changed) {
-        this.$emit('ondragend', list, _old, _new, changed);
-      },
+      // --------------------------- handle scroll ------------------------------
       _initVirtual: function _initVirtual(list) {
         var _this3 = this;
 
@@ -1560,25 +1574,25 @@
       },
       _handleScroll: function _handleScroll(event) {
         var virtualDragList = this.$refs.virtualDragList;
-        var clientHeight = Math.ceil(this.$el.clientHeight);
-        var scrollTop = Math.ceil(virtualDragList.scrollTop);
-        var scrollHeight = Math.ceil(virtualDragList.scrollHeight); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+        var clientSize = Math.ceil(this.$el[this.clientSizeKey]);
+        var scroll = Math.ceil(virtualDragList[this.scrollDirectionKey]);
+        var scrollSize = Math.ceil(virtualDragList[this.scrollSizeKey]); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
 
-        if (scrollTop < 0 || scrollTop + clientHeight > scrollHeight + 1 || !scrollHeight) return; // 记录上一次滚动的距离，判断当前滚动方向
+        if (scroll < 0 || scroll + clientSize > scrollSize + 1 || !scrollSize) return; // 记录上一次滚动的距离，判断当前滚动方向
 
-        this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND';
-        this.offset = scrollTop;
+        this.scrollDir = scroll < this.offset ? 'FRONT' : 'BEHIND';
+        this.offset = scroll;
 
         var overs = this._getScrollOvers();
 
-        if (this.direction === 'FRONT') {
+        if (this.scrollDir === 'FRONT') {
           this._handleFront(overs);
 
-          if (!!this.list.length && scrollTop <= 0) this.$emit('top');
-        } else if (this.direction === 'BEHIND') {
+          if (!!this.list.length && scroll <= 0) this.$emit('top');
+        } else if (this.scrollDir === 'BEHIND') {
           this._handleBehind(overs);
 
-          if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom');
+          if (clientSize + scroll >= scrollSize) this.$emit('bottom');
         }
       },
       _handleFront: function _handleFront(overs) {
@@ -1597,39 +1611,11 @@
 
         this._checkRange(overs, this._getEndByStart(overs));
       },
-      // 更新每个子组件高度
-      _onItemResized: function _onItemResized(uniqueKey, size) {
-        this.sizeStack.set(uniqueKey, size); // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
-
-        if (this.calcType === 'INIT') {
-          this.calcSize.fixed = size;
-          this.calcType = 'FIXED';
-        } else if (this.calcType === 'FIXED' && this.calcSize.fixed !== size) {
-          this.calcType = 'DYNAMIC';
-          delete this.calcSize.fixed;
-        }
-
-        if (this.calcType !== 'FIXED' && this.calcSize.total !== 'undefined') {
-          if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
-            this.calcSize.total = _toConsumableArray(this.sizeStack.values()).reduce(function (acc, cur) {
-              return acc + cur;
-            }, 0);
-            this.calcSize.average = Math.round(this.calcSize.total / this.sizeStack.size);
-          } else {
-            delete this.calcSize.total;
-          }
-        }
-      },
-      _onHeaderResized: function _onHeaderResized(id, size) {
-        this.calcSize.header = size;
-      },
-      _onFooterResized: function _onFooterResized(id, size) {
-        this.calcSize.footer = size;
-      },
       // 原数组改变重新计算
       _handleSourceDataChange: function _handleSourceDataChange() {
         var start = Math.max(this.start, 0);
-        this.updateRange(this.start, this._getEndByStart(start));
+
+        this._updateRange(this.start, this._getEndByStart(start));
       },
       // 更新缓存
       _updateSizeStack: function _updateSizeStack() {
@@ -1653,10 +1639,10 @@
         }
 
         if (this.start !== start) {
-          this.updateRange(start, end);
+          this._updateRange(start, end);
         }
       },
-      updateRange: function updateRange(start, end) {
+      _updateRange: function _updateRange(start, end) {
         this.start = start;
         this.end = end;
         this.padding = {
@@ -1746,10 +1732,44 @@
           return (o || {})[k];
         }, obj) || defaultValue;
       },
+      // --------------------------- handle size change ------------------------------
+      // 更新每个子组件高度
+      _onItemResized: function _onItemResized(uniqueKey, size) {
+        this.sizeStack.set(uniqueKey, size); // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
+
+        if (this.calcType === 'INIT') {
+          this.calcSize.fixed = size;
+          this.calcType = 'FIXED';
+        } else if (this.calcType === 'FIXED' && this.calcSize.fixed !== size) {
+          this.calcType = 'DYNAMIC';
+          delete this.calcSize.fixed;
+        }
+
+        if (this.calcType !== 'FIXED' && this.calcSize.total !== 'undefined') {
+          if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
+            this.calcSize.total = _toConsumableArray(this.sizeStack.values()).reduce(function (acc, cur) {
+              return acc + cur;
+            }, 0);
+            this.calcSize.average = Math.round(this.calcSize.total / this.sizeStack.size);
+          } else {
+            delete this.calcSize.total;
+          }
+        }
+      },
+      _onHeaderResized: function _onHeaderResized(id, size) {
+        this.calcSize.header = size;
+      },
+      _onFooterResized: function _onFooterResized(id, size) {
+        this.calcSize.footer = size;
+      },
+      // --------------------------- sortable ------------------------------
       _initSortable: function _initSortable() {
         var _this6 = this;
 
         var tempList = [];
+        var dragIndex = -1;
+        var dragElement = null;
+        var flag = false;
 
         this._destroySortable();
 
@@ -1760,10 +1780,22 @@
           dragging: this.dragging,
           chosenClass: this.chosenClass,
           animation: this.animation,
-          onDrag: function onDrag() {
+          onDrag: function onDrag(dragEl) {
+            dragElement = dragEl;
             tempList = _toConsumableArray(_this6.list);
+            var key = dragEl.getAttribute('data-key');
+            dragIndex = _this6.list.findIndex(function (el) {
+              return _this6._uniqueId(el) === key;
+            });
+            _this6.dragState.from.index = dragIndex;
           },
           onChange: function onChange(_old_, _new_) {
+            if (!flag) {
+              flag = true;
+
+              _this6.list.splice(dragIndex, 1);
+            }
+
             var oldKey = _old_.node.getAttribute('data-key');
 
             var newKey = _new_.node.getAttribute('data-key');
@@ -1789,31 +1821,41 @@
             tempList.splice(to.index, 0, from.item);
           },
           onDrop: function onDrop(changed) {
-            _this6.dragState.from.index = _this6.list.findIndex(function (el) {
-              return _this6._uniqueId(el) === _this6.dragState.from.key;
-            });
             _this6.dragState.to.index = tempList.findIndex(function (el) {
               return _this6._uniqueId(el) === _this6.dragState.from.key;
             });
             var _this6$dragState2 = _this6.dragState,
                 from = _this6$dragState2.from,
-                to = _this6$dragState2.to;
+                to = _this6$dragState2.to; // if (changed) {
+            //   if (dragElement) dragElement.remove()
+            //   this._handleDragEnd(tempList, from, to, changed)
+            // } else {
+            //   this._handleDragEnd(tempList, from, from, changed)
+            // }
 
-            if (changed) {
-              _this6._handleDragEnd(tempList, from, to, changed);
+            if (dragElement) dragElement.remove();
 
-              _this6._setList(tempList);
-            } else {
-              _this6._handleDragEnd(tempList, from, from, changed);
-            }
+            _this6._handleDragEnd(tempList, from, to, changed);
+
+            _this6._setList(tempList);
+
+            dragElement = null;
+            flag = false;
           }
         });
       },
       _destroySortable: function _destroySortable() {
         this.drag && this.drag.destroy();
         this.drag = null;
+      },
+      _handleDragEnd: function _handleDragEnd(list, _old, _new, changed) {
+        this.$emit('ondragend', list, _old, _new, changed);
+      },
+      _setList: function _setList(list) {
+        this.list = list;
       }
     },
+    // --------------------------- render ------------------------------
     render: function render(h) {
       var _this7 = this;
 
@@ -1822,15 +1864,17 @@
           footer = _this$$slots.footer;
       var height = this.height,
           padding = this.padding,
-          headerTag = this.headerTag,
+          list = this.list,
+          start = this.start,
+          end = this.end,
+          isHorizontal = this.isHorizontal;
+      var headerTag = this.headerTag,
           footerTag = this.footerTag,
           itemTag = this.itemTag,
           itemStyle = this.itemStyle,
           itemClass = this.itemClass,
-          dragStyle = this.dragStyle,
-          list = this.list,
-          start = this.start,
-          end = this.end;
+          wrapClass = this.wrapClass,
+          wrapStyle = this.wrapStyle;
       return h('div', {
         ref: 'virtualDragList',
         on: {
@@ -1838,8 +1882,7 @@
         },
         style: {
           height: height,
-          overflow: 'hidden auto',
-          position: 'relative'
+          overflow: isHorizontal ? 'auto hidden' : 'hidden auto'
         }
       }, [// 顶部插槽 
       header ? h(Slots, {
@@ -1854,9 +1897,10 @@
         attrs: {
           role: 'content'
         },
-        style: {
-          padding: "".concat(padding.front, "px 0px ").concat(padding.behind, "px")
-        }
+        "class": wrapClass,
+        style: _objectSpread2({
+          padding: isHorizontal ? "0px ".concat(padding.behind, "px 0px ").concat(padding.front, "px") : "".concat(padding.front, "px 0px ").concat(padding.behind, "px")
+        }, wrapStyle)
       }, list.slice(start, end + 1).map(function (record) {
         var index = _this7._getItemIndex(record);
 
@@ -1866,9 +1910,9 @@
           key: uniqueKey,
           props: {
             uniqueKey: uniqueKey,
-            dragStyle: dragStyle,
             tag: itemTag,
-            event: '_onItemResized'
+            event: '_onItemResized',
+            isHorizontal: isHorizontal
           },
           style: itemStyle,
           "class": itemClass
@@ -1895,7 +1939,11 @@
         }
       }, footer) : null, // 最底部元素
       h('div', {
-        ref: 'bottomItem'
+        ref: 'bottomItem',
+        style: {
+          width: isHorizontal ? '0px' : '100%',
+          height: isHorizontal ? '100%' : '0px'
+        }
       })]);
     }
   });

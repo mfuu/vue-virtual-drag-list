@@ -15,7 +15,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       start: 0, // 起始索引
       end: 0, // 结束索引
       offset: 0, // 记录滚动高度
-      direction: '', // 记录滚动方向
+      scrollDir: '', // 记录滚动方向
 
       uniqueKeys: [], // 通过dataKey获取所有数据的唯一键值
 
@@ -60,6 +60,21 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
     isFixedType() {
       return this.calcType === 'FIXED'
+    },
+    isHorizontal() {
+      return this.direction !== 'vertical'
+    },
+    scrollSizeKey() {
+      return this.isHorizontal ? 'scrollWidth' : 'scrollHeight'
+    },
+    scrollDirectionKey() {
+      return this.isHorizontal ? 'scrollLeft' : 'scrollTop'
+    },
+    offsetSizeKey() {
+      return this.isHorizontal ? 'offsetLeft' : 'offsetTop'
+    },
+    clientSizeKey() {
+      return this.isHorizontal ? 'clientWidth' : 'clientHeight'
     }
   },
   watch: {
@@ -85,6 +100,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     this._destroySortable()
   },
   methods: {
+    // --------------------------- emits ------------------------------
     reset() {
       this.scrollToTop()
       this._initVirtual(this.dataSource)
@@ -101,28 +117,28 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     scrollToBottom() {
       const { bottomItem, virtualDragList } = this.$refs
       if (bottomItem) {
-        const offset = bottomItem.offsetTop
+        const offset = bottomItem[this.offsetSizeKey]
         this.scrollToOffset(offset)
+
+        // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+        setTimeout(() => {
+          const clientSize = this.$el[this.clientSizeKey]
+          const scroll = Math.ceil(virtualDragList[this.scrollDirectionKey])
+          const scrollSize = Math.ceil(virtualDragList[this.scrollSizeKey])
+
+          if (scroll + clientSize < scrollSize) this.scrollToBottom()
+        }, 3)
       }
-      const clientHeight = this.$el.clientHeight
-      const scrollTop = virtualDragList.scrollTop
-      const scrollHeight = virtualDragList.scrollHeight
-      // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
-      setTimeout(() => {
-        if (scrollTop + clientHeight < scrollHeight) {
-          this.scrollToBottom()
-        }
-      }, 10)
     },
     // 滚动到顶部
     scrollToTop() {
       const { virtualDragList } = this.$refs
-      virtualDragList.scrollTop = 0
+      virtualDragList[this.scrollDirectionKey] = 0
     },
     // 滚动到指定高度
     scrollToOffset(offset) {
       const { virtualDragList } = this.$refs
-      virtualDragList.scrollTop = offset
+      virtualDragList[this.scrollDirectionKey] = offset
     },
     // 滚动到指定索引值位置
     scrollToIndex(index) {
@@ -133,12 +149,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         this.scrollToOffset(offset)
       }
     },
-    _setList(list) {
-      this.list = list
-    },
-    _handleDragEnd(list, _old, _new, changed) {
-      this.$emit('ondragend', list, _old, _new, changed)
-    },
+
+    // --------------------------- handle scroll ------------------------------
     _initVirtual(list) {
       this.list = [...list]
       this.uniqueKeys = this.list.map(item => this._uniqueId(item))
@@ -147,21 +159,22 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
     _handleScroll(event) {
       const { virtualDragList } = this.$refs
-      const clientHeight = Math.ceil(this.$el.clientHeight)
-      const scrollTop = Math.ceil(virtualDragList.scrollTop)
-      const scrollHeight = Math.ceil(virtualDragList.scrollHeight)
+      const clientSize = Math.ceil(this.$el[this.clientSizeKey])
+      const scroll = Math.ceil(virtualDragList[this.scrollDirectionKey])
+      const scrollSize = Math.ceil(virtualDragList[this.scrollSizeKey])
       // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
-      if (scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1) || !scrollHeight) return
+      if (scroll < 0 || (scroll + clientSize > scrollSize + 1) || !scrollSize) return
       // 记录上一次滚动的距离，判断当前滚动方向
-      this.direction = scrollTop < this.offset ? 'FRONT' : 'BEHIND'
-      this.offset = scrollTop
+      this.scrollDir = scroll < this.offset ? 'FRONT' : 'BEHIND'
+      this.offset = scroll
+
       const overs = this._getScrollOvers()
-      if (this.direction === 'FRONT') {
+      if (this.scrollDir === 'FRONT') {
         this._handleFront(overs)
-        if (!!this.list.length && scrollTop <= 0) this.$emit('top')
-      } else if (this.direction === 'BEHIND') {
+        if (!!this.list.length && scroll <= 0) this.$emit('top')
+      } else if (this.scrollDir === 'BEHIND') {
         this._handleBehind(overs)
-        if (clientHeight + scrollTop >= scrollHeight) this.$emit('bottom')
+        if (clientSize + scroll >= scrollSize) this.$emit('bottom')
       }
     },
     _handleFront(overs) {
@@ -177,36 +190,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       }
       this._checkRange(overs, this._getEndByStart(overs))
     },
-    // 更新每个子组件高度
-    _onItemResized(uniqueKey, size) {
-      this.sizeStack.set(uniqueKey, size)
-      // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
-      if (this.calcType === 'INIT') {
-        this.calcSize.fixed = size
-        this.calcType = 'FIXED'
-      } else if (this.calcType === 'FIXED' && this.calcSize.fixed !== size) {
-        this.calcType = 'DYNAMIC'
-        delete this.calcSize.fixed
-      }
-      if (this.calcType !== 'FIXED' && this.calcSize.total !== 'undefined') {
-        if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
-          this.calcSize.total = [...this.sizeStack.values()].reduce((acc, cur) => acc + cur, 0)
-          this.calcSize.average = Math.round(this.calcSize.total / this.sizeStack.size)
-        } else {
-          delete this.calcSize.total
-        }
-      }
-    },
-    _onHeaderResized(id, size) {
-      this.calcSize.header = size
-    },
-    _onFooterResized(id, size) {
-      this.calcSize.footer = size
-    },
     // 原数组改变重新计算
     _handleSourceDataChange() {
       let start = Math.max(this.start, 0)
-      this.updateRange(this.start, this._getEndByStart(start))
+      this._updateRange(this.start, this._getEndByStart(start))
     },
     // 更新缓存
     _updateSizeStack() {
@@ -226,10 +213,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         start = end - keeps + 1
       }
       if (this.start !== start) {
-        this.updateRange(start, end)
+        this._updateRange(start, end)
       }
     },
-    updateRange(start, end) {
+    _updateRange(start, end) {
       this.start = start
       this.end = end
       this.padding = {
@@ -305,8 +292,39 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       const { dataKey } = this
       return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce((o, k) => (o || {})[k], obj) || defaultValue
     },
+    // --------------------------- handle size change ------------------------------
+    // 更新每个子组件高度
+    _onItemResized(uniqueKey, size) {
+      this.sizeStack.set(uniqueKey, size)
+      // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
+      if (this.calcType === 'INIT') {
+        this.calcSize.fixed = size
+        this.calcType = 'FIXED'
+      } else if (this.calcType === 'FIXED' && this.calcSize.fixed !== size) {
+        this.calcType = 'DYNAMIC'
+        delete this.calcSize.fixed
+      }
+      if (this.calcType !== 'FIXED' && this.calcSize.total !== 'undefined') {
+        if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
+          this.calcSize.total = [...this.sizeStack.values()].reduce((acc, cur) => acc + cur, 0)
+          this.calcSize.average = Math.round(this.calcSize.total / this.sizeStack.size)
+        } else {
+          delete this.calcSize.total
+        }
+      }
+    },
+    _onHeaderResized(id, size) {
+      this.calcSize.header = size
+    },
+    _onFooterResized(id, size) {
+      this.calcSize.footer = size
+    },
+    // --------------------------- sortable ------------------------------
     _initSortable() {
       let tempList = []
+      let dragIndex = -1
+      let dragElement = null
+      let flag = false
       this._destroySortable()
       this.drag = new Sortable(
         this.$refs.content,
@@ -317,10 +335,18 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           dragging: this.dragging,
           chosenClass: this.chosenClass,
           animation: this.animation,
-          onDrag: () => {
+          onDrag: (dragEl) => {
+            dragElement = dragEl
             tempList = [...this.list]
+            const key = dragEl.getAttribute('data-key')
+            dragIndex = this.list.findIndex(el => this._uniqueId(el) === key)
+            this.dragState.from.index = dragIndex
           },
           onChange: (_old_, _new_) => {
+            if (!flag) {
+              flag = true
+              this.list.splice(dragIndex, 1)
+            }
             const oldKey = _old_.node.getAttribute('data-key')
             const newKey = _new_.node.getAttribute('data-key')
 
@@ -338,16 +364,20 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             tempList.splice(to.index, 0, from.item)
           },
           onDrop: (changed) => {
-            this.dragState.from.index = this.list.findIndex(el => this._uniqueId(el) === this.dragState.from.key)
             this.dragState.to.index = tempList.findIndex(el => this._uniqueId(el) === this.dragState.from.key)
 
             const { from, to } = this.dragState
-            if (changed) {
-              this._handleDragEnd(tempList, from, to, changed)
-              this._setList(tempList)
-            } else {
-              this._handleDragEnd(tempList, from, from, changed)
-            }
+            // if (changed) {
+            //   if (dragElement) dragElement.remove()
+            //   this._handleDragEnd(tempList, from, to, changed)
+            // } else {
+            //   this._handleDragEnd(tempList, from, from, changed)
+            // }
+            if (dragElement) dragElement.remove()
+            this._handleDragEnd(tempList, from, to, changed)
+            this._setList(tempList)
+            dragElement = null
+            flag = false
           }
         }
       )
@@ -355,17 +385,26 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     _destroySortable() {
       this.drag && this.drag.destroy()
       this.drag = null
+    },
+    _handleDragEnd(list, _old, _new, changed) {
+      this.$emit('ondragend', list, _old, _new, changed)
+    },
+    _setList(list) {
+      this.list = list
     }
   },
+  // --------------------------- render ------------------------------
   render (h) {
     const { header, footer } = this.$slots
-    const { height, padding, headerTag, footerTag, itemTag, itemStyle, itemClass, dragStyle, list, start, end } = this
+    const { height, padding, list, start, end, isHorizontal } = this
+    const { headerTag, footerTag, itemTag, itemStyle, itemClass, wrapClass, wrapStyle } = this
+
     return h('div', {
       ref: 'virtualDragList',
       on: {
         '&scroll': utils.debounce(this._handleScroll, this.delay)
       },
-      style: { height, overflow: 'hidden auto', position: 'relative' }
+      style: { height, overflow: isHorizontal ? 'auto hidden' : 'hidden auto' }
     }, [
       // 顶部插槽 
       header ? h(Slots, {
@@ -380,18 +419,25 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       h('div', {
         ref: 'content',
         attrs: { role: 'content' },
-        style: { padding: `${padding.front}px 0px ${padding.behind}px` },
+        class: wrapClass,
+        style: {
+          padding: isHorizontal
+            ? `0px ${padding.behind}px 0px ${padding.front}px`
+            : `${padding.front}px 0px ${padding.behind}px`,
+          ...wrapStyle 
+        },
       }, list.slice(start, end + 1).map(record => {
         const index = this._getItemIndex(record)
         const uniqueKey = this._uniqueId(record)
+
           return this.$scopedSlots.item ? (
             h(Items, {
               key: uniqueKey,
               props: {
                 uniqueKey,
-                dragStyle,
                 tag: itemTag,
-                event: '_onItemResized'
+                event: '_onItemResized',
+                isHorizontal
               },
               style: itemStyle,
               class: itemClass
@@ -423,7 +469,11 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
       // 最底部元素
       h('div', {
-        ref: 'bottomItem'
+        ref: 'bottomItem',
+        style: {
+          width: isHorizontal ? '0px' : '100%',
+          height: isHorizontal ? '100%' : '0px'
+        }
       })
     ])
   }
