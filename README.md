@@ -89,20 +89,20 @@ Root component:
 
 **Commonly used**
 
-| **Prop**   | **Type** | **Default** | **Description** |
-| --------   | -------- | ----------- | --------------- |
-| `keeps`    | `Number` | `30`        | The number of lines rendered by the virtual scroll |
-| `size`     | `Number` | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
-| `direction`| `String` | `vertical`  | `vertical/horizontal`, scroll direction |
+| **Prop**   | **Type**  | **Default** | **Description** |
+| --------   | --------  | ----------- | --------------- |
+| `keeps`    | `Number`  | `30`        | The number of lines rendered by the virtual scroll |
+| `size`     | `Number`  | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
+| `direction`| `String`  | `vertical`  | `vertical/horizontal`, scroll direction |
+| `disabled` | `Boolean` | `false`     | Disables the sortable if set to true |
+| `draggable`| `Function/String` | `undefined`    | Specifies which items inside the element should be draggable, the function type must return a boolean |
+| `dragging` | `Function`| `undefined` | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
 
 
 **Uncommonly used**
 
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
-| `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
-| `draggable`  | `Function/String` | `undefined`    | Specifies which items inside the element should be draggable, the function type must return a boolean |
-| `dragging`   | `Function` | `undefined` | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
 | `animation`  | `Number`   | `150`       | Animation time |
 | `delay`      | `Number`   | `10`        | Delay time of debounce function |
 | `itemTag`    | `String`   | `div`       | Label type for header slot |
