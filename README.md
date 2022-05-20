@@ -103,7 +103,7 @@ Root component:
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
 | `draggable`  | `Function/String` | `undefined`    | Specifies which items inside the element should be draggable, the function type must return a boolean |
 | `dragging`   | `Function` | `undefined` | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
-| `animation`  | `Number`   | `150`       | Animation delay |
+| `animation`  | `Number`   | `150`       | Animation time |
 | `delay`      | `Number`   | `10`        | Delay time of debounce function |
 | `itemTag`    | `String`   | `div`       | Label type for header slot |
 | `headerTag`  | `String`   | `div`       | Label type for header slot |
