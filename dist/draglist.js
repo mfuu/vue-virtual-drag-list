@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.1
+ * vue-virtual-drag-list v2.6.2
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -38,6 +38,31 @@
     }
 
     return target;
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
+    return Constructor;
   }
 
   function _defineProperty(obj, key, value) {
@@ -88,6 +113,270 @@
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
+  /**
+   * 防抖
+   * @param {Function} func callback function
+   * @param {Number} delay delay time
+   * @param {Boolean} immediate whether to execute immediately
+   * @returns function
+   */
+  function debounce(func) {
+    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
+    var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+    var timer = null;
+    var result;
+
+    var debounced = function debounced() {
+      var _this = this;
+
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      if (timer) clearTimeout(timer);
+
+      if (immediate) {
+        var callNow = !timer;
+        timer = setTimeout(function () {
+          timer = null;
+        }, delay);
+        if (callNow) result = func.apply(this, args);
+      } else {
+        timer = setTimeout(function () {
+          func.apply(_this, args);
+        }, delay);
+      }
+
+      return result;
+    };
+
+    debounced.cancel = function () {
+      clearTimeout(timer);
+      timer = null;
+    };
+
+    return debounced;
+  }
+
+  var CACLTYPE = {
+    INIT: 'INIT',
+    FIXED: 'FIXED',
+    DYNAMIC: 'DYNAMIC'
+  };
+  var DIRECTION = {
+    FRONT: 'FRONT',
+    BEHIND: 'BEHIND'
+  };
+
+  var CalcSize = /*#__PURE__*/_createClass(function CalcSize() {
+    _classCallCheck(this, CalcSize);
+
+    this.average = undefined; // 计算首次加载每一项的评价高度
+
+    this.total = undefined; // 首次加载的总高度
+
+    this.fixed = undefined; // 记录固定高度值
+
+    this.header = undefined; // 顶部插槽高度
+
+    this.footer = undefined; // 底部插槽高度
+  });
+
+  var Range = /*#__PURE__*/_createClass(function Range() {
+    _classCallCheck(this, Range);
+
+    this.start = 0;
+    this.end = 0;
+    this.front = 0;
+    this.behind = 0;
+  });
+
+  function Virtual(options, callback) {
+    this.options = options;
+    this.callback = callback;
+    this.sizes = new Map(); // 用于存储列表项的高度
+
+    this.isHorizontal = options.isHorizontal; // 是否为横向滚动
+
+    this.calcIndex = 0; // 记录上次计算的index
+
+    this.calcType = CACLTYPE.INIT; // 记录列表项高度是动态还是静态
+
+    this.calcSize = new CalcSize();
+    this.direction = ''; // 滚动方向
+
+    this.offset = 0; // 记录滚动距离
+
+    this.range = new Range();
+    if (options) this.checkIfUpdate(0, options.keeps - 1);
+  }
+
+  Virtual.prototype = {
+    construcrot: Virtual,
+    // --------------------------- update ------------------------------
+    updateUniqueKeys: function updateUniqueKeys(value) {
+      this.options.uniqueKeys = value;
+    },
+    // 更新 sizes，删除不在当前列表中的数据
+    updateSizes: function updateSizes(uniqueKeys) {
+      var _this = this;
+
+      this.sizes.forEach(function (v, k) {
+        if (!uniqueKeys.includes(k)) _this.sizes["delete"](k);
+      });
+    },
+    updateRange: function updateRange() {
+      var start = Math.max(this.range.start, 0);
+      this.handleUpdate(start, this.getEndByStart(start));
+    },
+    // --------------------------- scroll ------------------------------
+    // 滚动事件
+    handleScroll: function handleScroll(offset) {
+      this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
+      this.offset = offset;
+      var scrolls = this.getScrollItems(offset);
+
+      if (this.isFront()) {
+        this.handleScrollFront(scrolls);
+      } else if (this.isBehind()) {
+        this.handleScrollBehind(scrolls);
+      }
+    },
+    isFront: function isFront() {
+      return this.direction === DIRECTION.FRONT;
+    },
+    isBehind: function isBehind() {
+      return this.direction === DIRECTION.BEHIND;
+    },
+    getScrollItems: function getScrollItems(offset) {
+      var _this$calcSize = this.calcSize,
+          fixed = _this$calcSize.fixed,
+          header = _this$calcSize.header; // 减去顶部插槽高度
+
+      if (header) offset -= header;
+      if (offset <= 0) return 0; // 固定高度
+
+      if (this.calcType === CACLTYPE.FIXED) return Math.floor(offset / fixed); // 非固定高度使用二分查找
+
+      var low = 0,
+          high = this.options.uniqueKeys.length;
+      var middle = 0,
+          middleOffset = 0;
+
+      while (low <= high) {
+        middle = low + Math.floor((high - low) / 2);
+        middleOffset = this.getOffsetByIndex(middle);
+        if (middleOffset === offset) return middle;else if (middleOffset < offset) low = middle + 1;else if (middleOffset > offset) high = middle - 1;
+      }
+
+      return low > 0 ? --low : 0;
+    },
+    handleScrollFront: function handleScrollFront(scrolls) {
+      if (scrolls > this.range.start) return;
+      var start = Math.max(scrolls - Math.round(this.options.keeps / 3), 0);
+      this.checkIfUpdate(start, this.getEndByStart(start));
+    },
+    handleScrollBehind: function handleScrollBehind(scrolls) {
+      if (scrolls < this.range.start + Math.round(this.options.keeps / 3)) return;
+      this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
+    },
+    checkIfUpdate: function checkIfUpdate(start, end) {
+      var _this$options = this.options,
+          uniqueKeys = _this$options.uniqueKeys,
+          keeps = _this$options.keeps;
+
+      if (uniqueKeys.length <= keeps) {
+        start = 0;
+        end = uniqueKeys.length - 1;
+      } else if (end - start < keeps - 1) {
+        start = end - keeps + 1;
+      }
+
+      if (this.range.start !== start) this.handleUpdate(start, end);
+    },
+    handleUpdate: function handleUpdate(start, end) {
+      this.range.start = start;
+      this.range.end = end;
+      this.range.front = this.getFrontOffset();
+      this.range.behind = this.getBehindOffset();
+      this.callback(_objectSpread2({}, this.range));
+    },
+    getFrontOffset: function getFrontOffset() {
+      if (this.calcType === CACLTYPE.FIXED) {
+        return this.calcSize.fixed * this.range.start;
+      } else {
+        return this.getOffsetByIndex(this.range.start);
+      }
+    },
+    getBehindOffset: function getBehindOffset() {
+      var last = this.getLastIndex();
+
+      if (this.calcType === CACLTYPE.FIXED) {
+        return (last - this.range.end) * this.calcSize.fixed;
+      }
+
+      if (this.calcIndex === last) {
+        return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.range.end);
+      }
+
+      return (last - this.range.end) * this.getItemSize();
+    },
+    getOffsetByIndex: function getOffsetByIndex(index) {
+      if (!index) return 0;
+      var offset = 0;
+
+      for (var i = 0; i < index; i++) {
+        var size = this.sizes.get(this.options.uniqueKeys[i]);
+        offset = offset + (typeof size === 'number' ? size : this.getItemSize());
+      }
+
+      this.calcIndex = Math.max(this.calcIndex, index - 1);
+      this.calcIndex = Math.min(this.calcIndex, this.getLastIndex());
+      return offset;
+    },
+    getEndByStart: function getEndByStart(start) {
+      return Math.min(start + this.options.keeps - 1, this.getLastIndex());
+    },
+    getLastIndex: function getLastIndex() {
+      return this.options.uniqueKeys.length - 1;
+    },
+    // --------------------------- size ------------------------------
+    // 获取列表项的高度
+    getItemSize: function getItemSize() {
+      return this.calcType === CACLTYPE.FIXED ? this.calcSize.fixed : this.calcSize.average || this.options.size;
+    },
+    // 列表项高度变化
+    handleItemSizeChange: function handleItemSizeChange(id, size) {
+      this.sizes.set(id, size); // 'INIT' 状态表示每一项的高度都相同
+
+      if (this.calcType === CACLTYPE.INIT) {
+        this.calcType = CACLTYPE.FIXED; // 固定高度
+
+        this.calcSize.fixed = size;
+      } else if (this.calcType === CACLTYPE.FIXED && this.calcSize.fixed !== size) {
+        // 如果当前为 'FIXED' 状态并且 size 与固定高度不同，表示当前高度不固定，fixed值也就不需要了
+        this.calcType = CACLTYPE.DYNAMIC;
+        this.calcSize.fixed = undefined;
+      } // 非固定高度的情况下，计算平均高度与总高度
+
+
+      if (this.calcType !== CACLTYPE.FIXED) {
+        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
+          return t + i;
+        }, 0);
+        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
+      }
+    },
+    // header 插槽高度变化
+    handleHeaderSizeChange: function handleHeaderSizeChange(size) {
+      this.calcSize.header = size;
+    },
+    // footer 插槽高度变化
+    handleFooterSizeChange: function handleFooterSizeChange(size) {
+      this.calcSize.footer = size;
+    }
+  };
+
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function createCommonjsModule(fn, module) {
@@ -96,7 +385,7 @@
 
   var sortable = createCommonjsModule(function (module, exports) {
   /*!
-   * sortable-dnd v0.2.0
+   * sortable-dnd v0.2.1
    * open source under the MIT license
    * https://github.com/mfuu/sortable-dnd#readme
    */
@@ -188,9 +477,43 @@
       passive: false
     };
     var R_SPACE = /\s+/g;
+    var CSSTRANSITIONS = ['-webkit-transition', '-moz-transition', '-ms-transition', '-o-transition', 'transition'];
+    var CSSTRANSFORMS = ['-webkit-transform', '-moz-transform', '-ms-transform', '-o-transform', 'transform'];
+    /**
+     * set transition style
+     * @param {HTMLElement} el 
+     * @param {String | Function} transition 
+     */
+
+    function setTransition(el, transition) {
+      if (transition) {
+        if (transition === 'none') CSSTRANSITIONS.forEach(function (ts) {
+          return css(el, ts, 'none');
+        });else CSSTRANSITIONS.forEach(function (ts) {
+          return css(el, ts, "".concat(ts.split('transition')[0], "transform ").concat(transition));
+        });
+      } else CSSTRANSITIONS.forEach(function (ts) {
+        return css(el, ts, '');
+      });
+    }
+    /**
+     * set transform style
+     * @param {HTMLElement} el 
+     * @param {String} transform 
+     */
+
+
+    function setTransform(el, transform) {
+      if (transform) CSSTRANSFORMS.forEach(function (tf) {
+        return css(el, tf, "".concat(tf.split('transform')[0]).concat(transform));
+      });else CSSTRANSFORMS.forEach(function (tf) {
+        return css(el, tf, '');
+      });
+    }
     /**
      * detect passive event support
      */
+
 
     function supportPassive() {
       // https://github.com/Modernizr/Modernizr/issues/1894
@@ -471,9 +794,161 @@
     function _nextTick(fn) {
       return setTimeout(fn, 0);
     }
+    /**
+     * 拖拽前后差异初始化
+     */
 
-    var CSS_TRANSITIONS = ['-webkit-transition', '-moz-transition', '-ms-transition', '-o-transition', 'transition'];
-    var CSS_TRANSFORMS = ['-webkit-transform', '-moz-transform', '-ms-transform', '-o-transform', 'transform'];
+
+    var Differ = /*#__PURE__*/function () {
+      function Differ() {
+        _classCallCheck(this, Differ);
+
+        this.from = {
+          node: null,
+          rect: {},
+          offset: {}
+        };
+        this.to = {
+          node: null,
+          rect: {},
+          offset: {}
+        };
+      }
+
+      _createClass(Differ, [{
+        key: "get",
+        value: function get(key) {
+          return this[key];
+        }
+      }, {
+        key: "set",
+        value: function set(key, value) {
+          this[key] = value;
+        }
+      }, {
+        key: "destroy",
+        value: function destroy() {
+          this.from = {
+            node: null,
+            rect: {},
+            offset: {}
+          };
+          this.to = {
+            node: null,
+            rect: {},
+            offset: {}
+          };
+        }
+      }]);
+
+      return Differ;
+    }();
+    /**
+     * 拖拽中的元素
+     */
+
+
+    var Ghost = /*#__PURE__*/function () {
+      function Ghost(options) {
+        _classCallCheck(this, Ghost);
+
+        this.options = options;
+        this.x = 0;
+        this.y = 0;
+        this.exist = false;
+      }
+
+      _createClass(Ghost, [{
+        key: "init",
+        value: function init(el, rect) {
+          if (!el) return;
+          this.$el = el;
+          var _this$options = this.options,
+              ghostClass = _this$options.ghostClass,
+              _this$options$ghostSt = _this$options.ghostStyle,
+              ghostStyle = _this$options$ghostSt === void 0 ? {} : _this$options$ghostSt;
+          var width = rect.width,
+              height = rect.height;
+          this.$el["class"] = ghostClass;
+          this.$el.style.width = width + 'px';
+          this.$el.style.height = height + 'px';
+          this.$el.style.position = 'fixed';
+          this.$el.style.left = 0;
+          this.$el.style.top = 0;
+          this.$el.style.zIndex = 100000;
+          this.$el.style.opacity = 0.8;
+          this.$el.style.pointerEvents = 'none';
+          this.$el.style.cursor = 'move';
+          setTransition(this.$el, 'none');
+          setTransform(this.$el, 'translate3d(0px, 0px, 0px)');
+          this.setStyle(ghostStyle);
+        }
+      }, {
+        key: "get",
+        value: function get(key) {
+          return this[key];
+        }
+      }, {
+        key: "set",
+        value: function set(key, value) {
+          this[key] = value;
+          this[key] = value;
+        }
+      }, {
+        key: "setStyle",
+        value: function setStyle(style) {
+          for (var key in style) {
+            css(this.$el, key, style[key]);
+          }
+        }
+      }, {
+        key: "rect",
+        value: function rect() {
+          return getRect(this.$el);
+        }
+      }, {
+        key: "move",
+        value: function move(smooth) {
+          var ghostAnimation = this.options.ghostAnimation;
+          if (smooth) setTransition(this.$el, "".concat(ghostAnimation, "ms"));else setTransition(this.$el, 'none'); // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
+
+          if (!this.exist) {
+            document.body.appendChild(this.$el);
+            this.exist = true;
+          }
+
+          setTransform(this.$el, "translate3d(".concat(this.x, "px, ").concat(this.y, "px, 0)"));
+          if (this.$el.style.cursor !== 'move') this.$el.style.cursor = 'move';
+        }
+      }, {
+        key: "destroy",
+        value: function destroy(rect) {
+          var _this = this;
+
+          if (rect) {
+            this.x = rect.left;
+            this.y = rect.top;
+            this.move(true);
+          }
+
+          var ghostAnimation = this.options.ghostAnimation;
+          ghostAnimation ? setTimeout(function () {
+            return _this.clear();
+          }, ghostAnimation) : this.clear();
+        }
+      }, {
+        key: "clear",
+        value: function clear() {
+          if (this.$el) this.$el.remove();
+          this.$el = null;
+          this.x = 0;
+          this.y = 0;
+          this.exist = false;
+        }
+      }]);
+
+      return Ghost;
+    }();
 
     function Animation() {
       var animationState = [];
@@ -522,28 +997,16 @@
           var curRect = getRect(el);
           var left = preRect.left - curRect.left;
           var top = preRect.top - curRect.top;
-          CSS_TRANSITIONS.forEach(function (ts) {
-            return css(el, ts, 'none');
-          });
-          CSS_TRANSFORMS.forEach(function (tf) {
-            return css(el, tf, "".concat(tf.split('transform')[0], "translate3d(").concat(left, "px, ").concat(top, "px, 0)"));
-          });
+          setTransition(el, 'none');
+          setTransform(el, "translate3d(".concat(left, "px, ").concat(top, "px, 0)"));
           el.offsetLeft; // 触发重绘
 
-          CSS_TRANSITIONS.forEach(function (ts) {
-            return css(el, ts, "".concat(ts.split('transition')[0], "transform ").concat(animation, "ms"));
-          });
-          CSS_TRANSFORMS.forEach(function (tf) {
-            return css(el, tf, "".concat(tf.split('transform')[0], "translate3d(0px, 0px, 0px)"));
-          });
+          setTransition(el, "".concat(animation, "ms"));
+          setTransform(el, 'translate3d(0px, 0px, 0px)');
           clearTimeout(el.animated);
           el.animated = setTimeout(function () {
-            CSS_TRANSITIONS.forEach(function (ts) {
-              return css(el, ts, '');
-            });
-            CSS_TRANSFORMS.forEach(function (tf) {
-              return css(el, tf, '');
-            });
+            setTransition(el, '');
+            setTransform(el, '');
             el.animated = null;
           }, animation);
         }
@@ -629,156 +1092,6 @@
         }
       };
     }
-    /**
-     * 拖拽前后差异初始化
-     */
-
-
-    var Differ = /*#__PURE__*/function () {
-      function Differ() {
-        _classCallCheck(this, Differ);
-
-        this.from = {
-          node: null,
-          rect: {},
-          offset: {}
-        };
-        this.to = {
-          node: null,
-          rect: {},
-          offset: {}
-        };
-      }
-
-      _createClass(Differ, [{
-        key: "get",
-        value: function get(key) {
-          return this[key];
-        }
-      }, {
-        key: "set",
-        value: function set(key, value) {
-          this[key] = value;
-        }
-      }, {
-        key: "destroy",
-        value: function destroy() {
-          this.from = {
-            node: null,
-            rect: {},
-            offset: {}
-          };
-          this.to = {
-            node: null,
-            rect: {},
-            offset: {}
-          };
-        }
-      }]);
-
-      return Differ;
-    }();
-    /**
-     * 拖拽中的元素
-     */
-
-
-    var Ghost = /*#__PURE__*/function () {
-      function Ghost(options) {
-        _classCallCheck(this, Ghost);
-
-        this.options = options;
-        this.x = 0;
-        this.y = 0;
-        this.exist = false;
-      }
-
-      _createClass(Ghost, [{
-        key: "init",
-        value: function init(el, rect) {
-          if (!el) return;
-          this.$el = el;
-          var _this$options = this.options,
-              ghostClass = _this$options.ghostClass,
-              _this$options$ghostSt = _this$options.ghostStyle,
-              ghostStyle = _this$options$ghostSt === void 0 ? {} : _this$options$ghostSt;
-          var width = rect.width,
-              height = rect.height;
-          this.$el["class"] = ghostClass;
-          this.$el.style.width = width + 'px';
-          this.$el.style.height = height + 'px';
-          this.$el.style.transform = '';
-          this.$el.style.transition = '';
-          this.$el.style.position = 'fixed';
-          this.$el.style.left = 0;
-          this.$el.style.top = 0;
-          this.$el.style.zIndex = 100000;
-          this.$el.style.opacity = 0.8;
-          this.$el.style.pointerEvents = 'none';
-          this.$el.style.cursor = 'move';
-          this.setStyle(ghostStyle);
-        }
-      }, {
-        key: "get",
-        value: function get(key) {
-          return this[key];
-        }
-      }, {
-        key: "set",
-        value: function set(key, value) {
-          this[key] = value;
-          this[key] = value;
-        }
-      }, {
-        key: "setStyle",
-        value: function setStyle(style) {
-          for (var key in style) {
-            css(this.$el, key, style[key]);
-          }
-        }
-      }, {
-        key: "rect",
-        value: function rect() {
-          return this.$el.getBoundingClientRect();
-        }
-      }, {
-        key: "move",
-        value: function move(smooth) {
-          var ghostAnimation = this.options.ghostAnimation;
-          if (smooth) this.$el.style.transition = "all ".concat(ghostAnimation, "ms");else this.$el.style.transition = ''; // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
-
-          if (!this.exist) {
-            document.body.appendChild(this.$el);
-            this.exist = true;
-          }
-
-          this.$el.style.transform = "translate3d(".concat(this.x, "px, ").concat(this.y, "px, 0)");
-          if (this.$el.style.cursor !== 'move') this.$el.style.cursor = 'move';
-        }
-      }, {
-        key: "destroy",
-        value: function destroy(rect) {
-          var _this = this;
-
-          if (rect) {
-            this.x = rect.left;
-            this.y = rect.top;
-            this.move(true);
-          }
-
-          setTimeout(function () {
-            if (_this.$el) _this.$el.remove();
-            _this.$el = null;
-            _this.x = 0;
-            _this.y = 0;
-            _this.exist = false;
-          }, this.options.ghostAnimation);
-        }
-      }]);
-
-      return Ghost;
-    }(); // -------------------------------- Sortable ----------------------------------
-
 
     var documentExists = typeof document !== 'undefined';
     var supportDraggable = documentExists && !ChromeForAndroid && !IOS && 'draggable' in document.createElement('div');
@@ -875,11 +1188,11 @@
       _onStart: function _onStart(
       /** Event|TouchEvent */
       evt) {
-        var _this$options2 = this.options,
-            delay = _this$options2.delay,
-            disabled = _this$options2.disabled,
-            stopPropagation = _this$options2.stopPropagation,
-            delayOnTouchOnly = _this$options2.delayOnTouchOnly;
+        var _this$options = this.options,
+            delay = _this$options.delay,
+            disabled = _this$options.disabled,
+            stopPropagation = _this$options.stopPropagation,
+            delayOnTouchOnly = _this$options.delayOnTouchOnly;
         if (/mousedown|pointerdown/.test(evt.type) && evt.button !== 0 || disabled) return; // only left button and enabled
 
         var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
@@ -887,7 +1200,6 @@
 
         if (!this.nativeDraggable && Safari && e.target && e.target.tagName.toUpperCase() === 'SELECT') return;
         if (e.target === this.$el) return true;
-        if (evt.preventDefault !== void 0) evt.preventDefault();
         if (stopPropagation) evt.stopPropagation();
 
         if (delay && (!delayOnTouchOnly || touch) && (!this.nativeDraggable || !(Edge || IE11OrLess))) {
@@ -899,9 +1211,9 @@
       _onDrag: function _onDrag(
       /** Event|TouchEvent */
       e, touch) {
-        var _this$options3 = this.options,
-            draggable = _this$options3.draggable,
-            dragging = _this$options3.dragging;
+        var _this$options2 = this.options,
+            draggable = _this$options2.draggable,
+            dragging = _this$options2.dragging;
 
         if (typeof draggable === 'function') {
           if (!draggable(e)) return true;
@@ -960,11 +1272,11 @@
       evt) {
         if (evt.preventDefault !== void 0) evt.preventDefault(); // prevent scrolling
 
-        var _this$options4 = this.options,
-            chosenClass = _this$options4.chosenClass,
-            stopPropagation = _this$options4.stopPropagation,
-            onMove = _this$options4.onMove,
-            onDrag = _this$options4.onDrag;
+        var _this$options3 = this.options,
+            chosenClass = _this$options3.chosenClass,
+            stopPropagation = _this$options3.stopPropagation,
+            onMove = _this$options3.onMove,
+            onDrag = _this$options3.onDrag;
         if (stopPropagation) evt.stopPropagation();
         var touch = evt.touches && evt.touches[0];
         var e = touch || evt;
@@ -1075,10 +1387,10 @@
         this._offUpEvents();
 
         clearTimeout(this.dragStartTimer);
-        var _this$options5 = this.options,
-            onDrop = _this$options5.onDrop,
-            chosenClass = _this$options5.chosenClass,
-            stopPropagation = _this$options5.stopPropagation;
+        var _this$options4 = this.options,
+            onDrop = _this$options4.onDrop,
+            chosenClass = _this$options4.chosenClass,
+            stopPropagation = _this$options4.stopPropagation;
         if (stopPropagation) evt.stopPropagation(); // 阻止事件冒泡
 
         toggleClass(this.dragEl, chosenClass, false);
@@ -1127,7 +1439,7 @@
       },
       // -------------------------------- auto destroy ----------------------------------
       _handleDestroy: function _handleDestroy() {
-        var _this2 = this;
+        var _this = this;
 
         var observer = null;
         var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
@@ -1136,13 +1448,13 @@
           var ownerDocument = this.options.ownerDocument;
           if (!ownerDocument) return;
           observer = new MutationObserver(function () {
-            if (!ownerDocument.body.contains(_this2.$el)) {
+            if (!ownerDocument.body.contains(_this.$el)) {
               observer.disconnect();
               observer = null;
 
-              _this2._unbindEventListener();
+              _this._unbindEventListener();
 
-              _this2._resetState();
+              _this._resetState();
             }
           });
           observer.observe(this.$el.parentNode, {
@@ -1159,15 +1471,127 @@
           if (observer) observer.disconnect();
           observer = null;
 
-          _this2._unbindEventListener();
+          _this._unbindEventListener();
 
-          _this2._resetState();
+          _this._resetState();
         };
       }
     };
     return Sortable;
   });
   });
+
+  /**
+   * sortable
+   */
+
+  var Sortable = {
+    data: function data() {
+      return {
+        dragState: {
+          from: {
+            key: null,
+            // 拖拽起始节点唯一值
+            item: null,
+            // 拖拽起始节点数据
+            index: null // 拖拽起始节点索引
+
+          },
+          to: {
+            key: null,
+            // 拖拽结束节点唯一值
+            item: null,
+            // 拖拽结束节点数据
+            index: null // 拖拽结束节点索引
+
+          }
+        }
+      };
+    },
+    methods: {
+      _initSortable: function _initSortable() {
+        var _this = this;
+
+        var tempList = [];
+        var dragIndex = -1;
+        var dragElement = null;
+        var flag = false;
+
+        this._destroySortable();
+
+        this.drag = new sortable(this.$refs.wrapper, {
+          disabled: this.disabled,
+          ghostStyle: this.dragStyle,
+          draggable: this.draggable,
+          dragging: this.dragging,
+          chosenClass: this.chosenClass,
+          animation: this.animation,
+          onDrag: function onDrag(dragEl) {
+            dragElement = dragEl;
+            tempList = _toConsumableArray(_this.list);
+            var key = dragEl.getAttribute('data-key');
+            dragIndex = _this.list.findIndex(function (el) {
+              return _this._getUniqueKey(el) === key;
+            });
+            _this.dragState.from.index = dragIndex;
+            _this.dragState.from.key = key;
+          },
+          onChange: function onChange(_old_, _new_) {
+            if (!flag) {
+              flag = true;
+
+              _this.list.splice(dragIndex, 1);
+            }
+
+            var oldKey = _this.dragState.from.key;
+
+            var newKey = _new_.node.getAttribute('data-key');
+
+            _this.dragState.to.key = newKey;
+            tempList.forEach(function (el, index) {
+              var key = _this._getUniqueKey(el);
+
+              if (key === oldKey) Object.assign(_this.dragState.from, {
+                item: el,
+                index: index
+              });
+              if (key === newKey) Object.assign(_this.dragState.to, {
+                item: el,
+                index: index
+              });
+            });
+            var _this$dragState = _this.dragState,
+                from = _this$dragState.from,
+                to = _this$dragState.to;
+            tempList.splice(from.index, 1);
+            tempList.splice(to.index, 0, from.item);
+          },
+          onDrop: function onDrop(changed) {
+            _this.dragState.to.index = tempList.findIndex(function (el) {
+              return _this._getUniqueKey(el) === _this.dragState.from.key;
+            });
+            var _this$dragState2 = _this.dragState,
+                from = _this$dragState2.from,
+                to = _this$dragState2.to;
+            if (flag && dragElement) dragElement.remove();
+
+            _this.handleDragEnd(tempList, from, to, changed);
+
+            _this.list = tempList;
+            _this.uniqueKeys = _this.list.map(function (item) {
+              return _this._getUniqueKey(item);
+            });
+            dragElement = null;
+            flag = false;
+          }
+        });
+      },
+      _destroySortable: function _destroySortable() {
+        this.drag && this.drag.destroy();
+        this.drag = null;
+      }
+    }
+  };
 
   var VirtualProps = {
     // 列表数据
@@ -1204,7 +1628,14 @@
     // 防抖延迟时间
     delay: {
       type: Number,
-      "default": 10
+      "default": 0
+    },
+    rootStyle: {
+      type: Object
+    },
+    rootClass: {
+      type: String,
+      "default": ''
     },
     wrapClass: {
       type: String,
@@ -1265,7 +1696,7 @@
       "default": 150
     }
   };
-  var SlotItemProps = {
+  var SlotsProps = {
     tag: {
       type: String,
       "default": 'div'
@@ -1319,7 +1750,7 @@
   };
   var Items = Vue__default["default"].component('virtual-draglist-items', {
     mixins: [observer],
-    props: SlotItemProps,
+    props: SlotsProps,
     render: function render(h) {
       var tag = this.tag,
           uniqueKey = this.uniqueKey;
@@ -1333,7 +1764,7 @@
   });
   var Slots = Vue__default["default"].component('virtual-draglist-slots', {
     mixins: [observer],
-    props: SlotItemProps,
+    props: SlotsProps,
     render: function render(h) {
       var tag = this.tag,
           uniqueKey = this.uniqueKey;
@@ -1346,107 +1777,21 @@
     }
   });
 
-  var utils = {
-    /**
-     * 防抖
-     * @param {Function} func callback function
-     * @param {Number} delay delay time
-     * @param {Boolean} immediate whether to execute immediately
-     * @returns function
-     */
-    debounce: function debounce(func) {
-      var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
-      var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      var timer = null;
-      var result;
-
-      var debounced = function debounced() {
-        var _this = this;
-
-        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
-        }
-
-        if (timer) clearTimeout(timer);
-
-        if (immediate) {
-          var callNow = !timer;
-          timer = setTimeout(function () {
-            timer = null;
-          }, delay);
-          if (callNow) result = func.apply(this, args);
-        } else {
-          timer = setTimeout(function () {
-            func.apply(_this, args);
-          }, delay);
-        }
-
-        return result;
-      };
-
-      debounced.cancel = function () {
-        clearTimeout(timer);
-        timer = null;
-      };
-
-      return debounced;
-    }
-  };
-
   var VirtualDragList = Vue__default["default"].component('virtual-drag-list', {
+    mixins: [Sortable],
     props: VirtualProps,
     data: function data() {
       return {
         list: [],
         // 将dataSource克隆一份
-        sizeStack: new Map(),
-        // 保存每个item的高度
-        start: 0,
-        // 起始索引
-        end: 0,
-        // 结束索引
-        offset: 0,
-        // 记录滚动高度
-        scrollDir: '',
-        // 记录滚动方向
         uniqueKeys: [],
         // 通过dataKey获取所有数据的唯一键值
-        lastCalcIndex: 0,
-        calcType: 'INIT',
-        // 初始化标致
-        calcSize: {
-          average: 0,
-          // 计算首次加载每一项的评价高度
-          total: 0,
-          // 首次加载的总高度
-          fixed: 0,
-          // 记录固定高度值
-          header: 0,
-          // 顶部插槽高度
-          footer: 0 // 底部插槽高度
-
-        },
-        padding: {
+        virtual: null,
+        range: {
+          start: 0,
+          end: 0,
           front: 0,
           behind: 0
-        },
-        dragState: {
-          from: {
-            key: null,
-            // 拖拽起始节点唯一值
-            item: null,
-            // 拖拽起始节点数据
-            index: null // 拖拽起始节点索引
-
-          },
-          to: {
-            key: null,
-            // 拖拽结束节点唯一值
-            item: null,
-            // 拖拽结束节点数据
-            index: null // 拖拽结束节点索引
-
-          }
         },
         drag: null
       };
@@ -1457,12 +1802,6 @@
       };
     },
     computed: {
-      uniqueKeyLen: function uniqueKeyLen() {
-        return this.uniqueKeys.length - 1;
-      },
-      isFixedType: function isFixedType() {
-        return this.calcType === 'FIXED';
-      },
       isHorizontal: function isHorizontal() {
         return this.direction !== 'vertical';
       },
@@ -1482,377 +1821,183 @@
     watch: {
       dataSource: {
         handler: function handler(val) {
-          this._initVirtual(val);
+          this.initVirtual(val);
         },
         deep: true,
         immediate: true
       },
       disabled: {
         handler: function handler(val) {
-          var _this = this;
+          var _this2 = this;
 
           if (!val) this.$nextTick(function () {
-            return _this._initSortable();
+            return _this2._initSortable();
           });else this._destroySortable();
         },
         immediate: true
       }
-    },
-    mounted: function mounted() {
-      this.end = this.start + this.keeps;
     },
     beforeDestroy: function beforeDestroy() {
       this._destroySortable();
     },
     methods: {
       // --------------------------- emits ------------------------------
+
+      /**
+       * reset component
+       */
       reset: function reset() {
         this.scrollToTop();
+        this.initVirtual(this.dataSource);
+      },
 
-        this._initVirtual(this.dataSource);
-      },
-      // 通过key值获取当前行的高度
+      /**
+       * git item size by data-key
+       * @param {String | Number} key data-key 
+       */
       getSize: function getSize(key) {
-        return this.sizeStack.get(key);
+        return this.virtual.sizes.get(key);
       },
-      // 返回当前滚动高度
+
+      /**
+       * Get the current scroll height
+       */
       getOffset: function getOffset() {
-        return this.offset;
+        var root = this.$refs.root;
+        return root ? Math.ceil(root[this.scrollDirectionKey]) : 0;
       },
-      // 滚动到底部
+
+      /**
+       * Scroll to top of list
+       */
+      scrollToTop: function scrollToTop() {
+        var root = this.$refs.root;
+        root[this.scrollDirectionKey] = 0;
+      },
+
+      /**
+       * Scroll to bottom of list
+       */
       scrollToBottom: function scrollToBottom() {
-        var _this2 = this;
+        var _this3 = this;
 
         var _this$$refs = this.$refs,
             bottomItem = _this$$refs.bottomItem,
-            virtualDragList = _this$$refs.virtualDragList;
+            root = _this$$refs.root;
 
         if (bottomItem) {
-          var offset = bottomItem[this.offsetSizeKey];
-          this.scrollToOffset(offset); // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+          var bottom = bottomItem[this.offsetSizeKey];
+          this.scrollToOffset(bottom); // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
 
           setTimeout(function () {
-            var clientSize = _this2.$el[_this2.clientSizeKey];
-            var scroll = Math.ceil(virtualDragList[_this2.scrollDirectionKey]);
-            var scrollSize = Math.ceil(virtualDragList[_this2.scrollSizeKey]);
-            if (scroll + clientSize < scrollSize) _this2.scrollToBottom();
-          }, 3);
+            var offset = _this3.getOffset();
+
+            var clientSize = Math.ceil(root[_this3.clientSizeKey]);
+            var scrollSize = Math.ceil(root[_this3.scrollSizeKey]);
+            if (offset + clientSize < scrollSize) _this3.scrollToBottom();
+          }, 5);
         }
       },
-      // 滚动到顶部
-      scrollToTop: function scrollToTop() {
-        var virtualDragList = this.$refs.virtualDragList;
-        virtualDragList[this.scrollDirectionKey] = 0;
-      },
-      // 滚动到指定高度
-      scrollToOffset: function scrollToOffset(offset) {
-        var virtualDragList = this.$refs.virtualDragList;
-        virtualDragList[this.scrollDirectionKey] = offset;
-      },
-      // 滚动到指定索引值位置
+
+      /**
+       * Scroll to the specified index position
+       * @param {Number} index 
+       */
       scrollToIndex: function scrollToIndex(index) {
+        var _this4 = this;
+
         if (index >= this.list.length - 1) {
           this.scrollToBottom();
         } else {
-          var offset = this._getOffsetByIndex(index);
+          var indexOffset = this.virtual.getOffsetByIndex(index);
+          this.scrollToOffset(indexOffset);
+          setTimeout(function () {
+            var offset = _this4.getOffset();
 
-          this.scrollToOffset(offset);
+            var indexOffset = _this4.virtual.getOffsetByIndex(index);
+
+            if (offset !== indexOffset) _this4.scrollToIndex(index);
+          }, 5);
         }
       },
-      // --------------------------- handle scroll ------------------------------
-      _initVirtual: function _initVirtual(list) {
-        var _this3 = this;
+
+      /**
+       * Scroll to the specified offset
+       * @param {Number} offset 
+       */
+      scrollToOffset: function scrollToOffset(offset) {
+        var root = this.$refs.root;
+        root[this.scrollDirectionKey] = offset;
+      },
+      handleDragEnd: function handleDragEnd(list, _old, _new, changed) {
+        this.virtual.updateUniqueKeys(this.uniqueKeys);
+        this.$emit('ondragend', list, _old, _new, changed);
+      },
+      // --------------------------- init ------------------------------
+      initVirtual: function initVirtual(list) {
+        var _this5 = this;
 
         this.list = _toConsumableArray(list);
         this.uniqueKeys = this.list.map(function (item) {
-          return _this3._uniqueId(item);
+          return _this5._getUniqueKey(item);
         });
-
-        this._handleSourceDataChange();
-
-        this._updateSizeStack();
+        this.virtual = new Virtual({
+          size: this.size,
+          keeps: this.keeps,
+          uniqueKeys: this.uniqueKeys,
+          isHorizontal: this.isHorizontal
+        }, function (range) {
+          _this5.range = range;
+        });
+        this.virtual.updateRange();
+        this.virtual.updateSizes(this.uniqueKeys);
       },
+      // --------------------------- handle scroll ------------------------------
       _handleScroll: function _handleScroll(event) {
-        var virtualDragList = this.$refs.virtualDragList;
-        var clientSize = Math.ceil(this.$el[this.clientSizeKey]);
-        var scroll = Math.ceil(virtualDragList[this.scrollDirectionKey]);
-        var scrollSize = Math.ceil(virtualDragList[this.scrollSizeKey]); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+        var root = this.$refs.root;
+        var offset = this.getOffset();
+        var clientSize = Math.ceil(root[this.clientSizeKey]);
+        var scrollSize = Math.ceil(root[this.scrollSizeKey]); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
 
-        if (scroll < 0 || scroll + clientSize > scrollSize + 1 || !scrollSize) return; // 记录上一次滚动的距离，判断当前滚动方向
+        if (offset < 0 || offset + clientSize > scrollSize + 1 || !scrollSize) return;
+        this.virtual.handleScroll(offset);
 
-        this.scrollDir = scroll < this.offset ? 'FRONT' : 'BEHIND';
-        this.offset = scroll;
-
-        var overs = this._getScrollOvers();
-
-        if (this.scrollDir === 'FRONT') {
-          this._handleFront(overs);
-
-          if (!!this.list.length && scroll <= 0) this.$emit('top');
-        } else if (this.scrollDir === 'BEHIND') {
-          this._handleBehind(overs);
-
-          if (clientSize + scroll >= scrollSize) this.$emit('bottom');
+        if (this.virtual.isFront()) {
+          if (!!this.list.length && offset <= 0) this.handleToTop(this);
+        } else if (this.virtual.isBehind()) {
+          if (clientSize + offset >= scrollSize) this.handleToBottom(this);
         }
       },
-      _handleFront: function _handleFront(overs) {
-        if (overs > this.start) {
-          return;
-        }
-
-        var start = Math.max(overs - Math.round(this.keeps / 3), 0);
-
-        this._checkRange(start, this._getEndByStart(start));
+      handleToTop: debounce(function (_this) {
+        _this.$emit('top');
+      }),
+      handleToBottom: debounce(function (_this) {
+        _this.$emit('bottom');
+      }),
+      // --------------------------- handle size change ------------------------------
+      _onItemResized: function _onItemResized(id, size) {
+        this.virtual.handleItemSizeChange(id, size);
       },
-      _handleBehind: function _handleBehind(overs) {
-        if (overs < this.start + Math.round(this.keeps / 3)) {
-          return;
-        }
-
-        this._checkRange(overs, this._getEndByStart(overs));
+      _onHeaderResized: function _onHeaderResized(id, size) {
+        this.virtual.handleHeaderSizeChange(size);
       },
-      // 原数组改变重新计算
-      _handleSourceDataChange: function _handleSourceDataChange() {
-        var start = Math.max(this.start, 0);
-
-        this._updateRange(this.start, this._getEndByStart(start));
+      _onFooterResized: function _onFooterResized(id, size) {
+        this.virtual.handleFooterSizeChange(size);
       },
-      // 更新缓存
-      _updateSizeStack: function _updateSizeStack() {
-        var _this4 = this;
-
-        this.sizeStack.forEach(function (v, key) {
-          if (!_this4.uniqueKeys.includes(key)) {
-            _this4.sizeStack["delete"](key);
-          }
-        });
-      },
-      _checkRange: function _checkRange(start, end) {
-        var keeps = this.keeps;
-        var total = this.uniqueKeys.length;
-
-        if (total <= keeps) {
-          start = 0;
-          end = this.uniqueKeyLen;
-        } else if (end - start < keeps - 1) {
-          start = end - keeps + 1;
-        }
-
-        if (this.start !== start) {
-          this._updateRange(start, end);
-        }
-      },
-      _updateRange: function _updateRange(start, end) {
-        this.start = start;
-        this.end = end;
-        this.padding = {
-          front: this._getFront(),
-          behind: this._getBehind()
-        };
-      },
-      // 二分法查找
-      _getScrollOvers: function _getScrollOvers() {
-        // 如果有header插槽，需要减去header的高度
-        var offset = this.offset - this.calcSize.header;
-        if (offset <= 0) return 0;
-        if (this.isFixedType) return Math.floor(offset / this.calcSize.fixed);
-        var low = 0;
-        var middle = 0;
-        var middleOffset = 0;
-        var high = this.uniqueKeys.length;
-
-        while (low <= high) {
-          middle = low + Math.floor((high - low) / 2);
-          middleOffset = this._getOffsetByIndex(middle);
-
-          if (middleOffset === offset) {
-            return middle;
-          } else if (middleOffset < offset) {
-            low = middle + 1;
-          } else if (middleOffset > offset) {
-            high = middle - 1;
-          }
-        }
-
-        return low > 0 ? --low : 0;
-      },
-      _getFront: function _getFront() {
-        if (this.isFixedType) {
-          return this.calcSize.fixed * this.start;
-        } else {
-          return this._getOffsetByIndex(this.start);
-        }
-      },
-      _getBehind: function _getBehind() {
-        var last = this.uniqueKeyLen;
-
-        if (this.isFixedType) {
-          return (last - this.end) * this.calcSize.fixed;
-        }
-
-        if (this.lastCalcIndex === last) {
-          return this._getOffsetByIndex(last) - this._getOffsetByIndex(this.end);
-        } else {
-          return (last - this.end) * this._getItemSize();
-        }
-      },
-      // 通过索引值获取滚动高度
-      _getOffsetByIndex: function _getOffsetByIndex(index) {
-        if (!index) return 0;
-        var offset = 0;
-        var indexSize = 0;
-
-        for (var i = 0; i < index; i++) {
-          indexSize = this.sizeStack.get(this.uniqueKeys[i]);
-          offset = offset + (typeof indexSize === 'number' ? indexSize : this._getItemSize());
-        }
-
-        this.lastCalcIndex = Math.max(this.lastCalcIndex, index - 1);
-        this.lastCalcIndex = Math.min(this.lastCalcIndex, this.uniqueKeyLen);
-        return offset;
-      },
-      _getItemIndex: function _getItemIndex(item) {
-        var _this5 = this;
-
-        return this.list.findIndex(function (el) {
-          return _this5._uniqueId(item) == _this5._uniqueId(el);
-        });
-      },
-      // 获取每一项的高度
-      _getItemSize: function _getItemSize() {
-        return this.isFixedType ? this.calcSize.fixed : this.calcSize.average || this.size;
-      },
-      _getEndByStart: function _getEndByStart(start) {
-        return Math.min(start + this.keeps, this.uniqueKeyLen);
-      },
-      _uniqueId: function _uniqueId(obj) {
+      // --------------------------- methods ------------------------------
+      _getUniqueKey: function _getUniqueKey(obj) {
         var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
         var dataKey = this.dataKey;
         return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
           return (o || {})[k];
         }, obj) || defaultValue;
       },
-      // --------------------------- handle size change ------------------------------
-      // 更新每个子组件高度
-      _onItemResized: function _onItemResized(uniqueKey, size) {
-        this.sizeStack.set(uniqueKey, size); // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
-
-        if (this.calcType === 'INIT') {
-          this.calcSize.fixed = size;
-          this.calcType = 'FIXED';
-        } else if (this.calcType === 'FIXED' && this.calcSize.fixed !== size) {
-          this.calcType = 'DYNAMIC';
-          delete this.calcSize.fixed;
-        }
-
-        if (this.calcType !== 'FIXED' && this.calcSize.total !== 'undefined') {
-          if (this.sizeStack.size < Math.min(this.keeps, this.uniqueKeys.length)) {
-            this.calcSize.total = _toConsumableArray(this.sizeStack.values()).reduce(function (acc, cur) {
-              return acc + cur;
-            }, 0);
-            this.calcSize.average = Math.round(this.calcSize.total / this.sizeStack.size);
-          } else {
-            delete this.calcSize.total;
-          }
-        }
-      },
-      _onHeaderResized: function _onHeaderResized(id, size) {
-        this.calcSize.header = size;
-      },
-      _onFooterResized: function _onFooterResized(id, size) {
-        this.calcSize.footer = size;
-      },
-      // --------------------------- sortable ------------------------------
-      _initSortable: function _initSortable() {
+      _getItemIndex: function _getItemIndex(item) {
         var _this6 = this;
 
-        var tempList = [];
-        var dragIndex = -1;
-        var dragElement = null;
-        var flag = false;
-
-        this._destroySortable();
-
-        this.drag = new sortable(this.$refs.content, {
-          disabled: this.disabled,
-          ghostStyle: this.dragStyle,
-          draggable: this.draggable,
-          dragging: this.dragging,
-          chosenClass: this.chosenClass,
-          animation: this.animation,
-          onDrag: function onDrag(dragEl) {
-            dragElement = dragEl;
-            tempList = _toConsumableArray(_this6.list);
-            var key = dragEl.getAttribute('data-key');
-            dragIndex = _this6.list.findIndex(function (el) {
-              return _this6._uniqueId(el) === key;
-            });
-            _this6.dragState.from.index = dragIndex;
-          },
-          onChange: function onChange(_old_, _new_) {
-            if (!flag) {
-              flag = true;
-
-              _this6.list.splice(dragIndex, 1);
-            }
-
-            var oldKey = _old_.node.getAttribute('data-key');
-
-            var newKey = _new_.node.getAttribute('data-key');
-
-            _this6.dragState.from.key = oldKey;
-            _this6.dragState.to.key = newKey;
-            tempList.forEach(function (el, index) {
-              var key = _this6._uniqueId(el);
-
-              if (key === oldKey) Object.assign(_this6.dragState.from, {
-                item: el,
-                index: index
-              });
-              if (key === newKey) Object.assign(_this6.dragState.to, {
-                item: el,
-                index: index
-              });
-            });
-            var _this6$dragState = _this6.dragState,
-                from = _this6$dragState.from,
-                to = _this6$dragState.to;
-            tempList.splice(from.index, 1);
-            tempList.splice(to.index, 0, from.item);
-          },
-          onDrop: function onDrop(changed) {
-            _this6.dragState.to.index = tempList.findIndex(function (el) {
-              return _this6._uniqueId(el) === _this6.dragState.from.key;
-            });
-            var _this6$dragState2 = _this6.dragState,
-                from = _this6$dragState2.from,
-                to = _this6$dragState2.to; // if (changed) {
-            //   if (dragElement) dragElement.remove()
-            //   this._handleDragEnd(tempList, from, to, changed)
-            // } else {
-            //   this._handleDragEnd(tempList, from, from, changed)
-            // }
-
-            if (dragElement) dragElement.remove();
-
-            _this6._handleDragEnd(tempList, from, to, changed);
-
-            _this6._setList(tempList);
-
-            dragElement = null;
-            flag = false;
-          }
+        return this.list.findIndex(function (el) {
+          return _this6._getUniqueKey(item) == _this6._getUniqueKey(el);
         });
-      },
-      _destroySortable: function _destroySortable() {
-        this.drag && this.drag.destroy();
-        this.drag = null;
-      },
-      _handleDragEnd: function _handleDragEnd(list, _old, _new, changed) {
-        this.$emit('ondragend', list, _old, _new, changed);
-      },
-      _setList: function _setList(list) {
-        this.list = list;
       }
     },
     // --------------------------- render ------------------------------
@@ -1863,26 +2008,35 @@
           header = _this$$slots.header,
           footer = _this$$slots.footer;
       var height = this.height,
-          padding = this.padding,
-          list = this.list,
-          start = this.start,
-          end = this.end,
-          isHorizontal = this.isHorizontal;
-      var headerTag = this.headerTag,
+          isHorizontal = this.isHorizontal,
+          rootClass = this.rootClass,
+          headerTag = this.headerTag,
           footerTag = this.footerTag,
           itemTag = this.itemTag,
           itemStyle = this.itemStyle,
           itemClass = this.itemClass,
-          wrapClass = this.wrapClass,
-          wrapStyle = this.wrapStyle;
+          wrapClass = this.wrapClass;
+      var _this$range = this.range,
+          start = _this$range.start,
+          end = _this$range.end,
+          front = _this$range.front,
+          behind = _this$range.behind;
+
+      var rootStyle = _objectSpread2(_objectSpread2({}, this.rootStyle), {}, {
+        height: height,
+        overflow: isHorizontal ? 'auto hidden' : 'hidden auto'
+      });
+
+      var wrapStyle = _objectSpread2(_objectSpread2({}, this.wrapStyle), {}, {
+        padding: isHorizontal ? "0px ".concat(behind, "px 0px ").concat(front, "px") : "".concat(front, "px 0px ").concat(behind, "px")
+      });
+
       return h('div', {
-        ref: 'virtualDragList',
+        ref: 'root',
+        "class": rootClass,
+        style: rootStyle,
         on: {
-          '&scroll': utils.debounce(this._handleScroll, this.delay)
-        },
-        style: {
-          height: height,
-          overflow: isHorizontal ? 'auto hidden' : 'hidden auto'
+          '&scroll': debounce(this._handleScroll, this.delay)
         }
       }, [// 顶部插槽 
       header ? h(Slots, {
@@ -1893,27 +2047,26 @@
         }
       }, header) : null, // 中间内容区域和列表项
       h('div', {
-        ref: 'content',
+        ref: 'wrapper',
         attrs: {
-          role: 'content'
+          role: 'wrapper'
         },
         "class": wrapClass,
-        style: _objectSpread2({
-          padding: isHorizontal ? "0px ".concat(padding.behind, "px 0px ").concat(padding.front, "px") : "".concat(padding.front, "px 0px ").concat(padding.behind, "px")
-        }, wrapStyle)
-      }, list.slice(start, end + 1).map(function (record) {
+        style: wrapStyle
+      }, this.list.slice(start, end + 1).map(function (record) {
         var index = _this7._getItemIndex(record);
 
-        var uniqueKey = _this7._uniqueId(record);
+        var uniqueKey = _this7._getUniqueKey(record);
 
+        var props = {
+          isHorizontal: isHorizontal,
+          uniqueKey: uniqueKey,
+          tag: itemTag,
+          event: '_onItemResized'
+        };
         return _this7.$scopedSlots.item ? h(Items, {
           key: uniqueKey,
-          props: {
-            uniqueKey: uniqueKey,
-            tag: itemTag,
-            event: '_onItemResized',
-            isHorizontal: isHorizontal
-          },
+          props: props,
           style: itemStyle,
           "class": itemClass
         }, _this7.$scopedSlots.item({
@@ -1925,9 +2078,9 @@
           attrs: {
             'data-key': uniqueKey
           },
-          style: _objectSpread2({
+          style: _objectSpread2(_objectSpread2({}, itemStyle), {}, {
             height: "".concat(_this7.size, "px")
-          }, itemStyle),
+          }),
           "class": itemClass
         }, uniqueKey);
       })), // 底部插槽 

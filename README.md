@@ -108,13 +108,15 @@ Root component:
 | `itemTag`    | `String`   | `div`       | Label type for header slot |
 | `headerTag`  | `String`   | `div`       | Label type for header slot |
 | `footerTag`  | `String`   | `div`       | Label type for header slot |
-| `wrapClass`  | `String`   | `''`          | List wrapper element class |
+| `rootClass`  | `String`   | `''`        | Root element class |
+| `rootStyle`  | `Object`   | `{}`        | Root element style |
+| `wrapClass`  | `String`   | `''`        | List wrapper element class |
 | `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
-| `itemClass`  | `String`   | `''`          | List item element class |
+| `itemClass`  | `String`   | `''`        | List item element class |
 | `itemStyle`  | `Object`   | `{}`        | List item element style |
-| `ghostClass` | `String`   | `''`          | The class of the mask element when dragging |
+| `ghostClass` | `String`   | `''`        | The class of the mask element when dragging |
 | `ghostStyle` | `Object`   | `{}`        | The style of the mask element when dragging |
-| `chosenClass`| `String`   | `''`          | The class of the selected element when dragging |
+| `chosenClass`| `String`   | `''`        | The class of the selected element when dragging |
 
 ### Public methods
 
@@ -124,9 +126,9 @@ Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessi
 | **Method**         | **Description** |
 | ------------------ | --------------- |
 | `reset()`          | Reset to initial |
-| `getSize()`        | Get the height of the current item by unique key value |
+| `getSize()`        | Get the size of the current item by unique key value |
 | `getOffset()`      | Get the current scroll height |
 | `scrollToTop()`    | Scroll to top of list |
 | `scrollToIndex()`  | Scroll to the specified index position |
-| `scrollToOffset()` | Scroll to the specified height |
+| `scrollToOffset()` | Scroll to the specified offset |
 | `scrollToBottom()` | Scroll to bottom of list |

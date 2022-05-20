@@ -32,7 +32,14 @@ export const VirtualProps = {
   // 防抖延迟时间
   delay: {
     type: Number,
-    default: 10
+    default: 0
+  },
+  rootStyle: {
+    type: Object
+  },
+  rootClass: {
+    type: String,
+    default: ''
   },
   wrapClass: {
     type: String,
@@ -94,7 +101,7 @@ export const VirtualProps = {
   }
 }
 
-export const SlotItemProps = {
+export const SlotsProps = {
   tag: {
     type: String,
     default: 'div'

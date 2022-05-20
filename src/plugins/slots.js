@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { SlotItemProps } from './props'
+import { SlotsProps } from '../props'
 
 const observer = {
   inject: ['virtual'],
@@ -38,7 +38,7 @@ const observer = {
 
 export const Items = Vue.component('virtual-draglist-items', {
   mixins: [observer],
-  props: SlotItemProps,
+  props: SlotsProps,
   render (h) {
     const { tag, uniqueKey } = this
     return h(tag, {
@@ -52,7 +52,7 @@ export const Items = Vue.component('virtual-draglist-items', {
 
 export const Slots = Vue.component('virtual-draglist-slots', {
   mixins: [observer],
-  props: SlotItemProps,
+  props: SlotsProps,
   render (h) {
     const { tag, uniqueKey } = this
     return h(tag, {
