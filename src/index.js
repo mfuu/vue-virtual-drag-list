@@ -146,7 +146,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     // --------------------------- init ------------------------------
     initVirtual(list) {
       this.list = [...list]
-      this.uniqueKeys = this.list.map(item => this._getUniqueKey(item))
+      this.setUniqueKeys()
       this.virtual = new Virtual(
         {
           size: this.size,
@@ -155,11 +155,16 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           isHorizontal: this.isHorizontal
         },
         (range) => {
+          this.rangeIsChanged = true
           this.range = range
         }
       )
       this.virtual.updateRange()
       this.virtual.updateSizes(this.uniqueKeys)
+    },
+
+    setUniqueKeys() {
+      this.uniqueKeys = this.list.map(item => this._getUniqueKey(item))
     },
 
     // --------------------------- handle scroll ------------------------------

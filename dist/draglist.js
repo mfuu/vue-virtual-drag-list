@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.2
+ * vue-virtual-drag-list v2.6.3
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -383,1101 +383,566 @@
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
   }
 
-  var sortable = createCommonjsModule(function (module, exports) {
-  /*!
-   * sortable-dnd v0.2.1
-   * open source under the MIT license
-   * https://github.com/mfuu/sortable-dnd#readme
-   */
-  (function (global, factory) {
-    module.exports = factory() ;
-  })(commonjsGlobal, function () {
+  var sortable_min = createCommonjsModule(function (module, exports) {
+  !function (t, e) {
+    module.exports = e() ;
+  }(commonjsGlobal, function () {
 
-    function _typeof(obj) {
-      "@babel/helpers - typeof";
-
-      return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
-        return typeof obj;
-      } : function (obj) {
-        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      }, _typeof(obj);
+    function d(t) {
+      return (d = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (t) {
+        return typeof t;
+      } : function (t) {
+        return t && "function" == typeof Symbol && t.constructor === Symbol && t !== Symbol.prototype ? "symbol" : typeof t;
+      })(t);
     }
 
-    function _classCallCheck(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-        throw new TypeError("Cannot call a class as a function");
+    function o(t, e) {
+      if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
+    }
+
+    function n(t, e) {
+      for (var o = 0; o < e.length; o++) {
+        var n = e[o];
+        n.enumerable = n.enumerable || !1, n.configurable = !0, "value" in n && (n.writable = !0), Object.defineProperty(t, n.key, n);
       }
     }
 
-    function _defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    function _createClass(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties(Constructor, staticProps);
-      Object.defineProperty(Constructor, "prototype", {
-        writable: false
-      });
-      return Constructor;
-    }
-
-    function _toConsumableArray(arr) {
-      return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
-    }
-
-    function _arrayWithoutHoles(arr) {
-      if (Array.isArray(arr)) return _arrayLikeToArray(arr);
-    }
-
-    function _iterableToArray(iter) {
-      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
-    }
-
-    function _unsupportedIterableToArray(o, minLen) {
-      if (!o) return;
-      if (typeof o === "string") return _arrayLikeToArray(o, minLen);
-      var n = Object.prototype.toString.call(o).slice(8, -1);
-      if (n === "Object" && o.constructor) n = o.constructor.name;
-      if (n === "Map" || n === "Set") return Array.from(o);
-      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
-    }
-
-    function _arrayLikeToArray(arr, len) {
-      if (len == null || len > arr.length) len = arr.length;
-
-      for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-
-      return arr2;
-    }
-
-    function _nonIterableSpread() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-    }
-
-    function userAgent(pattern) {
-      if (typeof window !== 'undefined' && window.navigator) {
-        return !! /*@__PURE__*/navigator.userAgent.match(pattern);
-      }
-    }
-
-    var IE11OrLess = userAgent(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i);
-    var Edge = userAgent(/Edge/i);
-    var Safari = userAgent(/safari/i) && !userAgent(/chrome/i) && !userAgent(/android/i);
-    var IOS = userAgent(/iP(ad|od|hone)/i);
-    var ChromeForAndroid = userAgent(/chrome/i) && userAgent(/android/i);
-    var captureMode = {
-      capture: false,
-      passive: false
-    };
-    var R_SPACE = /\s+/g;
-    var CSSTRANSITIONS = ['-webkit-transition', '-moz-transition', '-ms-transition', '-o-transition', 'transition'];
-    var CSSTRANSFORMS = ['-webkit-transform', '-moz-transform', '-ms-transform', '-o-transform', 'transform'];
-    /**
-     * set transition style
-     * @param {HTMLElement} el 
-     * @param {String | Function} transition 
-     */
-
-    function setTransition(el, transition) {
-      if (transition) {
-        if (transition === 'none') CSSTRANSITIONS.forEach(function (ts) {
-          return css(el, ts, 'none');
-        });else CSSTRANSITIONS.forEach(function (ts) {
-          return css(el, ts, "".concat(ts.split('transition')[0], "transform ").concat(transition));
-        });
-      } else CSSTRANSITIONS.forEach(function (ts) {
-        return css(el, ts, '');
+    function i(t, e, o) {
+      e && n(t.prototype, e), o && n(t, o), Object.defineProperty(t, "prototype", {
+        writable: !1
       });
     }
-    /**
-     * set transform style
-     * @param {HTMLElement} el 
-     * @param {String} transform 
-     */
 
-
-    function setTransform(el, transform) {
-      if (transform) CSSTRANSFORMS.forEach(function (tf) {
-        return css(el, tf, "".concat(tf.split('transform')[0]).concat(transform));
-      });else CSSTRANSFORMS.forEach(function (tf) {
-        return css(el, tf, '');
-      });
-    }
-    /**
-     * detect passive event support
-     */
-
-
-    function supportPassive() {
-      // https://github.com/Modernizr/Modernizr/issues/1894
-      var supportPassive = false;
-      document.addEventListener('checkIfSupportPassive', null, {
-        get passive() {
-          supportPassive = true;
-          return true;
+    function r(t) {
+      return function (t) {
+        if (Array.isArray(t)) return s(t);
+      }(t) || function (t) {
+        if ("undefined" != typeof Symbol && null != t[Symbol.iterator] || null != t["@@iterator"]) return Array.from(t);
+      }(t) || function (t, e) {
+        if (t) {
+          if ("string" == typeof t) return s(t, e);
+          var o = Object.prototype.toString.call(t).slice(8, -1);
+          return "Map" === (o = "Object" === o && t.constructor ? t.constructor.name : o) || "Set" === o ? Array.from(t) : "Arguments" === o || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(o) ? s(t, e) : void 0;
         }
+      }(t) || function () {
+        throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+      }();
+    }
 
+    function s(t, e) {
+      (null == e || e > t.length) && (e = t.length);
+
+      for (var o = 0, n = new Array(e); o < e; o++) n[o] = t[o];
+
+      return n;
+    }
+
+    function t(t) {
+      if ("undefined" != typeof window && window.navigator) return !!navigator.userAgent.match(t);
+    }
+
+    var a = t(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i),
+        l = t(/Edge/i),
+        f = t(/safari/i) && !t(/chrome/i) && !t(/android/i),
+        e = t(/iP(ad|od|hone)/i),
+        h = t(/chrome/i) && t(/android/i),
+        c = {
+      capture: !1,
+      passive: !1
+    },
+        u = /\s+/g,
+        p = ["-webkit-transition", "-moz-transition", "-ms-transition", "-o-transition", "transition"],
+        v = ["-webkit-transform", "-moz-transform", "-ms-transform", "-o-transform", "transform"];
+
+    function m(e, o) {
+      o ? "none" === o ? p.forEach(function (t) {
+        return D(e, t, "none");
+      }) : p.forEach(function (t) {
+        return D(e, t, "".concat(t.split("transition")[0], "transform ").concat(o));
+      }) : p.forEach(function (t) {
+        return D(e, t, "");
       });
-      return supportPassive;
     }
-    /**
-    * add specified event listener
-    * @param {HTMLElement} el 
-    * @param {String} event 
-    * @param {Function} fn 
-    * @param {Boolean} sp
-    */
 
-
-    function on(el, event, fn, sp) {
-      if (window.addEventListener) {
-        el.addEventListener(event, fn, sp || !IE11OrLess ? captureMode : false);
-      } else if (window.attachEvent) {
-        el.attachEvent('on' + event, fn);
-      }
+    function g(e, o) {
+      o ? v.forEach(function (t) {
+        return D(e, t, "".concat(t.split("transform")[0]).concat(o));
+      }) : v.forEach(function (t) {
+        return D(e, t, "");
+      });
     }
-    /**
-    * remove specified event listener
-    * @param {HTMLElement} el 
-    * @param {String} event 
-    * @param {Function} fn 
-    * @param {Boolean} sp
-    */
 
-
-    function off(el, event, fn, sp) {
-      if (window.removeEventListener) {
-        el.removeEventListener(event, fn, sp || !IE11OrLess ? captureMode : false);
-      } else if (window.detachEvent) {
-        el.detachEvent('on' + event, fn);
-      }
+    function w(t, e, o, n) {
+      window.addEventListener ? t.addEventListener(e, o, !(!n && a) && c) : window.attachEvent && t.attachEvent("on" + e, o);
     }
-    /**
-     * get element's offetTop
-     * @param {HTMLElement} el 
-     */
 
+    function y(t, e, o, n) {
+      window.removeEventListener ? t.removeEventListener(e, o, !(!n && a) && c) : window.detachEvent && t.detachEvent("on" + e, o);
+    }
 
-    function getOffset(el) {
-      var result = {
+    function b(t) {
+      for (var e = {
         top: 0,
         left: 0,
         height: 0,
         width: 0
-      };
-      result.height = el.offsetHeight;
-      result.width = el.offsetWidth;
-      result.top = el.offsetTop;
-      result.left = el.offsetLeft;
-      var parent = el.offsetParent;
+      }, o = (e.height = t.offsetHeight, e.width = t.offsetWidth, e.top = t.offsetTop, e.left = t.offsetLeft, t.offsetParent); null !== o;) e.top += o.offsetTop, e.left += o.offsetLeft, o = o.offsetParent;
 
-      while (parent !== null) {
-        result.top += parent.offsetTop;
-        result.left += parent.offsetLeft;
-        parent = parent.offsetParent;
-      }
-
-      return result;
-    }
-    /**
-     * get scroll element
-     * @param {HTMLElement} el 
-     * @param {Boolean} includeSelf whether to include the passed element
-     * @returns {HTMLElement} scroll element
-     */
-
-
-    function getParentAutoScrollElement(el, includeSelf) {
-      // skip to window
-      if (!el || !el.getBoundingClientRect) return getWindowScrollingElement();
-      var elem = el;
-      var gotSelf = false;
-
-      do {
-        // we don't need to get elem css if it isn't even overflowing in the first place (performance)
-        if (elem.clientWidth < elem.scrollWidth || elem.clientHeight < elem.scrollHeight) {
-          var elemCSS = css(elem);
-
-          if (elem.clientWidth < elem.scrollWidth && (elemCSS.overflowX == 'auto' || elemCSS.overflowX == 'scroll') || elem.clientHeight < elem.scrollHeight && (elemCSS.overflowY == 'auto' || elemCSS.overflowY == 'scroll')) {
-            if (!elem.getBoundingClientRect || elem === document.body) return getWindowScrollingElement();
-            if (gotSelf || includeSelf) return elem;
-            gotSelf = true;
-          }
-        }
-      } while (elem = elem.parentNode);
-
-      return getWindowScrollingElement();
+      return e;
     }
 
-    function getWindowScrollingElement() {
-      var scrollingElement = document.scrollingElement;
-
-      if (scrollingElement) {
-        return scrollingElement.contains(document.body) ? document : scrollingElement;
-      } else {
-        return document;
-      }
-    }
-    /**
-     * Returns the "bounding client rect" of given element
-     * @param {HTMLElement} el  The element whose boundingClientRect is wanted
-     */
-
-
-    function getRect(el) {
-      if (!el.getBoundingClientRect && el !== window) return;
-      var rect = {
+    function E(t) {
+      var e, o;
+      if (t.getBoundingClientRect || t === window) return e = {
         top: 0,
         left: 0,
         bottom: 0,
         right: 0,
         height: 0,
         width: 0
-      };
-      var elRect;
-
-      if (el !== window && el.parentNode && el !== getWindowScrollingElement()) {
-        elRect = el.getBoundingClientRect();
-        rect.top = elRect.top;
-        rect.left = elRect.left;
-        rect.bottom = elRect.bottom;
-        rect.right = elRect.right;
-        rect.height = elRect.height;
-        rect.width = elRect.width;
-      } else {
-        rect.top = 0;
-        rect.left = 0;
-        rect.bottom = window.innerHeight;
-        rect.right = window.innerWidth;
-        rect.height = window.innerHeight;
-        rect.width = window.innerWidth;
-      }
-
-      return rect;
+      }, t !== window && t.parentNode && t !== (!(o = document.scrollingElement) || o.contains(document.body) ? document : o) ? (o = t.getBoundingClientRect(), e.top = o.top, e.left = o.left, e.bottom = o.bottom, e.right = o.right, e.height = o.height, e.width = o.width) : (e.top = 0, e.left = 0, e.bottom = window.innerHeight, e.right = window.innerWidth, e.height = window.innerHeight, e.width = window.innerWidth), e;
     }
-    /**
-     * get target Element in group
-     * @param {HTMLElement} group 
-     * @param {HTMLElement} el 
-     * @param {Boolean} onlyEl only get element
-     */
 
+    function S(t, e, o) {
+      var n = r(Array.from(t.children)),
+          t = n.indexOf(e);
+      if (-1 < t) return o ? n[t] : {
+        index: t,
+        el: n[t],
+        rect: E(n[t]),
+        offset: b(n[t])
+      };
 
-    function getElement(group, el, onlyEl) {
-      var children = _toConsumableArray(Array.from(group.children)); // 如果能直接在子元素中找到，返回对应的index
-
-
-      var index = children.indexOf(el);
-      if (index > -1) return onlyEl ? children[index] : {
-        index: index,
-        el: children[index],
-        rect: getRect(children[index]),
-        offset: getOffset(children[index])
-      }; // children 中无法直接找到对应的dom时，需要向下寻找
-
-      for (var i = 0; i < children.length; i++) {
-        if (isChildOf(el, children[i])) {
-          return onlyEl ? children[i] : {
-            index: i,
-            el: children[i],
-            rect: getRect(children[i]),
-            offset: getOffset(children[i])
-          };
+      for (var i = 0; i < n.length; i++) if (function (t, e) {
+        var o;
+        if (t && e) for (o = t.parentNode; o;) {
+          if (e === o) return 1;
+          o = o.parentNode;
         }
-      }
+        return;
+      }(e, n[i])) return o ? n[i] : {
+        index: i,
+        el: n[i],
+        rect: E(n[i]),
+        offset: b(n[i])
+      };
 
-      return onlyEl ? null : {
+      return o ? null : {
         index: -1,
         el: null,
         rect: {},
         offset: {}
       };
     }
-    /**
-     * Check if child element is contained in parent element
-     * @param {HTMLElement} child 
-     * @param {HTMLElement} parent 
-     * @returns {Boolean} true | false
-     */
 
-
-    function isChildOf(child, parent) {
-      var parentNode;
-
-      if (child && parent) {
-        parentNode = child.parentNode;
-
-        while (parentNode) {
-          if (parent === parentNode) return true;
-          parentNode = parentNode.parentNode;
-        }
-      }
-
-      return false;
-    }
-    /**
-     * add or remove element's class
-     * @param {HTMLElement} el element
-     * @param {String} name class name
-     * @param {Boolean} state true: add, false: remove
-     */
-
-
-    function toggleClass(el, name, state) {
-      if (el && name) {
-        if (el.classList) {
-          el.classList[state ? 'add' : 'remove'](name);
-        } else {
-          var className = (' ' + el.className + ' ').replace(R_SPACE, ' ').replace(' ' + name + ' ', ' ');
-          el.className = (className + (state ? ' ' + name : '')).replace(R_SPACE, ' ');
-        }
-      }
-    }
-    /**
-     * Check if a DOM element matches a given selector
-     * @param {HTMLElement} el 
-     * @param {String} selector 
-     * @returns 
-     */
-
-
-    function matches(el, selector) {
-      if (!selector) return;
-      selector[0] === '>' && (selector = selector.substring(1));
-
-      if (el) {
-        try {
-          if (el.matches) {
-            return el.matches(selector);
-          } else if (el.msMatchesSelector) {
-            return el.msMatchesSelector(selector);
-          } else if (el.webkitMatchesSelector) {
-            return el.webkitMatchesSelector(selector);
-          }
-        } catch (error) {
-          return false;
-        }
-      }
-
-      return false;
+    function _(t, e, o) {
+      var n;
+      t && e && (t.classList ? t.classList[o ? "add" : "remove"](e) : (n = (" " + t.className + " ").replace(u, " ").replace(" " + e + " ", " "), t.className = (n + (o ? " " + e : "")).replace(u, " ")));
     }
 
-    function css(el, prop, val) {
-      var style = el && el.style;
+    function D(t, e, o) {
+      var n = t && t.style;
 
-      if (style) {
-        if (val === void 0) {
-          if (document.defaultView && document.defaultView.getComputedStyle) {
-            val = document.defaultView.getComputedStyle(el, '');
-          } else if (el.currentStyle) {
-            val = el.currentStyle;
-          }
-
-          return prop === void 0 ? val : val[prop];
-        } else {
-          if (!(prop in style) && prop.indexOf('webkit') === -1) {
-            prop = '-webkit-' + prop;
-          }
-
-          style[prop] = val + (typeof val === 'string' ? '' : 'px');
-        }
+      if (n) {
+        if (void 0 === o) return document.defaultView && document.defaultView.getComputedStyle ? o = document.defaultView.getComputedStyle(t, "") : t.currentStyle && (o = t.currentStyle), void 0 === e ? o : o[e];
+        n[e = e in n || -1 !== e.indexOf("webkit") ? e : "-webkit-" + e] = o + ("string" == typeof o ? "" : "px");
       }
     }
 
-    function _nextTick(fn) {
-      return setTimeout(fn, 0);
-    }
-    /**
-     * 拖拽前后差异初始化
-     */
-
-
-    var Differ = /*#__PURE__*/function () {
-      function Differ() {
-        _classCallCheck(this, Differ);
-
-        this.from = {
+    var x = function () {
+      function t() {
+        o(this, t), this.from = {
           node: null,
           rect: {},
           offset: {}
-        };
-        this.to = {
+        }, this.to = {
           node: null,
           rect: {},
           offset: {}
         };
       }
 
-      _createClass(Differ, [{
+      return i(t, [{
         key: "get",
-        value: function get(key) {
-          return this[key];
+        value: function (t) {
+          return this[t];
         }
       }, {
         key: "set",
-        value: function set(key, value) {
-          this[key] = value;
+        value: function (t, e) {
+          this[t] = e;
         }
       }, {
         key: "destroy",
-        value: function destroy() {
+        value: function () {
           this.from = {
             node: null,
             rect: {},
             offset: {}
-          };
-          this.to = {
+          }, this.to = {
             node: null,
             rect: {},
             offset: {}
           };
         }
-      }]);
-
-      return Differ;
-    }();
-    /**
-     * 拖拽中的元素
-     */
-
-
-    var Ghost = /*#__PURE__*/function () {
-      function Ghost(options) {
-        _classCallCheck(this, Ghost);
-
-        this.options = options;
-        this.x = 0;
-        this.y = 0;
-        this.exist = false;
+      }]), t;
+    }(),
+        $ = function () {
+      function e(t) {
+        o(this, e), this.options = t, this.diff = {
+          x: 0,
+          y: 0
+        }, this.position = {
+          x: 0,
+          y: 0
+        }, this.exist = !1;
       }
 
-      _createClass(Ghost, [{
+      return i(e, [{
         key: "init",
-        value: function init(el, rect) {
-          if (!el) return;
-          this.$el = el;
-          var _this$options = this.options,
-              ghostClass = _this$options.ghostClass,
-              _this$options$ghostSt = _this$options.ghostStyle,
-              ghostStyle = _this$options$ghostSt === void 0 ? {} : _this$options$ghostSt;
-          var width = rect.width,
-              height = rect.height;
-          this.$el["class"] = ghostClass;
-          this.$el.style.width = width + 'px';
-          this.$el.style.height = height + 'px';
-          this.$el.style.position = 'fixed';
-          this.$el.style.left = 0;
-          this.$el.style.top = 0;
-          this.$el.style.zIndex = 100000;
-          this.$el.style.opacity = 0.8;
-          this.$el.style.pointerEvents = 'none';
-          this.$el.style.cursor = 'move';
-          setTransition(this.$el, 'none');
-          setTransform(this.$el, 'translate3d(0px, 0px, 0px)');
-          this.setStyle(ghostStyle);
+        value: function (t, e) {
+          var o, n;
+          this.$el && this.$el.remove(), t && (this.$el = t, o = (t = this.options).ghostClass, t = void 0 === (t = t.ghostStyle) ? {} : t, n = e.width, e = e.height, this.$el.class = o, this.$el.style.width = n + "px", this.$el.style.height = e + "px", this.$el.style.position = "fixed", this.$el.style.left = 0, this.$el.style.top = 0, this.$el.style.zIndex = 1e5, this.$el.style.opacity = .8, this.$el.style.pointerEvents = "none", this.$el.style.cursor = "move", m(this.$el, "none"), g(this.$el, "translate3d(0px, 0px, 0px)"), this.setStyle(t));
         }
       }, {
-        key: "get",
-        value: function get(key) {
-          return this[key];
-        }
-      }, {
-        key: "set",
-        value: function set(key, value) {
-          this[key] = value;
-          this[key] = value;
+        key: "setPosition",
+        value: function (t, e) {
+          this.position = {
+            x: t - this.diff.x,
+            y: e - this.diff.y
+          };
         }
       }, {
         key: "setStyle",
-        value: function setStyle(style) {
-          for (var key in style) {
-            css(this.$el, key, style[key]);
-          }
+        value: function (t) {
+          for (var e in t) D(this.$el, e, t[e]);
         }
       }, {
         key: "rect",
-        value: function rect() {
-          return getRect(this.$el);
+        value: function () {
+          return E(this.$el);
         }
       }, {
         key: "move",
-        value: function move(smooth) {
-          var ghostAnimation = this.options.ghostAnimation;
-          if (smooth) setTransition(this.$el, "".concat(ghostAnimation, "ms"));else setTransition(this.$el, 'none'); // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
-
-          if (!this.exist) {
-            document.body.appendChild(this.$el);
-            this.exist = true;
-          }
-
-          setTransform(this.$el, "translate3d(".concat(this.x, "px, ").concat(this.y, "px, 0)"));
-          if (this.$el.style.cursor !== 'move') this.$el.style.cursor = 'move';
+        value: function (t) {
+          var e;
+          this.$el && (e = this.options.ghostAnimation, m(this.$el, t ? "".concat(e, "ms") : "none"), this.exist || (document.body.appendChild(this.$el), this.exist = !0), g(this.$el, "translate3d(".concat(this.position.x, "px, ").concat(this.position.y, "px, 0)")), "move" !== this.$el.style.cursor && (this.$el.style.cursor = "move"));
         }
       }, {
         key: "destroy",
-        value: function destroy(rect) {
-          var _this = this;
-
-          if (rect) {
-            this.x = rect.left;
-            this.y = rect.top;
-            this.move(true);
-          }
-
-          var ghostAnimation = this.options.ghostAnimation;
-          ghostAnimation ? setTimeout(function () {
-            return _this.clear();
-          }, ghostAnimation) : this.clear();
+        value: function (t) {
+          var e = this,
+              t = (t && (this.position = {
+            x: t.left,
+            y: t.top
+          }, this.move(!0)), this.options.ghostAnimation);
+          t ? setTimeout(function () {
+            return e.clear();
+          }, t) : this.clear();
         }
       }, {
         key: "clear",
-        value: function clear() {
-          if (this.$el) this.$el.remove();
-          this.$el = null;
-          this.x = 0;
-          this.y = 0;
-          this.exist = false;
+        value: function () {
+          this.$el && this.$el.remove(), this.$el = null, this.diff = {
+            x: 0,
+            y: 0
+          }, this.position = {
+            x: 0,
+            y: 0
+          }, this.exist = !1;
         }
-      }]);
-
-      return Ghost;
+      }]), e;
     }();
 
-    function Animation() {
-      var animationState = [];
-
-      function getRange(children, drag, drop) {
-        var start = children.indexOf(drag);
-        var end = children.indexOf(drop);
-        return start < end ? {
-          start: start,
-          end: end
-        } : {
-          start: end,
-          end: start
-        };
-      }
-
+    function P() {
+      var i = [];
       return {
-        captureAnimationState: function captureAnimationState() {
-          var children = _toConsumableArray(Array.from(this.$el.children));
-
-          var _getRange = getRange(children, this.dragEl, this.dropEl),
-              start = _getRange.start,
-              end = _getRange.end;
-
-          animationState.length = 0; // 重置
-
-          children.slice(start, end + 1).forEach(function (child) {
-            animationState.push({
-              target: child,
-              rect: getRect(child)
+        captureAnimationState: function () {
+          var t = r(Array.from(this.$el.children)),
+              e = (o = t, n = this.dragEl, e = this.dropEl, n = o.indexOf(n), o = o.indexOf(e), n < o ? {
+            start: n,
+            end: o
+          } : {
+            start: o,
+            end: n
+          }),
+              o = e.start,
+              n = e.end;
+          i.length = 0, t.slice(o, n + 1).forEach(function (t) {
+            i.push({
+              target: t,
+              rect: E(t)
             });
           });
         },
-        animateRange: function animateRange() {
-          var _this = this;
-
-          animationState.forEach(function (state) {
-            var target = state.target,
-                rect = state.rect;
-
-            _this.animate(target, rect, _this.animation);
+        animateRange: function () {
+          var o = this;
+          i.forEach(function (t) {
+            var e = t.target,
+                t = t.rect;
+            o.animate(e, t, o.animation);
           });
         },
-        animate: function animate(el, preRect) {
-          var animation = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 150;
-          var curRect = getRect(el);
-          var left = preRect.left - curRect.left;
-          var top = preRect.top - curRect.top;
-          setTransition(el, 'none');
-          setTransform(el, "translate3d(".concat(left, "px, ").concat(top, "px, 0)"));
-          el.offsetLeft; // 触发重绘
-
-          setTransition(el, "".concat(animation, "ms"));
-          setTransform(el, 'translate3d(0px, 0px, 0px)');
-          clearTimeout(el.animated);
-          el.animated = setTimeout(function () {
-            setTransition(el, '');
-            setTransform(el, '');
-            el.animated = null;
-          }, animation);
+        animate: function (t, e) {
+          var o = 2 < arguments.length && void 0 !== arguments[2] ? arguments[2] : 150,
+              n = E(t),
+              i = e.left - n.left,
+              e = e.top - n.top;
+          m(t, "none"), g(t, "translate3d(".concat(i, "px, ").concat(e, "px, 0)")), t.offsetLeft, m(t, "".concat(o, "ms")), g(t, "translate3d(0px, 0px, 0px)"), clearTimeout(t.animated), t.animated = setTimeout(function () {
+            m(t, ""), g(t, ""), t.animated = null;
+          }, o);
         }
       };
     }
 
-    function DNDEvent() {
-      return {
-        _bindEventListener: function _bindEventListener() {
-          this._onStart = this._onStart.bind(this);
-          this._onMove = this._onMove.bind(this);
-          this._onDrop = this._onDrop.bind(this);
-          var _this$options = this.options,
-              supportPointer = _this$options.supportPointer,
-              supportTouch = _this$options.supportTouch,
-              supportPassive = _this$options.supportPassive;
+    var M = "undefined" != typeof document && !h && !e && "draggable" in document.createElement("div");
 
-          if (supportPointer) {
-            on(this.$el, 'pointerdown', this._onStart, supportPassive);
-          } else if (supportTouch) {
-            on(this.$el, 'touchstart', this._onStart, supportPassive);
-          } else {
-            on(this.$el, 'mousedown', this._onStart, supportPassive);
-          }
-
-          if (this.nativeDraggable) {
-            on(this.$el, 'dragover', this);
-            on(this.$el, 'dragenter', this);
-          }
-        },
-        _unbindEventListener: function _unbindEventListener() {
-          var supportPassive = this.options.supportPassive;
-          off(this.$el, 'pointerdown', this._onStart, supportPassive);
-          off(this.$el, 'touchstart', this._onStart, supportPassive);
-          off(this.$el, 'mousedown', this._onStart, supportPassive);
-
-          if (this.nativeDraggable) {
-            off(this.$el, 'dragover', this);
-            off(this.$el, 'dragenter', this);
-          }
-        },
-        _onMoveEvents: function _onMoveEvents(touch) {
-          var _this$options2 = this.options,
-              supportPointer = _this$options2.supportPointer,
-              ownerDocument = _this$options2.ownerDocument,
-              supportPassive = _this$options2.supportPassive;
-
-          if (supportPointer) {
-            on(ownerDocument, 'pointermove', this._onMove, supportPassive);
-          } else if (touch) {
-            on(ownerDocument, 'touchmove', this._onMove, supportPassive);
-          } else {
-            on(ownerDocument, 'mousemove', this._onMove, supportPassive);
-          }
-        },
-        _onUpEvents: function _onUpEvents() {
-          var _this$options3 = this.options,
-              ownerDocument = _this$options3.ownerDocument,
-              supportPassive = _this$options3.supportPassive;
-          on(ownerDocument, 'pointerup', this._onDrop, supportPassive);
-          on(ownerDocument, 'pointercancel', this._onDrop, supportPassive);
-          on(ownerDocument, 'touchend', this._onDrop, supportPassive);
-          on(ownerDocument, 'touchcancel', this._onDrop, supportPassive);
-          on(ownerDocument, 'mouseup', this._onDrop, supportPassive);
-        },
-        _offMoveEvents: function _offMoveEvents() {
-          var _this$options4 = this.options,
-              ownerDocument = _this$options4.ownerDocument,
-              supportPassive = _this$options4.supportPassive;
-          off(ownerDocument, 'pointermove', this._onMove, supportPassive);
-          off(ownerDocument, 'touchmove', this._onMove, supportPassive);
-          off(ownerDocument, 'mousemove', this._onMove, supportPassive);
-        },
-        _offUpEvents: function _offUpEvents() {
-          var _this$options5 = this.options,
-              ownerDocument = _this$options5.ownerDocument,
-              supportPassive = _this$options5.supportPassive;
-          off(ownerDocument, 'pointerup', this._onDrop, supportPassive);
-          off(ownerDocument, 'pointercancel', this._onDrop, supportPassive);
-          off(ownerDocument, 'touchend', this._onDrop, supportPassive);
-          off(ownerDocument, 'touchcancel', this._onDrop, supportPassive);
-          off(ownerDocument, 'mouseup', this._onDrop, supportPassive);
-        }
-      };
-    }
-
-    var documentExists = typeof document !== 'undefined';
-    var supportDraggable = documentExists && !ChromeForAndroid && !IOS && 'draggable' in document.createElement('div');
-    /**
-     * @class  Sortable
-     * @param  {HTMLElement}  el
-     * @param  {Object}       options
-     */
-
-    function Sortable(el, options) {
-      if (!(el && el.nodeType && el.nodeType === 1)) {
-        throw "Sortable: `el` must be an HTMLElement, not ".concat({}.toString.call(el));
-      }
-
-      this.$el = el; // root element
-
-      this.options = options = Object.assign({}, options);
-      this.scrollEl = getParentAutoScrollElement(this.$el, true); // 获取页面滚动元素
-
-      this.dragEl = null; // 拖拽元素
-
-      this.dropEl = null; // 释放元素
-
-      this.differ = null; // 记录拖拽前后差异
-
-      this.ghost = null; // 拖拽时蒙版元素
-
-      this.calcXY = {
-        x: 0,
-        y: 0
-      }; // 记录拖拽移动时坐标
-
-      var defaults = {
+    function O(t, e) {
+      if (!t || !t.nodeType || 1 !== t.nodeType) throw "Sortable: `el` must be an HTMLElement, not ".concat({}.toString.call(t));
+      this.$el = t, this.options = e = Object.assign({}, e), this.dragEl = null, this.dropEl = null, this.differ = null, this.ghost = null;
+      var o,
+          n,
+          i = {
         delay: 0,
-        // 定义鼠标选中列表单元可以开始拖动的延迟时间
-        delayOnTouchOnly: false,
-        // only delay if user is using touch
-        disabled: false,
-        // 定义是否此sortable对象是否可用，为true时sortable对象不能拖放排序等功能，为false时为可以进行排序，相当于一个开关
+        delayOnTouchOnly: !1,
+        disabled: !1,
         animation: 150,
-        // 定义排序动画的时间
         ghostAnimation: 0,
-        // 拖拽元素销毁时动画效果
-        ghostClass: '',
-        // 拖拽元素Class类名
+        ghostClass: "",
         ghostStyle: {},
-        // 拖拽元素样式
-        chosenClass: '',
-        // 选中元素样式
-        draggable: undefined,
-        // String: css选择器, Function: (e) => return true
-        dragging: undefined,
-        // 设置拖拽元素，必须为函数且必须返回一个 HTMLElement: (e) => return e.target
-        onDrag: undefined,
-        // 拖拽开始时触发的回调函数: () => {}
-        onMove: undefined,
-        // 拖拽过程中的回调函数: (from, to) => {}
-        onDrop: undefined,
-        // 拖拽完成时的回调函数: (from, to, changed) => {}
-        onChange: undefined,
-        // 拖拽元素改变位置的时候: (from, to) => {}
-        forceFallback: false,
-        // 忽略 HTML5拖拽行为，强制回调进行
-        stopPropagation: false,
-        // 阻止捕获和冒泡阶段中当前事件的进一步传播
-        supportPassive: supportPassive(),
-        supportPointer: 'PointerEvent' in window && !Safari,
-        supportTouch: 'ontouchstart' in window,
+        chosenClass: "",
+        draggable: void 0,
+        dragging: void 0,
+        onDrag: void 0,
+        onMove: void 0,
+        onDrop: void 0,
+        onChange: void 0,
+        forceFallback: !1,
+        stopPropagation: !1,
+        supportPassive: (o = !1, document.addEventListener("checkIfSupportPassive", null, {
+          get passive() {
+            return o = !0;
+          }
+
+        }), o),
+        supportPointer: "PointerEvent" in window && !f,
+        supportTouch: "ontouchstart" in window,
         ownerDocument: this.$el.ownerDocument
-      }; // Set default options
+      };
 
-      for (var name in defaults) {
-        !(name in this.options) && (this.options[name] = defaults[name]);
-      }
+      for (n in i) n in this.options || (this.options[n] = i[n]);
 
-      this.nativeDraggable = this.options.forceFallback ? false : supportDraggable;
-      this.differ = new Differ();
-      this.ghost = new Ghost(this.options);
-      Object.assign(this, Animation(), DNDEvent());
-
-      this._bindEventListener();
-
-      this._handleDestroy();
+      this.nativeDraggable = !this.options.forceFallback && M, this.differ = new x(), this.ghost = new $(this.options), Object.assign(this, P(), {
+        _bindEventListener: function () {
+          this._onStart = this._onStart.bind(this), this._onMove = this._onMove.bind(this), this._onDrop = this._onDrop.bind(this);
+          var t = this.options,
+              e = t.supportPointer,
+              o = t.supportTouch,
+              t = t.supportPassive;
+          w(this.$el, e ? "pointerdown" : o ? "touchstart" : "mousedown", this._onStart, t);
+        },
+        _unbindEventListener: function () {
+          var t = this.options.supportPassive;
+          y(this.$el, "pointerdown", this._onStart, t), y(this.$el, "touchstart", this._onStart, t), y(this.$el, "mousedown", this._onStart, t);
+        },
+        _bindMoveEvents: function (t) {
+          var e = this.options,
+              o = e.supportPointer,
+              n = e.ownerDocument,
+              e = e.supportPassive;
+          w(n, o ? "pointermove" : t ? "touchmove" : "mousemove", this._onMove, e);
+        },
+        _bindUpEvents: function () {
+          var t = this.options,
+              e = t.ownerDocument,
+              t = t.supportPassive;
+          w(e, "pointerup", this._onDrop, t), w(e, "pointercancel", this._onDrop, t), w(e, "touchend", this._onDrop, t), w(e, "touchcancel", this._onDrop, t), w(e, "mouseup", this._onDrop, t);
+        },
+        _unbindMoveEvents: function () {
+          var t = this.options,
+              e = t.ownerDocument,
+              t = t.supportPassive;
+          y(e, "pointermove", this._onMove, t), y(e, "touchmove", this._onMove, t), y(e, "mousemove", this._onMove, t);
+        },
+        _unbindUpEvents: function () {
+          var t = this.options,
+              e = t.ownerDocument,
+              t = t.supportPassive;
+          y(e, "pointerup", this._onDrop, t), y(e, "pointercancel", this._onDrop, t), y(e, "touchend", this._onDrop, t), y(e, "touchcancel", this._onDrop, t), y(e, "mouseup", this._onDrop, t);
+        }
+      }), this._bindEventListener(), this._handleDestroy();
     }
 
-    Sortable.prototype = {
-      constructor: Sortable,
-      destroy: function destroy() {
-        this._unbindEventListener();
-
-        this._resetState();
+    return O.prototype = {
+      constructor: O,
+      destroy: function () {
+        this._unbindEventListener(), this._resetState();
       },
-      // -------------------------------- drag and drop ----------------------------------
-      _onStart: function _onStart(
-      /** Event|TouchEvent */
-      evt) {
-        var _this$options = this.options,
-            delay = _this$options.delay,
-            disabled = _this$options.disabled,
-            stopPropagation = _this$options.stopPropagation,
-            delayOnTouchOnly = _this$options.delayOnTouchOnly;
-        if (/mousedown|pointerdown/.test(evt.type) && evt.button !== 0 || disabled) return; // only left button and enabled
+      _onStart: function (t) {
+        var e = this.options,
+            o = e.delay,
+            n = e.disabled,
+            i = e.stopPropagation,
+            e = e.delayOnTouchOnly;
 
-        var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
-        var e = touch || evt; // Safari ignores further event handling after mousedown
+        if (!(/mousedown|pointerdown/.test(t.type) && 0 !== t.button || n)) {
+          var n = t.touches && t.touches[0] || t.pointerType && "touch" === t.pointerType && t,
+              r = n || t;
 
-        if (!this.nativeDraggable && Safari && e.target && e.target.tagName.toUpperCase() === 'SELECT') return;
-        if (e.target === this.$el) return true;
-        if (stopPropagation) evt.stopPropagation();
-
-        if (delay && (!delayOnTouchOnly || touch) && (!this.nativeDraggable || !(Edge || IE11OrLess))) {
-          this.dragStartTimer = setTimeout(this._onDrag(e, touch), delay);
-        } else {
-          this._onDrag(e, touch);
+          if (this.nativeDraggable || !f || !r.target || "SELECT" !== r.target.tagName.toUpperCase()) {
+            if (r.target === this.$el) return !0;
+            i && t.stopPropagation(), !o || e && !n || this.nativeDraggable && (l || a) ? this._onDrag(r, n) : this.dragStartTimer = setTimeout(this._onDrag(r, n), o);
+          }
         }
       },
-      _onDrag: function _onDrag(
-      /** Event|TouchEvent */
-      e, touch) {
-        var _this$options2 = this.options,
-            draggable = _this$options2.draggable,
-            dragging = _this$options2.dragging;
+      _onDrag: function (t, e) {
+        var o = this.options,
+            n = o.draggable,
+            o = o.dragging;
 
-        if (typeof draggable === 'function') {
-          if (!draggable(e)) return true;
-        } else if (typeof draggable === 'string') {
-          if (!matches(e.target, draggable)) return true;
-        } else if (draggable !== undefined) {
-          throw new Error("draggable expected \"function\" or \"string\" but received \"".concat(_typeof(draggable), "\""));
-        }
+        if ("function" == typeof n) {
+          if (!n(t)) return !0;
+        } else if ("string" == typeof n) {
+          if (!function (t, e) {
+            if (e && (">" === e[0] && (e = e.substring(1)), t)) try {
+              if (t.matches) return t.matches(e);
+              if (t.msMatchesSelector) return t.msMatchesSelector(e);
+              if (t.webkitMatchesSelector) return t.webkitMatchesSelector(e);
+            } catch (t) {
+              return;
+            }
+          }(t.target, n)) return !0;
+        } else if (void 0 !== n) throw new Error('draggable expected "function" or "string" but received "'.concat(d(n), '"'));
 
         try {
-          if (document.selection) {
-            // Timeout neccessary for IE9
-            _nextTick(function () {
-              document.selection.empty();
-            });
-          } else {
-            window.getSelection().removeAllRanges();
-          }
-        } catch (error) {
-          throw new Error(error);
-        } // 获取拖拽元素                 
+          document.selection ? setTimeout(function () {
+            document.selection.empty();
+          }, 0) : window.getSelection().removeAllRanges();
+        } catch (t) {
+          throw new Error(t);
+        }
 
+        if (o) {
+          if ("function" != typeof o) throw new Error('dragging expected "function" or "string" but received "'.concat(d(o), '"'));
+          this.dragEl = o(t);
+        } else this.dragEl = S(this.$el, t.target, !0);
 
-        if (dragging) {
-          if (typeof dragging === 'function') this.dragEl = dragging(e);else throw new Error("dragging expected \"function\" or \"string\" but received \"".concat(_typeof(dragging), "\""));
-        } else {
-          this.dragEl = getElement(this.$el, e.target, true);
-        } // 不存在拖拽元素时不允许拖拽
-
-
-        if (!this.dragEl || this.dragEl.animated) return true; // 获取拖拽元素在列表中的位置
-
-        var _getElement = getElement(this.$el, this.dragEl),
-            rect = _getElement.rect,
-            offset = _getElement.offset;
-
-        window.sortableDndOnDownState = true;
-        this.ghost.set('x', rect.left);
-        this.ghost.set('y', rect.top);
-        this.differ.from = {
+        if (!this.dragEl || this.dragEl.animated) return !0;
+        n = S(this.$el, this.dragEl), o = n.rect, n = n.offset;
+        window.sortableDndOnDownState = !0, this.ghost.setPosition(o.left, o.top), this.ghost.diff = {
+          x: t.clientX - o.left,
+          y: t.clientY - o.top
+        }, this.differ.from = {
           node: this.dragEl,
-          rect: rect,
-          offset: offset
-        };
-        this.calcXY = {
-          x: e.clientX,
-          y: e.clientY
-        };
-
-        this._onMoveEvents(touch);
-
-        this._onUpEvents(touch);
+          rect: o,
+          offset: n
+        }, this._bindMoveEvents(e), this._bindUpEvents(e);
       },
-      _onMove: function _onMove(
-      /** Event|TouchEvent */
-      evt) {
-        if (evt.preventDefault !== void 0) evt.preventDefault(); // prevent scrolling
+      _onMove: function (t) {
+        void 0 !== t.preventDefault && t.preventDefault();
+        var e = this.options,
+            o = e.chosenClass,
+            n = e.stopPropagation,
+            i = e.onMove,
+            e = e.onDrag,
+            n = (n && t.stopPropagation(), t.touches && t.touches[0]),
+            r = n || t,
+            s = r.clientX,
+            a = r.clientY,
+            n = n ? document.elementFromPoint(s, a) : r.target;
 
-        var _this$options3 = this.options,
-            chosenClass = _this$options3.chosenClass,
-            stopPropagation = _this$options3.stopPropagation,
-            onMove = _this$options3.onMove,
-            onDrag = _this$options3.onDrag;
-        if (stopPropagation) evt.stopPropagation();
-        var touch = evt.touches && evt.touches[0];
-        var e = touch || evt;
-        var clientX = e.clientX,
-            clientY = e.clientY;
-        var target = touch ? document.elementFromPoint(clientX, clientY) : e.target; // 将初始化放到move事件中，防止与click事件冲突
-        // 将拖拽元素克隆一份作为蒙版
-
-        if (!this.ghost.$el) {
-          this.ghost.init(this.dragEl.cloneNode(true), this.differ.from.rect);
-
-          if (onDrag !== undefined) {
-            if (typeof onDrag === 'function') onDrag(this.dragEl, e,
-            /** originalEvent */
-            evt);else throw new Error("onDrag expected \"function\" but received \"".concat(_typeof(onDrag), "\""));
-          }
-        } // 拖拽过程中触发的回调
-
-
-        if (onMove !== undefined) {
-          if (typeof onMove === 'function') onMove(this.differ.from, this.ghost.$el, e,
-          /** originalEvent */
-          evt);else throw new Error("onMove expected \"function\" but received \"".concat(_typeof(onMove), "\""));
+        if (!this.ghost.$el && (this.ghost.init(this.dragEl.cloneNode(!0), this.differ.from.rect), void 0 !== e)) {
+          if ("function" != typeof e) throw new Error('onDrag expected "function" but received "'.concat(d(e), '"'));
+          e(this.dragEl, r, t);
         }
 
-        toggleClass(this.dragEl, chosenClass, true);
-        this.ghost.move();
-        if (!window.sortableDndOnDownState) return;
-        if (clientX < 0 || clientY < 0) return;
-        window.sortableDndOnMoveState = true;
-        this.ghost.set('x', this.ghost.x + clientX - this.calcXY.x);
-        this.ghost.set('y', this.ghost.y + clientY - this.calcXY.y);
-        this.calcXY = {
-          x: clientX,
-          y: clientY
-        };
-        this.ghost.move(); // 判断边界值
-
-        var rc = getRect(this.$el);
-
-        if (clientX < rc.left || clientX > rc.right || clientY < rc.top || clientY > rc.bottom) {
-          this.ghost.setStyle({
-            cursor: 'not-allowed'
-          });
-          return;
+        if (void 0 !== i) {
+          if ("function" != typeof i) throw new Error('onMove expected "function" but received "'.concat(d(i), '"'));
+          i(this.differ.from, this.ghost.$el, r, t);
         }
 
-        var _getElement2 = getElement(this.$el, target),
-            index = _getElement2.index,
-            el = _getElement2.el,
-            rect = _getElement2.rect,
-            offset = _getElement2.offset;
+        if (_(this.dragEl, o, !0), this.ghost.move(), window.sortableDndOnDownState && !(s < 0 || a < 0)) {
+          window.sortableDndOnMoveState = !0, this.ghost.setPosition(s, a), this.ghost.move();
+          e = E(this.$el);
+          if (s < e.left || s > e.right || a < e.top || a > e.bottom) this.ghost.setStyle({
+            cursor: "not-allowed"
+          });else {
+            var i = S(this.$el, n),
+                o = i.index,
+                e = i.el,
+                n = i.rect,
+                i = i.offset,
+                l = n.left,
+                f = n.right,
+                h = n.top,
+                c = n.bottom;
 
-        var left = rect.left,
-            right = rect.right,
-            top = rect.top,
-            bottom = rect.bottom;
-        if (!el || index < 0 || top < 0) return; // 加上当前滚动距离
-
-        var _this$scrollEl = this.scrollEl,
-            scrollTop = _this$scrollEl.scrollTop,
-            scrollLeft = _this$scrollEl.scrollLeft;
-        var boundaryL = rc.left + scrollLeft;
-        var boundaryT = rc.top + scrollTop; // 如果目标元素超出当前可视区，不允许拖动
-
-        if (this.scrollEl !== this.$el && (rc.left < 0 || rc.top < 0)) {
-          if (rc.top < 0 && top < boundaryT || rc.left < 0 && left < boundaryL) return;
-        } else if (top < rc.top || left < rc.left) return;
-
-        this.dropEl = el;
-
-        if (clientX > left && clientX < right && clientY > top && clientY < bottom) {
-          // 拖拽前后元素不一致时交换
-          if (el !== this.dragEl) {
-            this.differ.to = {
+            if (e && !(o < 0) && (this.dropEl = e, l < s && s < f && h < a && a < c && e !== this.dragEl && (this.differ.to = {
               node: this.dropEl,
-              rect: rect,
-              offset: offset
-            };
-            if (el.animated) return;
-            this.captureAnimationState();
-            var onChange = this.options.onChange;
+              rect: n,
+              offset: i
+            }, !e.animated))) {
+              this.captureAnimationState();
+              o = this.options.onChange, l = b(this.dragEl);
 
-            var _offset = getOffset(this.dragEl); // 获取拖拽元素的 offset 值
-            // 元素发生位置交换时触发的回调
+              if (void 0 !== o) {
+                if ("function" != typeof o) throw new Error('onChange expected "function" but received "'.concat(d(o), '"'));
+                o(this.differ.from, this.differ.to, r, t);
+              }
 
-
-            if (onChange !== undefined) {
-              if (typeof onChange === 'function') onChange(this.differ.from, this.differ.to, e, evt);else throw new Error("onChange expected \"function\" but received \"".concat(_typeof(onChange), "\""));
-            } // 优先比较 top 值，top 值相同再比较 left
-
-
-            if (_offset.top < offset.top || _offset.left < offset.left) {
-              this.$el.insertBefore(this.dragEl, el.nextElementSibling);
-            } else {
-              this.$el.insertBefore(this.dragEl, el);
+              l.top < i.top || l.left < i.left ? this.$el.insertBefore(this.dragEl, e.nextElementSibling) : this.$el.insertBefore(this.dragEl, e), this.animateRange();
             }
-
-            this.animateRange();
           }
         }
       },
-      _onDrop: function _onDrop(
-      /** Event|TouchEvent */
-      evt) {
-        this._offMoveEvents();
+      _onDrop: function (t) {
+        this._unbindMoveEvents(), this._unbindUpEvents(), clearTimeout(this.dragStartTimer);
+        var e = this.options,
+            o = e.onDrop,
+            n = e.chosenClass;
 
-        this._offUpEvents();
+        if (e.stopPropagation && t.stopPropagation(), _(this.dragEl, n, !1), window.sortableDndOnDownState && window.sortableDndOnMoveState) {
+          this.differ.to.offset = b(this.dragEl), this.differ.to.rect = E(this.dragEl);
+          e = this.differ, n = e.from, e = e.to, n = n.offset.top !== e.offset.top || n.offset.left !== e.offset.left;
 
-        clearTimeout(this.dragStartTimer);
-        var _this$options4 = this.options,
-            onDrop = _this$options4.onDrop,
-            chosenClass = _this$options4.chosenClass,
-            stopPropagation = _this$options4.stopPropagation;
-        if (stopPropagation) evt.stopPropagation(); // 阻止事件冒泡
-
-        toggleClass(this.dragEl, chosenClass, false);
-
-        if (window.sortableDndOnDownState && window.sortableDndOnMoveState) {
-          // 重新获取一次拖拽元素的 offset 和 rect 值作为拖拽完成后的值
-          this.differ.to.offset = getOffset(this.dragEl);
-          this.differ.to.rect = getRect(this.dragEl);
-          var _this$differ = this.differ,
-              from = _this$differ.from,
-              to = _this$differ.to; // 通过 offset 比较是否进行了元素交换
-
-          var changed = from.offset.top !== to.offset.top || from.offset.left !== to.offset.left; // 拖拽完成触发回调函数
-
-          if (onDrop !== undefined) {
-            if (typeof onDrop === 'function') onDrop(changed, evt);else throw new Error("onDrop expected \"function\" but received \"".concat(_typeof(onDrop), "\""));
+          if (void 0 !== o) {
+            if ("function" != typeof o) throw new Error('onDrop expected "function" but received "'.concat(d(o), '"'));
+            o(n, t);
           }
 
-          this.ghost.destroy(getRect(this.dragEl));
+          this.ghost.destroy(E(this.dragEl));
         }
 
-        this.differ.destroy();
-
-        this._removeWindowState();
+        this.differ.destroy(), this._removeWindowState();
       },
-      // -------------------------------- reset state ----------------------------------
-      _resetState: function _resetState() {
-        this.dragEl = null;
-        this.dropEl = null;
-        this.ghost.destroy();
-        this.differ.destroy();
-        this.calcXY = {
-          x: 0,
-          y: 0
-        };
-
-        this._removeWindowState();
+      _resetState: function () {
+        this.dragEl = null, this.dropEl = null, this.ghost.destroy(), this.differ.destroy(), this._removeWindowState();
       },
-      _removeWindowState: function _removeWindowState() {
-        window.sortableDndOnDownState = null;
-        window.sortableDndOnMoveState = null;
-        window.sortableDndAnimationEnd = null;
-        delete window.sortableDndOnDownState;
-        delete window.sortableDndOnMoveState;
-        delete window.sortableDndAnimationEnd;
+      _removeWindowState: function () {
+        window.sortableDndOnDownState = null, window.sortableDndOnMoveState = null, window.sortableDndAnimationEnd = null, delete window.sortableDndOnDownState, delete window.sortableDndOnMoveState, delete window.sortableDndAnimationEnd;
       },
-      // -------------------------------- auto destroy ----------------------------------
-      _handleDestroy: function _handleDestroy() {
-        var _this = this;
+      _handleDestroy: function () {
+        var t = this,
+            e = null,
+            o = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
-        var observer = null;
-        var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
-
-        if (MutationObserver) {
-          var ownerDocument = this.options.ownerDocument;
-          if (!ownerDocument) return;
-          observer = new MutationObserver(function () {
-            if (!ownerDocument.body.contains(_this.$el)) {
-              observer.disconnect();
-              observer = null;
-
-              _this._unbindEventListener();
-
-              _this._resetState();
-            }
-          });
-          observer.observe(this.$el.parentNode, {
-            childList: true,
-            // 观察目标子节点的变化，是否有添加或者删除
-            attributes: false,
-            // 观察属性变动
-            subtree: false // 观察后代节点，默认为 false
-
+        if (o) {
+          var n = this.options.ownerDocument;
+          if (!n) return;
+          (e = new o(function () {
+            n.body.contains(t.$el) || (e.disconnect(), e = null, t._unbindEventListener(), t._resetState());
+          })).observe(this.$el.parentNode, {
+            childList: !0,
+            attributes: !1,
+            subtree: !1
           });
         }
 
         window.onbeforeunload = function () {
-          if (observer) observer.disconnect();
-          observer = null;
-
-          _this._unbindEventListener();
-
-          _this._resetState();
+          e && e.disconnect(), e = null, t._unbindEventListener(), t._resetState();
         };
       }
-    };
-    return Sortable;
+    }, O;
   });
   });
 
@@ -1488,6 +953,7 @@
   var Sortable = {
     data: function data() {
       return {
+        rangeIsChanged: false,
         dragState: {
           from: {
             key: null,
@@ -1513,13 +979,13 @@
         var _this = this;
 
         var tempList = [];
-        var dragIndex = -1;
         var dragElement = null;
+        var dragIndex = -1;
         var flag = false;
 
         this._destroySortable();
 
-        this.drag = new sortable(this.$refs.wrapper, {
+        this.drag = new sortable_min(this.$refs.wrapper, {
           disabled: this.disabled,
           ghostStyle: this.dragStyle,
           draggable: this.draggable,
@@ -1535,9 +1001,10 @@
             });
             _this.dragState.from.index = dragIndex;
             _this.dragState.from.key = key;
+            _this.rangeIsChanged = false;
           },
           onChange: function onChange(_old_, _new_) {
-            if (!flag) {
+            if (!flag && _this.rangeIsChanged) {
               flag = true;
 
               _this.list.splice(dragIndex, 1);
@@ -1573,15 +1040,17 @@
             var _this$dragState2 = _this.dragState,
                 from = _this$dragState2.from,
                 to = _this$dragState2.to;
-            if (flag && dragElement) dragElement.remove();
+            if (flag && _this.rangeIsChanged && dragElement) dragElement.remove();
 
             _this.handleDragEnd(tempList, from, to, changed);
 
-            _this.list = tempList;
-            _this.uniqueKeys = _this.list.map(function (item) {
-              return _this._getUniqueKey(item);
-            });
+            _this.list = _toConsumableArray(tempList);
+
+            _this.setUniqueKeys();
+
+            _this.rangeIsChanged = false;
             dragElement = null;
+            dragIndex = -1;
             flag = false;
           }
         });
@@ -1938,19 +1407,25 @@
         var _this5 = this;
 
         this.list = _toConsumableArray(list);
-        this.uniqueKeys = this.list.map(function (item) {
-          return _this5._getUniqueKey(item);
-        });
+        this.setUniqueKeys();
         this.virtual = new Virtual({
           size: this.size,
           keeps: this.keeps,
           uniqueKeys: this.uniqueKeys,
           isHorizontal: this.isHorizontal
         }, function (range) {
+          _this5.rangeIsChanged = true;
           _this5.range = range;
         });
         this.virtual.updateRange();
         this.virtual.updateSizes(this.uniqueKeys);
+      },
+      setUniqueKeys: function setUniqueKeys() {
+        var _this6 = this;
+
+        this.uniqueKeys = this.list.map(function (item) {
+          return _this6._getUniqueKey(item);
+        });
       },
       // --------------------------- handle scroll ------------------------------
       _handleScroll: function _handleScroll(event) {
@@ -1993,16 +1468,16 @@
         }, obj) || defaultValue;
       },
       _getItemIndex: function _getItemIndex(item) {
-        var _this6 = this;
+        var _this7 = this;
 
         return this.list.findIndex(function (el) {
-          return _this6._getUniqueKey(item) == _this6._getUniqueKey(el);
+          return _this7._getUniqueKey(item) == _this7._getUniqueKey(el);
         });
       }
     },
     // --------------------------- render ------------------------------
     render: function render(h) {
-      var _this7 = this;
+      var _this8 = this;
 
       var _this$$slots = this.$slots,
           header = _this$$slots.header,
@@ -2054,9 +1529,9 @@
         "class": wrapClass,
         style: wrapStyle
       }, this.list.slice(start, end + 1).map(function (record) {
-        var index = _this7._getItemIndex(record);
+        var index = _this8._getItemIndex(record);
 
-        var uniqueKey = _this7._getUniqueKey(record);
+        var uniqueKey = _this8._getUniqueKey(record);
 
         var props = {
           isHorizontal: isHorizontal,
@@ -2064,12 +1539,12 @@
           tag: itemTag,
           event: '_onItemResized'
         };
-        return _this7.$scopedSlots.item ? h(Items, {
+        return _this8.$scopedSlots.item ? h(Items, {
           key: uniqueKey,
           props: props,
           style: itemStyle,
           "class": itemClass
-        }, _this7.$scopedSlots.item({
+        }, _this8.$scopedSlots.item({
           record: record,
           index: index,
           dataKey: uniqueKey
@@ -2079,7 +1554,7 @@
             'data-key': uniqueKey
           },
           style: _objectSpread2(_objectSpread2({}, itemStyle), {}, {
-            height: "".concat(_this7.size, "px")
+            height: "".concat(_this8.size, "px")
           }),
           "class": itemClass
         }, uniqueKey);

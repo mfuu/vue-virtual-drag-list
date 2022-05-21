@@ -6,6 +6,7 @@ import SortableDnd from 'sortable-dnd'
 const Sortable = {
   data() {
     return {
+      rangeIsChanged: false,
       dragState: {
         from: {
           key: null, // 拖拽起始节点唯一值
@@ -23,8 +24,8 @@ const Sortable = {
   methods: {
     _initSortable() {
       let tempList = []
-      let dragIndex = -1
       let dragElement = null
+      let dragIndex = -1
       let flag = false
       this._destroySortable()
       this.drag = new SortableDnd(
@@ -45,10 +46,12 @@ const Sortable = {
 
             this.dragState.from.index = dragIndex
             this.dragState.from.key = key
+            this.rangeIsChanged = false
           },
           onChange: (_old_, _new_) => {
-            if (!flag) {
+            if (!flag && this.rangeIsChanged) {
               flag = true
+
               this.list.splice(dragIndex, 1)
             }
             const oldKey = this.dragState.from.key
@@ -72,14 +75,16 @@ const Sortable = {
             )
 
             const { from, to } = this.dragState
-            if (flag && dragElement) dragElement.remove()
+            if (flag && this.rangeIsChanged && dragElement) dragElement.remove()
 
             this.handleDragEnd(tempList, from, to, changed)
 
-            this.list = tempList
-            this.uniqueKeys = this.list.map(item => this._getUniqueKey(item))
+            this.list = [...tempList]
+            this.setUniqueKeys()
 
+            this.rangeIsChanged = false
             dragElement = null
+            dragIndex = -1
             flag = false
           }
         }
