@@ -32,9 +32,10 @@ const Sortable = {
         this.$refs.wrapper,
         {
           disabled: this.disabled,
-          ghostStyle: this.dragStyle,
           draggable: this.draggable,
           dragging: this.dragging,
+          ghostClass: this.ghostClass,
+          ghostStyle: this.ghostStyle,
           chosenClass: this.chosenClass,
           animation: this.animation,
           onDrag: (dragEl) => {
