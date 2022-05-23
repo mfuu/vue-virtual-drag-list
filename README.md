@@ -128,9 +128,9 @@ Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessi
 | **Method**         | **Description** |
 | ------------------ | --------------- |
 | `reset()`          | Reset to initial |
-| `getSize()`        | Get the size of the current item by unique key value |
+| `getSize(key)`     | Get the size of the current item by unique key value |
 | `getOffset()`      | Get the current scroll height |
 | `scrollToTop()`    | Scroll to top of list |
-| `scrollToIndex()`  | Scroll to the specified index position |
-| `scrollToOffset()` | Scroll to the specified offset |
 | `scrollToBottom()` | Scroll to bottom of list |
+| `scrollToIndex(index)`  | Scroll to the specified index position |
+| `scrollToOffset(offset)` | Scroll to the specified offset |
