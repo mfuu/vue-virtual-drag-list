@@ -987,9 +987,10 @@
 
         this.drag = new sortable_min(this.$refs.wrapper, {
           disabled: this.disabled,
-          ghostStyle: this.dragStyle,
           draggable: this.draggable,
           dragging: this.dragging,
+          ghostClass: this.ghostClass,
+          ghostStyle: this.ghostStyle,
           chosenClass: this.chosenClass,
           animation: this.animation,
           onDrag: function onDrag(dragEl) {
@@ -1168,9 +1169,7 @@
     ghostStyle: {
       type: Object,
       "default": function _default() {
-        return {
-          backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'
-        };
+        return {};
       }
     },
     chosenClass: {
