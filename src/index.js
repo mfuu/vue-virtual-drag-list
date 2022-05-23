@@ -204,13 +204,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
 
     // --------------------------- methods ------------------------------
-    _getUniqueKey(obj, defaultValue = '') {
+    _getUniqueKey(obj) {
       const { dataKey } = this
       return (
         !Array.isArray(dataKey)
           ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.')
           : dataKey).reduce((o, k) => (o || {})[k], obj
-      ) || defaultValue
+      )
     },
     _getItemIndex(item) {
       return this.list.findIndex(el => this._getUniqueKey(item) == this._getUniqueKey(el))

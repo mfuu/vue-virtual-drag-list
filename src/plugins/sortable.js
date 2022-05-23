@@ -42,11 +42,11 @@ const Sortable = {
             dragElement = dragEl
             tempList = [...this.list]
 
-            const key = dragEl.getAttribute('data-key')
-            this.list.forEach((el, index) => {
-              if (this._getUniqueKey(el) == key) {
-                Object.assign(this.dragState.from, { item: el, index, key })
-              }
+            const dataKey = dragEl.getAttribute('data-key')
+
+            this.list.forEach((item, index) => {
+              const key = this._getUniqueKey(item)
+              if (dataKey == key) Object.assign(this.dragState.from, { item, index, key })
             })
 
             this.rangeIsChanged = false

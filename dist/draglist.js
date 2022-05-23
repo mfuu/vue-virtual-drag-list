@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.4
+ * vue-virtual-drag-list v2.6.5
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -996,16 +996,16 @@
           onDrag: function onDrag(dragEl) {
             dragElement = dragEl;
             tempList = _toConsumableArray(_this.list);
-            var key = dragEl.getAttribute('data-key');
+            var dataKey = dragEl.getAttribute('data-key');
 
-            _this.list.forEach(function (el, index) {
-              if (_this._getUniqueKey(el) == key) {
-                Object.assign(_this.dragState.from, {
-                  item: el,
-                  index: index,
-                  key: key
-                });
-              }
+            _this.list.forEach(function (item, index) {
+              var key = _this._getUniqueKey(item);
+
+              if (dataKey == key) Object.assign(_this.dragState.from, {
+                item: item,
+                index: index,
+                key: key
+              });
             });
 
             _this.rangeIsChanged = false;
@@ -1477,11 +1477,10 @@
       },
       // --------------------------- methods ------------------------------
       _getUniqueKey: function _getUniqueKey(obj) {
-        var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
         var dataKey = this.dataKey;
         return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
           return (o || {})[k];
-        }, obj) || defaultValue;
+        }, obj);
       },
       _getItemIndex: function _getItemIndex(item) {
         var _this7 = this;
