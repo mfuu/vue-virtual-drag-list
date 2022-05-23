@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.5
+ * vue-virtual-drag-list v2.6.6
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -954,6 +954,7 @@
     data: function data() {
       return {
         rangeIsChanged: false,
+        dragKey: null,
         dragState: {
           from: {
             key: null,
@@ -978,10 +979,8 @@
       _initSortable: function _initSortable() {
         var _this = this;
 
-        var tempList = [];
+        var cloneList = [];
         var dragElement = null;
-        var dragIndex = -1;
-        var flag = false;
 
         this._destroySortable();
 
@@ -995,13 +994,13 @@
           animation: this.animation,
           onDrag: function onDrag(dragEl) {
             dragElement = dragEl;
-            tempList = _toConsumableArray(_this.list);
-            var dataKey = dragEl.getAttribute('data-key');
+            cloneList = _toConsumableArray(_this.list);
+            _this.dragKey = dragEl.getAttribute('data-key');
 
             _this.list.forEach(function (item, index) {
               var key = _this._getUniqueKey(item);
 
-              if (dataKey == key) Object.assign(_this.dragState.from, {
+              if (_this.dragKey == key) Object.assign(_this.dragState.from, {
                 item: item,
                 index: index,
                 key: key
@@ -1011,12 +1010,6 @@
             _this.rangeIsChanged = false;
           },
           onChange: function onChange(_old_, _new_) {
-            if (!flag && _this.rangeIsChanged) {
-              flag = true;
-
-              _this.list.splice(dragIndex, 1);
-            }
-
             var oldKey = _this.dragState.from.key;
 
             var newKey = _new_.node.getAttribute('data-key');
@@ -1030,7 +1023,7 @@
               item: null,
               index: -1
             };
-            tempList.forEach(function (el, index) {
+            cloneList.forEach(function (el, index) {
               var key = _this._getUniqueKey(el);
 
               if (key == oldKey) Object.assign(from, {
@@ -1042,11 +1035,11 @@
                 index: index
               });
             });
-            tempList.splice(from.index, 1);
-            tempList.splice(to.index, 0, from.item);
+            cloneList.splice(from.index, 1);
+            cloneList.splice(to.index, 0, from.item);
           },
           onDrop: function onDrop(changed) {
-            var index = tempList.findIndex(function (el) {
+            var index = cloneList.findIndex(function (el) {
               return _this._getUniqueKey(el) == _this.dragState.from.key;
             });
             var item = _this.list[index];
@@ -1055,21 +1048,19 @@
               item: item,
               key: _this._getUniqueKey(item)
             };
-            if (flag && _this.rangeIsChanged && dragElement) dragElement.remove();
+            if (_this.rangeIsChanged && dragElement) dragElement.remove();
             var _this$dragState = _this.dragState,
                 from = _this$dragState.from,
                 to = _this$dragState.to;
 
-            _this.handleDragEnd(tempList, from, to, changed);
+            _this.handleDragEnd(cloneList, from, to, changed);
 
-            _this.list = _toConsumableArray(tempList);
+            _this.list = _toConsumableArray(cloneList);
 
             _this.setUniqueKeys();
 
             _this.rangeIsChanged = false;
             dragElement = null;
-            dragIndex = -1;
-            flag = false;
           }
         });
       },
@@ -1189,7 +1180,7 @@
     event: {
       type: String
     },
-    uniqueKey: {
+    dataKey: {
       type: [String, Number]
     },
     isHorizontal: {
@@ -1225,7 +1216,7 @@
     },
     methods: {
       onSizeChange: function onSizeChange() {
-        this.virtual[this.event](this.uniqueKey, this.getCurrentSize());
+        this.virtual[this.event](this.dataKey, this.getCurrentSize());
       },
       getCurrentSize: function getCurrentSize() {
         var sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
@@ -1238,11 +1229,11 @@
     props: SlotsProps,
     render: function render(h) {
       var tag = this.tag,
-          uniqueKey = this.uniqueKey;
+          dataKey = this.dataKey;
       return h(tag, {
-        key: uniqueKey,
+        key: dataKey,
         attrs: {
-          'data-key': uniqueKey
+          'data-key': dataKey
         }
       }, this.$slots["default"]);
     }
@@ -1252,11 +1243,11 @@
     props: SlotsProps,
     render: function render(h) {
       var tag = this.tag,
-          uniqueKey = this.uniqueKey;
+          dataKey = this.dataKey;
       return h(tag, {
-        key: uniqueKey,
+        key: dataKey,
         attrs: {
-          role: uniqueKey
+          role: dataKey
         }
       }, this.$slots["default"]);
     }
@@ -1532,7 +1523,7 @@
       header ? h(Slots, {
         props: {
           tag: headerTag,
-          uniqueKey: 'header',
+          dataKey: 'header',
           event: '_onHeaderResized'
         }
       }, header) : null, // 中间内容区域和列表项
@@ -1546,38 +1537,41 @@
       }, this.list.slice(start, end + 1).map(function (record) {
         var index = _this8._getItemIndex(record);
 
-        var uniqueKey = _this8._getUniqueKey(record);
+        var dataKey = _this8._getUniqueKey(record);
 
         var props = {
           isHorizontal: isHorizontal,
-          uniqueKey: uniqueKey,
+          dataKey: dataKey,
           tag: itemTag,
           event: '_onItemResized'
         };
+        var hidden = _this8.dragKey == dataKey && _this8.rangeIsChanged;
         return _this8.$scopedSlots.item ? h(Items, {
-          key: uniqueKey,
+          key: dataKey,
           props: props,
-          style: itemStyle,
+          style: _objectSpread2(_objectSpread2({}, itemStyle), {}, {
+            display: hidden ? 'none' : ''
+          }),
           "class": itemClass
         }, _this8.$scopedSlots.item({
           record: record,
           index: index,
-          dataKey: uniqueKey
+          dataKey: dataKey
         })) : h(itemTag, {
-          key: uniqueKey,
+          key: dataKey,
           attrs: {
-            'data-key': uniqueKey
+            'data-key': dataKey
           },
           style: _objectSpread2(_objectSpread2({}, itemStyle), {}, {
             height: "".concat(_this8.size, "px")
           }),
           "class": itemClass
-        }, uniqueKey);
+        }, dataKey);
       })), // 底部插槽 
       footer ? h(Slots, {
         props: {
           tag: footerTag,
-          uniqueKey: 'footer',
+          dataKey: 'footer',
           event: '_onFooterResized'
         }
       }, footer) : null, // 最底部元素

@@ -27,7 +27,7 @@ const observer = {
   },
   methods: {
     onSizeChange () {
-      this.virtual[this.event](this.uniqueKey, this.getCurrentSize())
+      this.virtual[this.event](this.dataKey, this.getCurrentSize())
     },
     getCurrentSize () {
       const sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight'
@@ -40,11 +40,11 @@ export const Items = Vue.component('virtual-draglist-items', {
   mixins: [observer],
   props: SlotsProps,
   render (h) {
-    const { tag, uniqueKey } = this
+    const { tag, dataKey } = this
     return h(tag, {
-      key: uniqueKey,
+      key: dataKey,
       attrs: {
-        'data-key': uniqueKey
+        'data-key': dataKey
       },
     }, this.$slots.default)
   }
@@ -54,11 +54,11 @@ export const Slots = Vue.component('virtual-draglist-slots', {
   mixins: [observer],
   props: SlotsProps,
   render (h) {
-    const { tag, uniqueKey } = this
+    const { tag, dataKey } = this
     return h(tag, {
-      key: uniqueKey,
+      key: dataKey,
       attrs: {
-        role: uniqueKey
+        role: dataKey
       }
     }, this.$slots.default)
   }

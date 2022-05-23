@@ -107,7 +107,7 @@ export const SlotsProps = {
   event: {
     type: String
   },
-  uniqueKey: {
+  dataKey: {
     type: [String, Number]
   },
   isHorizontal: {

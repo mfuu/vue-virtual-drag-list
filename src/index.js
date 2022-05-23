@@ -235,7 +235,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       header ? h(Slots, {
         props: {
           tag: headerTag,
-          uniqueKey: 'header',
+          dataKey: 'header',
           event: '_onHeaderResized'
         }
       }, header) : null,
@@ -248,23 +248,24 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         style: wrapStyle,
       }, this.list.slice(start, end + 1).map(record => {
         const index = this._getItemIndex(record)
-        const uniqueKey = this._getUniqueKey(record)
-        const props = { isHorizontal, uniqueKey, tag: itemTag, event: '_onItemResized', }
+        const dataKey = this._getUniqueKey(record)
+        const props = { isHorizontal, dataKey: dataKey, tag: itemTag, event: '_onItemResized', }
+        const hidden = this.dragKey == dataKey && this.rangeIsChanged
 
         return this.$scopedSlots.item ? (
           h(Items, {
-              key: uniqueKey,
+              key: dataKey,
               props: props,
-              style: itemStyle,
+              style: { ...itemStyle, display: hidden ? 'none' : '' },
               class: itemClass
-            }, this.$scopedSlots.item({ record, index, dataKey: uniqueKey }))
+            }, this.$scopedSlots.item({ record, index, dataKey }))
           ) : (
             h(itemTag, {
-              key: uniqueKey,
-              attrs: { 'data-key': uniqueKey },
+              key: dataKey,
+              attrs: { 'data-key': dataKey },
               style: { ...itemStyle, height: `${this.size}px` },
               class: itemClass
-            }, uniqueKey)
+            }, dataKey)
           )
         })
       ),
@@ -273,7 +274,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       footer ? h(Slots, {
         props: {
           tag: footerTag,
-          uniqueKey: 'footer',
+          dataKey: 'footer',
           event: '_onFooterResized'
         }
       }, footer) : null,
