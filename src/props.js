@@ -34,12 +34,20 @@ export const VirtualProps = {
     type: Number,
     default: 0
   },
+  rootTag: {
+    type: String,
+    default: 'div'
+  },
   rootStyle: {
     type: Object
   },
   rootClass: {
     type: String,
     default: ''
+  },
+  wrapTag: {
+    type: String,
+    default: 'div'
   },
   wrapClass: {
     type: String,

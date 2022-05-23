@@ -219,13 +219,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   // --------------------------- render ------------------------------
   render (h) {
     const { header, footer } = this.$slots
-    const { height, isHorizontal, rootClass, headerTag, footerTag, itemTag, itemStyle, itemClass, wrapClass } = this
+    const { height, isHorizontal, rootClass, headerTag, footerTag, itemTag, rootTag, wrapTag, itemStyle, itemClass, wrapClass } = this
     const { start, end, front, behind } = this.range
     
     const rootStyle = { ...this.rootStyle, height, overflow: isHorizontal ? 'auto hidden' : 'hidden auto' }
     const wrapStyle = { ...this.wrapStyle, padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`}
 
-    return h('div', {
+    return h(rootTag, {
       ref: 'root',
       class: rootClass,
       style: rootStyle,
@@ -241,7 +241,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       }, header) : null,
       
       // 中间内容区域和列表项
-      h('div', {
+      h(wrapTag, {
         ref: 'wrapper',
         attrs: { role: 'wrapper' },
         class: wrapClass,

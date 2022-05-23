@@ -105,9 +105,11 @@ Root component:
 |  --------    | --------   | ----------- | --------------- |
 | `animation`  | `Number`   | `150`       | Animation time |
 | `delay`      | `Number`   | `10`        | Delay time of debounce function |
-| `itemTag`    | `String`   | `div`       | Label type for header slot |
-| `headerTag`  | `String`   | `div`       | Label type for header slot |
-| `footerTag`  | `String`   | `div`       | Label type for header slot |
+| `rootTag`    | `String`   | `div`       | Label type for root element |
+| `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
+| `itemTag`    | `String`   | `div`       | Label type for list item element |
+| `headerTag`  | `String`   | `div`       | Label type for header slot element |
+| `footerTag`  | `String`   | `div`       | Label type for footer slot element |
 | `rootClass`  | `String`   | `''`        | Root element class |
 | `rootStyle`  | `Object`   | `{}`        | Root element style |
 | `wrapClass`  | `String`   | `''`        | List wrapper element class |

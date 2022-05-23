@@ -1108,12 +1108,20 @@
       type: Number,
       "default": 0
     },
+    rootTag: {
+      type: String,
+      "default": 'div'
+    },
     rootStyle: {
       type: Object
     },
     rootClass: {
       type: String,
       "default": ''
+    },
+    wrapTag: {
+      type: String,
+      "default": 'div'
     },
     wrapClass: {
       type: String,
@@ -1494,6 +1502,8 @@
           headerTag = this.headerTag,
           footerTag = this.footerTag,
           itemTag = this.itemTag,
+          rootTag = this.rootTag,
+          wrapTag = this.wrapTag,
           itemStyle = this.itemStyle,
           itemClass = this.itemClass,
           wrapClass = this.wrapClass;
@@ -1512,7 +1522,7 @@
         padding: isHorizontal ? "0px ".concat(behind, "px 0px ").concat(front, "px") : "".concat(front, "px 0px ").concat(behind, "px")
       });
 
-      return h('div', {
+      return h(rootTag, {
         ref: 'root',
         "class": rootClass,
         style: rootStyle,
@@ -1527,7 +1537,7 @@
           event: '_onHeaderResized'
         }
       }, header) : null, // 中间内容区域和列表项
-      h('div', {
+      h(wrapTag, {
         ref: 'wrapper',
         attrs: {
           role: 'wrapper'
