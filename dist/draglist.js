@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.3
+ * vue-virtual-drag-list v2.6.4
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -996,11 +996,17 @@
             dragElement = dragEl;
             tempList = _toConsumableArray(_this.list);
             var key = dragEl.getAttribute('data-key');
-            dragIndex = _this.list.findIndex(function (el) {
-              return _this._getUniqueKey(el) === key;
+
+            _this.list.forEach(function (el, index) {
+              if (_this._getUniqueKey(el) == key) {
+                Object.assign(_this.dragState.from, {
+                  item: el,
+                  index: index,
+                  key: key
+                });
+              }
             });
-            _this.dragState.from.index = dragIndex;
-            _this.dragState.from.key = key;
+
             _this.rangeIsChanged = false;
           },
           onChange: function onChange(_old_, _new_) {
@@ -1015,32 +1021,43 @@
             var newKey = _new_.node.getAttribute('data-key');
 
             _this.dragState.to.key = newKey;
+            var from = {
+              item: null,
+              index: -1
+            };
+            var to = {
+              item: null,
+              index: -1
+            };
             tempList.forEach(function (el, index) {
               var key = _this._getUniqueKey(el);
 
-              if (key === oldKey) Object.assign(_this.dragState.from, {
+              if (key == oldKey) Object.assign(from, {
                 item: el,
                 index: index
               });
-              if (key === newKey) Object.assign(_this.dragState.to, {
+              if (key == newKey) Object.assign(to, {
                 item: el,
                 index: index
               });
             });
-            var _this$dragState = _this.dragState,
-                from = _this$dragState.from,
-                to = _this$dragState.to;
             tempList.splice(from.index, 1);
             tempList.splice(to.index, 0, from.item);
           },
           onDrop: function onDrop(changed) {
-            _this.dragState.to.index = tempList.findIndex(function (el) {
-              return _this._getUniqueKey(el) === _this.dragState.from.key;
+            var index = tempList.findIndex(function (el) {
+              return _this._getUniqueKey(el) == _this.dragState.from.key;
             });
-            var _this$dragState2 = _this.dragState,
-                from = _this$dragState2.from,
-                to = _this$dragState2.to;
+            var item = _this.list[index];
+            _this.dragState.to = {
+              index: index,
+              item: item,
+              key: _this._getUniqueKey(item)
+            };
             if (flag && _this.rangeIsChanged && dragElement) dragElement.remove();
+            var _this$dragState = _this.dragState,
+                from = _this$dragState.from,
+                to = _this$dragState.to;
 
             _this.handleDragEnd(tempList, from, to, changed);
 
