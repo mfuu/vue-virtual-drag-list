@@ -998,7 +998,7 @@
             _this.dragKey = dragEl.getAttribute('data-key');
 
             _this.list.forEach(function (item, index) {
-              var key = _this._getUniqueKey(item);
+              var key = _this._getDataKey(item);
 
               if (_this.dragKey == key) Object.assign(_this.dragState.from, {
                 item: item,
@@ -1014,7 +1014,6 @@
 
             var newKey = _new_.node.getAttribute('data-key');
 
-            _this.dragState.to.key = newKey;
             var from = {
               item: null,
               index: -1
@@ -1024,7 +1023,7 @@
               index: -1
             };
             cloneList.forEach(function (el, index) {
-              var key = _this._getUniqueKey(el);
+              var key = _this._getDataKey(el);
 
               if (key == oldKey) Object.assign(from, {
                 item: el,
@@ -1039,27 +1038,30 @@
             cloneList.splice(to.index, 0, from.item);
           },
           onDrop: function onDrop(changed) {
+            if (_this.rangeIsChanged && dragElement) dragElement.remove();
             var index = cloneList.findIndex(function (el) {
-              return _this._getUniqueKey(el) == _this.dragState.from.key;
+              return _this._getDataKey(el) == _this.dragState.from.key;
             });
             var item = _this.list[index];
             _this.dragState.to = {
               index: index,
               item: item,
-              key: _this._getUniqueKey(item)
+              key: _this._getDataKey(item)
             };
-            if (_this.rangeIsChanged && dragElement) dragElement.remove();
             var _this$dragState = _this.dragState,
                 from = _this$dragState.from,
                 to = _this$dragState.to;
 
             _this.handleDragEnd(cloneList, from, to, changed);
 
-            _this.list = _toConsumableArray(cloneList);
+            if (changed) {
+              _this.list = _toConsumableArray(cloneList);
 
-            _this.setUniqueKeys();
+              _this._setUniqueKeys();
+            }
 
             _this.rangeIsChanged = false;
+            _this.dragKey = null;
             dragElement = null;
           }
         });
@@ -1422,7 +1424,9 @@
         var _this5 = this;
 
         this.list = _toConsumableArray(list);
-        this.setUniqueKeys();
+
+        this._setUniqueKeys();
+
         this.virtual = new Virtual({
           size: this.size,
           keeps: this.keeps,
@@ -1435,11 +1439,11 @@
         this.virtual.updateRange();
         this.virtual.updateSizes(this.uniqueKeys);
       },
-      setUniqueKeys: function setUniqueKeys() {
+      _setUniqueKeys: function _setUniqueKeys() {
         var _this6 = this;
 
         this.uniqueKeys = this.list.map(function (item) {
-          return _this6._getUniqueKey(item);
+          return _this6._getDataKey(item);
         });
       },
       // --------------------------- handle scroll ------------------------------
@@ -1475,7 +1479,7 @@
         this.virtual.handleFooterSizeChange(size);
       },
       // --------------------------- methods ------------------------------
-      _getUniqueKey: function _getUniqueKey(obj) {
+      _getDataKey: function _getDataKey(obj) {
         var dataKey = this.dataKey;
         return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
           return (o || {})[k];
@@ -1485,7 +1489,7 @@
         var _this7 = this;
 
         return this.list.findIndex(function (el) {
-          return _this7._getUniqueKey(item) == _this7._getUniqueKey(el);
+          return _this7._getDataKey(item) == _this7._getDataKey(el);
         });
       }
     },
@@ -1547,7 +1551,7 @@
       }, this.list.slice(start, end + 1).map(function (record) {
         var index = _this8._getItemIndex(record);
 
-        var dataKey = _this8._getUniqueKey(record);
+        var dataKey = _this8._getDataKey(record);
 
         var props = {
           isHorizontal: isHorizontal,

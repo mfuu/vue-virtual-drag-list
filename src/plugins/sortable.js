@@ -44,7 +44,7 @@ const Sortable = {
             this.dragKey = dragEl.getAttribute('data-key')
 
             this.list.forEach((item, index) => {
-              const key = this._getUniqueKey(item)
+              const key = this._getDataKey(item)
               if (this.dragKey == key) Object.assign(this.dragState.from, { item, index, key })
             })
 
@@ -54,13 +54,11 @@ const Sortable = {
             const oldKey = this.dragState.from.key
             const newKey = _new_.node.getAttribute('data-key')
 
-            this.dragState.to.key = newKey
-
             const from = { item: null, index: -1 }
             const to = { item: null, index: -1 }
 
             cloneList.forEach((el, index) => {
-              const key = this._getUniqueKey(el)
+              const key = this._getDataKey(el)
               if (key == oldKey) Object.assign(from, { item: el, index })
               if (key == newKey) Object.assign(to, { item: el, index })
             })
@@ -69,22 +67,22 @@ const Sortable = {
             cloneList.splice(to.index, 0, from.item)
           },
           onDrop: (changed) => {
-            const index = cloneList.findIndex(el =>
-              this._getUniqueKey(el) == this.dragState.from.key
-            )
-            const item = this.list[index]
-
-            this.dragState.to = { index, item, key: this._getUniqueKey(item) }
-
             if (this.rangeIsChanged && dragElement) dragElement.remove()
+
+            const index = cloneList.findIndex(el => this._getDataKey(el) == this.dragState.from.key)
+            const item = this.list[index]
+            this.dragState.to = { index, item, key: this._getDataKey(item) }
 
             const { from, to } = this.dragState
             this.handleDragEnd(cloneList, from, to, changed)
 
-            this.list = [...cloneList]
-            this.setUniqueKeys()
+            if (changed) {
+              this.list = [...cloneList]
+              this._setUniqueKeys()
+            }
 
             this.rangeIsChanged = false
+            this.dragKey = null
             dragElement = null
           }
         }

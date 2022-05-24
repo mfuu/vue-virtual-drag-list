@@ -146,7 +146,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     // --------------------------- init ------------------------------
     initVirtual(list) {
       this.list = [...list]
-      this.setUniqueKeys()
+      this._setUniqueKeys()
       this.virtual = new Virtual(
         {
           size: this.size,
@@ -163,8 +163,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.virtual.updateSizes(this.uniqueKeys)
     },
 
-    setUniqueKeys() {
-      this.uniqueKeys = this.list.map(item => this._getUniqueKey(item))
+    _setUniqueKeys() {
+      this.uniqueKeys = this.list.map(item => this._getDataKey(item))
     },
 
     // --------------------------- handle scroll ------------------------------
@@ -204,7 +204,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
 
     // --------------------------- methods ------------------------------
-    _getUniqueKey(obj) {
+    _getDataKey(obj) {
       const { dataKey } = this
       return (
         !Array.isArray(dataKey)
@@ -213,7 +213,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       )
     },
     _getItemIndex(item) {
-      return this.list.findIndex(el => this._getUniqueKey(item) == this._getUniqueKey(el))
+      return this.list.findIndex(el => this._getDataKey(item) == this._getDataKey(el))
     }
   },
   // --------------------------- render ------------------------------
@@ -248,7 +248,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         style: wrapStyle,
       }, this.list.slice(start, end + 1).map(record => {
         const index = this._getItemIndex(record)
-        const dataKey = this._getUniqueKey(record)
+        const dataKey = this._getDataKey(record)
         const props = { isHorizontal, dataKey: dataKey, tag: itemTag, event: '_onItemResized', }
         const hidden = this.dragKey == dataKey && this.rangeIsChanged
 
