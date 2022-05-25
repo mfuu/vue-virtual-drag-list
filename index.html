@@ -82,8 +82,8 @@
         <button @click="reset">reset</button>
         <button @click="editing = !editing">change editing</button>
         <button @click="toBottom">bottom</button>
-        <button @click="toIndex">toIndex30</button>
-        <button @click="toOffset">toOffset500</button>
+        <button @click="toIndex">toIndex200</button>
+        <button @click="toOffset">toOffset5000</button>
       </div>
       <vertical-list :editing="editing" :data-source="dataSource"></vertical-list>
 
@@ -91,8 +91,8 @@
         <button @click="horizontalreset">reset</button>
         <button @click="horizontalediting = !horizontalediting">change editing</button>
         <button @click="horizontaltoBottom">bottom</button>
-        <button @click="horizontaltoIndex">toIndex30</button>
-        <button @click="horizontaltoOffset">toOffset500</button>
+        <button @click="horizontaltoIndex">toIndex200</button>
+        <button @click="horizontaltoOffset">toOffset5000</button>
       </div>
       <horizontal-list :editing="horizontalediting" :data-source="dataSource"></horizontal-list>
     </div>
@@ -133,7 +133,7 @@
               props: {
                 dataSource: this.dataSource,
                 dataKey: 'index',
-                keeps: 20,
+                keeps: 10,
                 size: 60,
                 disabled: !this.editing,
                 draggable: '.drag',
@@ -154,7 +154,7 @@
                       on: {
                         click: this.handleClick
                       }
-                    }, props.record.id) : null,
+                    }, props.dataKey) : null,
                     h('span', {}, props.record.desc)
                   ])
                 }
@@ -202,7 +202,7 @@
               props: {
                 dataSource: this.dataSource,
                 dataKey: 'id',
-                keeps: 20,
+                keeps: 10,
                 size: 110,
                 disabled: !this.editing,
                 draggable: '.drag',
@@ -244,7 +244,7 @@
           return {
             editing: true,
             horizontalediting: true,
-            dataSource: getPageData(60, 0),
+            dataSource: getPageData(400, 0),
           }
         },
         methods: {
@@ -255,10 +255,10 @@
             this.$children[0].$refs.list.scrollToBottom();
           },
           toIndex() {
-            this.$children[0].$refs.list.scrollToIndex(30);
+            this.$children[0].$refs.list.scrollToIndex(200);
           },
           toOffset() {
-            this.$children[0].$refs.list.scrollToOffset(500);
+            this.$children[0].$refs.list.scrollToOffset(5000);
           },
           horizontalreset() {
             this.$children[1].$refs.list.reset();
@@ -267,10 +267,10 @@
             this.$children[1].$refs.list.scrollToBottom();
           },
           horizontaltoIndex() {
-            this.$children[1].$refs.list.scrollToIndex(30);
+            this.$children[1].$refs.list.scrollToIndex(200);
           },
           horizontaltoOffset() {
-            this.$children[1].$refs.list.scrollToOffset(500);
+            this.$children[1].$refs.list.scrollToOffset(5000);
           }
         }
       });
