@@ -32,7 +32,7 @@
       }
       .draggable-virtual-list {
         width: 1000px;
-        height: 500px;
+        height: 800px;
         margin: 20px auto 50px;
         border: 1px solid #ccc;
       }
@@ -45,21 +45,32 @@
         height: 100%;
         overflow: auto;
       }
-      .index {
-        min-width: 30px;
-        color: #1984ff;
+      .drag {
         cursor: grab;
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        padding-left: 12px;
       }
-      .test-item {
+      .drag::before {
+        content: '\2723';
+        font-size: 16px;
+      }
+      .index {
+        color: #1984ff;
+      }
+      .item {
+        position: relative;
+        margin: 10px;
         padding: 16px;
-        border-bottom: 1px solid #1984ff;
+        border: 1px solid #1984ff;
+        border-radius: 5px;
       }
       .horizontal {
         display: flex;
         flex-direction: column;
         height: 100px;
         width: 100px;
-        margin: 10px;
         overflow: hidden;
         border: 1px dashed #1984ff;
       }
@@ -146,11 +157,17 @@
               scopedSlots: {
                 item: props => {
                   return h('div', {
-                    class: 'test-item',
+                    class: 'item',
                   }, 
                   [
+                    h('span', {
+                      class: 'drag',
+                      attrs: {
+                        title: 'drag to reorder'
+                      }
+                    }),
                     this.editing ? h('div', {
-                      class: 'drag index',
+                      class: 'index',
                       on: {
                         click: this.handleClick
                       }
@@ -218,11 +235,17 @@
               scopedSlots: {
                 item: props => {
                   return h('div', {
-                    class: 'test-item horizontal',
+                    class: 'item horizontal',
                   }, 
                   [
+                    h('span', {
+                      class: 'drag',
+                      attrs: {
+                        title: 'drag to reorder'
+                      }
+                    }),
                     this.editing ? h('div', {
-                      class: 'drag index',
+                      class: 'index',
                       on: {
                         click: this.handleClick
                       }
