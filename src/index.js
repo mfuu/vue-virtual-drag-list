@@ -139,7 +139,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
 
     handleDragEnd(list, _old, _new, changed) {
-      this.virtual.updateUniqueKeys(this.uniqueKeys)
       this.$emit('ondragend', list, _old, _new, changed)
     },
 
@@ -155,12 +154,15 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           isHorizontal: this.isHorizontal
         },
         (range) => {
-          this.rangeIsChanged = true
           this.range = range
+          const index = this.dragState.from.index
+          if (!(index > range.start && index < range.end)) {
+            this.rangeIsChanged = true
+          }
         }
       )
-      this.virtual.updateRange()
       this.virtual.updateSizes(this.uniqueKeys)
+      this.virtual.updateRange()
     },
 
     _setUniqueKeys() {
@@ -250,7 +252,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         const index = this._getItemIndex(record)
         const dataKey = this._getDataKey(record)
         const props = { isHorizontal, dataKey: dataKey, tag: itemTag, event: '_onItemResized', }
-        const hidden = this.dragKey == dataKey && this.rangeIsChanged
+        const hidden = this.dragState.from.key == dataKey && this.rangeIsChanged
 
         return this.$scopedSlots.item ? (
           h(Items, {
