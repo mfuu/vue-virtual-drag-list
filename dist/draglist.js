@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.6
+ * vue-virtual-drag-list v2.6.7
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
