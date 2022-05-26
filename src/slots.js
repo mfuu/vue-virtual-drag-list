@@ -1,8 +1,8 @@
 import Vue from 'vue'
-import { SlotsProps } from '../props'
+import { SlotsProps } from './props'
 
 const observer = {
-  inject: ['virtual'],
+  inject: ['virtualList'],
   data () {
     return {
       observer: null
@@ -27,7 +27,7 @@ const observer = {
   },
   methods: {
     onSizeChange () {
-      this.virtual[this.event](this.dataKey, this.getCurrentSize())
+      this.virtualList[this.event](this.dataKey, this.getCurrentSize())
     },
     getCurrentSize () {
       const sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight'

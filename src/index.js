@@ -1,30 +1,27 @@
 import Vue from 'vue'
-import { debounce } from './utils'
 import Virtual from './plugins/virtual'
 import Sortable from './plugins/sortable'
-import { Slots, Items } from './plugins/slots'
+import { Range, DragState } from './plugins/states'
 import { VirtualProps } from './props'
+import { Slots, Items } from './slots'
+import { debounce } from './utils'
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
-  mixins: [Sortable],
   props: VirtualProps,
   data() {
     return {
       list: [], // 将dataSource克隆一份
       uniqueKeys: [], // 通过dataKey获取所有数据的唯一键值
       virtual: null,
-      range: {
-        start: 0,
-        end: 0,
-        front: 0,
-        behind: 0
-      },
-      drag: null
+      sortable: null,
+
+      range: new Range,
+      dragState: new DragState
     }
   },
   provide() {
     return {
-      virtual: this
+      virtualList: this
     }
   },
   computed: {
@@ -47,7 +44,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   watch: {
     dataSource: {
       handler(val) {
-        this.initVirtual(val)
+        this.init(val)
       },
       deep: true,
       immediate: true
@@ -70,7 +67,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
      */
     reset() {
       this.scrollToTop()
-      this.initVirtual(this.dataSource)
+      this.init(this.dataSource)
     },
     /**
      * git item size by data-key
@@ -108,7 +105,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           const clientSize = Math.ceil(root[this.clientSizeKey])
           const scrollSize = Math.ceil(root[this.scrollSizeKey])
           if (offset + clientSize < scrollSize) this.scrollToBottom()
-        }, 5)
+        }, this.delay + 3)
       }
     },
     /**
@@ -126,7 +123,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           const offset = this.getOffset()
           const indexOffset = this.virtual.getOffsetByIndex(index)
           if (offset !== indexOffset) this.scrollToIndex(index)
-        }, 5)
+        }, this.delay + 3)
       }
     },
     /**
@@ -138,14 +135,23 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       root[this.scrollDirectionKey] = offset
     },
 
+    /**
+     * callback function after drop
+     */
     handleDragEnd(list, _old, _new, changed) {
       this.$emit('ondragend', list, _old, _new, changed)
     },
 
     // --------------------------- init ------------------------------
-    initVirtual(list) {
+    init(list) {
       this.list = [...list]
-      this._setUniqueKeys()
+      this._updateUniqueKeys()
+      this._initVirtual()
+    },
+
+    // virtual
+    _initVirtual() {
+      this.virtual = null
       this.virtual = new Virtual(
         {
           size: this.size,
@@ -155,9 +161,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         },
         (range) => {
           this.range = range
-          const index = this.dragState.from.index
-          if (!(index > range.start && index < range.end)) {
-            this.rangeIsChanged = true
+          const { start, end } = this.range
+          const { index } = this.dragState.from
+          if (index > -1 && !(index >= start && index <= end)) {
+            if (this.sortable) this.sortable.rangeIsChanged = true
           }
         }
       )
@@ -165,18 +172,58 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.virtual.updateRange()
     },
 
-    _setUniqueKeys() {
-      this.uniqueKeys = this.list.map(item => this._getDataKey(item))
+    // sortable
+    _initSortable() {
+      this.sortable = new Sortable(
+        {
+          scrollEl: this.$refs.wrapper,
+          getDataKey: this._getDataKey,
+          list: this.list,
+
+          disabled: this.disabled,
+          dragging: this.dragging,
+          draggable: this.draggable,
+          ghostClass: this.ghostClass,
+          ghostStyle: this.ghostStyle,
+          chosenClass: this.chosenClass,
+          animation: this.animation,
+        },
+        (from) => {
+          // on drag
+          this.dragState.from = from
+        },
+        (list, from, to, changed) => {
+          // on drop
+          this.dragState.from = from
+          this.dragState.to = to
+          this.handleDragEnd(list, from, to, changed)
+          if (changed) {
+            this.list = [...list]
+            this._updateUniqueKeys()
+            this.virtual.updateUniqueKeys(this.uniqueKeys)
+          }
+          setTimeout(() => this.dragState = new DragState, this.delay + 10)
+        }
+      )
+    },
+
+    _destroySortable() {
+      this.sortable && this.sortable.destroy()
+      this.sortable = null
     },
 
     // --------------------------- handle scroll ------------------------------
-    _handleScroll(event) {
+    _handleScroll() {
+      // mouseup 事件时会触发scroll事件，这里处理为了防止range改变导致页面滚动
+      if (this.dragState.to.key) return
+
       const { root } = this.$refs
       const offset = this.getOffset()
       const clientSize = Math.ceil(root[this.clientSizeKey])
       const scrollSize = Math.ceil(root[this.scrollSizeKey])
       // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
-      if (offset < 0 || (offset + clientSize > scrollSize + 1) || !scrollSize) return
+      if (!scrollSize || offset < 0 || (offset + clientSize > scrollSize + 1)) return
+
       this.virtual.handleScroll(offset)
 
       if (this.virtual.isFront()) {
@@ -206,6 +253,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
 
     // --------------------------- methods ------------------------------
+    _updateUniqueKeys() {
+      this.uniqueKeys = this.list.map(item => this._getDataKey(item))
+    },
     _getDataKey(obj) {
       const { dataKey } = this
       return (
@@ -216,6 +266,12 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
     _getItemIndex(item) {
       return this.list.findIndex(el => this._getDataKey(item) == this._getDataKey(el))
+    },
+    _getItemStyle(itemKey) {
+      const { key } = this.dragState.from
+      if (this.sortable && this.sortable.rangeIsChanged && itemKey == key)
+        return { display: 'none' }
+      return {}
     }
   },
   // --------------------------- render ------------------------------
@@ -252,23 +308,21 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         const index = this._getItemIndex(record)
         const dataKey = this._getDataKey(record)
         const props = { isHorizontal, dataKey: dataKey, tag: itemTag, event: '_onItemResized', }
-        const hidden = this.dragState.from.key == dataKey && this.rangeIsChanged
 
-        return this.$scopedSlots.item ? (
+        return this.$scopedSlots.item ? 
           h(Items, {
-              key: dataKey,
-              props: props,
-              style: { ...itemStyle, display: hidden ? 'none' : '' },
-              class: itemClass
-            }, this.$scopedSlots.item({ record, index, dataKey }))
-          ) : (
-            h(itemTag, {
-              key: dataKey,
-              attrs: { 'data-key': dataKey },
-              style: { ...itemStyle, height: `${this.size}px` },
-              class: itemClass
-            }, dataKey)
-          )
+            key: dataKey,
+            props: props,
+            style: { ...itemStyle, ...this._getItemStyle(dataKey) },
+            class: itemClass
+          }, this.$scopedSlots.item({ record, index, dataKey }))
+          : 
+          h(itemTag, {
+            key: dataKey,
+            attrs: { 'data-key': dataKey },
+            style: { ...itemStyle, height: `${this.size}px` },
+            class: itemClass
+          }, dataKey)
         })
       ),
 

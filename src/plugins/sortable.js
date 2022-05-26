@@ -1,98 +1,105 @@
 import SortableDnd from 'sortable-dnd'
+import { DragState } from './states'
 
-class State {
-  constructor() {
-    this.key = null
-    this.item = null
-    this.index = null
-  }
+function Sortable(options, onDrag, onDrop) {
+  this.options = options
+  this.onDrag = onDrag
+  this.onDrop = onDrop
+
+  this.list = options.list
+  this.getDataKey = options.getDataKey
+
+  this.drag = null
+  this.dragElement = null
+  this.dragState = new DragState
+  this.rangeIsChanged = false
+
+  this.init()
 }
 
-/**
- * sortable
- */
-const Sortable = {
-  data() {
-    return {
-      rangeIsChanged: false,
-      dragState: {
-        from: new State,
-        to: new State
-      }
-    }
-  },
-  methods: {
-    _initSortable() {
-      let cloneList = []
-      let dragElement = null
-      this._destroySortable()
-      this.drag = new SortableDnd(
-        this.$refs.wrapper,
-        {
-          disabled: this.disabled,
-          draggable: this.draggable,
-          dragging: this.dragging,
-          ghostClass: this.ghostClass,
-          ghostStyle: this.ghostStyle,
-          chosenClass: this.chosenClass,
-          animation: this.animation,
-          onDrag: (dragEl) => {
-            dragElement = dragEl
-            cloneList = [...this.list]
+Sortable.prototype = {
+  constructor: Sortable,
 
-            const key = dragEl.getAttribute('data-key')
-            const index = this.list.findIndex(el => this._getDataKey(el) == key)
-            const item = this.list[index]
-            Object.assign(this.dragState.from, { item, index, key })
+  init() {
+    const {
+      disabled,
+      dragging,
+      draggable,
+      ghostClass,
+      ghostStyle,
+      chosenClass,
+      animation
+    } = this.options
 
-            this.rangeIsChanged = false
-          },
-          onChange: (_old_, _new_) => {
-            const oldKey = this.dragState.from.key
-            const newKey = _new_.node.getAttribute('data-key')
+    let cloneList = new Array()
+    this.drag = new SortableDnd(
+      this.options.scrollEl,
+      {
+        disabled,
+        dragging,
+        draggable,
+        ghostClass,
+        ghostStyle,
+        chosenClass,
+        animation,
+        
+        onDrag: (dragEl) => {
+          this.dragElement = dragEl
+          cloneList = [...this.list]
 
-            const from = { item: null, index: -1 }
-            const to = { item: null, index: -1 }
+          const key = dragEl.getAttribute('data-key')
+          const index = this.list.findIndex(el => this.getDataKey(el) == key)
+          const item = this.list[index]
+          Object.assign(this.dragState.from, { item, index, key })
 
-            cloneList.forEach((el, index) => {
-              const key = this._getDataKey(el)
-              if (key == oldKey) Object.assign(from, { item: el, index })
-              if (key == newKey) Object.assign(to, { item: el, index })
-            })
+          this.rangeIsChanged = false
 
-            cloneList.splice(from.index, 1)
-            cloneList.splice(to.index, 0, from.item)
-          },
-          onDrop: (changed) => {
-            if (this.rangeIsChanged && dragElement) dragElement.remove()
+          // drag
+          this.onDrag(this.dragState.from)
+        },
+        onChange: (_old_, _new_) => {
+          const oldKey = this.dragState.from.key
+          const newKey = _new_.node.getAttribute('data-key')
 
-            const index = cloneList.findIndex(el => 
-              this._getDataKey(el) == this.dragState.from.key  
-            )
-            const item = this.list[index]
-            this.dragState.to = { index, item, key: this._getDataKey(item) }
+          const from = { item: null, index: -1 }
+          const to = { item: null, index: -1 }
 
-            const { from, to } = this.dragState
-            this.handleDragEnd(cloneList, from, to, changed)
+          cloneList.forEach((el, index) => {
+            const key = this.getDataKey(el)
+            if (key == oldKey) Object.assign(from, { item: el, index })
+            if (key == newKey) Object.assign(to, { item: el, index })
+          })
 
-            if (changed) {
-              this.list = [...cloneList]
-              this._setUniqueKeys()
-              this.virtual.updateUniqueKeys(this.uniqueKeys)
-            }
+          cloneList.splice(from.index, 1)
+          cloneList.splice(to.index, 0, from.item)
+        },
+        onDrop: (changed) => {
+          if (this.rangeIsChanged && this.dragElement) this.dragElement.remove()
 
-            this.rangeIsChanged = false
-            this.dragState.from = new State
-            this.dragState.to = new State
-            dragElement = null
-          }
+          const { from } = this.dragState
+          const index = cloneList.findIndex(el => this.getDataKey(el) == from.key)
+          const item = this.list[index]
+          this.dragState.to = { index, item, key: this.getDataKey(item) }
+
+          // drop 
+          this.onDrop(cloneList, from, this.dragState.to, changed)
+
+          this.list = [...cloneList]
+          this.clear()
         }
-      )
-    },
-    _destroySortable() {
-      this.drag && this.drag.destroy()
-      this.drag = null
-    }
+      }
+    )
+  },
+
+  clear() {
+    this.dragElement = null
+    this.rangeIsChanged = false
+    this.dragState = new DragState
+  },
+
+  destroy() {
+    this.drag && this.drag.destroy()
+    this.drag = null
   }
 }
 
