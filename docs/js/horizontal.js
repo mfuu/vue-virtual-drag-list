@@ -1,4 +1,4 @@
-export const VerticalList = Vue.component('vertical-list', {
+export const HorizontalList = Vue.component('horizontal-list', {
   props: {
     disabled: {},
     dataSource: {
@@ -25,7 +25,7 @@ export const VerticalList = Vue.component('vertical-list', {
   render(h) {
     return h('div', {
       attrs: {
-        class: 'vertical-list',
+        class: 'horizontal-list',
       }
     }, 
     [
@@ -33,21 +33,25 @@ export const VerticalList = Vue.component('vertical-list', {
         ref: 'list',
         props: {
           dataSource: this.dataSource,
-          dataKey: 'index',
+          dataKey: 'id',
           keeps: 20,
-          size: 99,
+          size: 110,
           disabled: this.disabled,
           draggable: '.drag',
+          direction: 'horizontal',
+          wrapStyle: { display: 'flex' },
+          rootStyle: { display: 'flex' }
         },
         on: {
           top: this.handleTop,
           bottom: this.handleBottom,
           ondragend: this.ondragend
         },
+        style: { height: '100%' },
         scopedSlots: {
           item: props => {
             return h('div', {
-              class: 'vertical-item',
+              class: 'horizontal-item',
             }, 
             [
               this.disabled ? null : h('span', {
@@ -61,12 +65,8 @@ export const VerticalList = Vue.component('vertical-list', {
                 on: {
                   click: this.handleClick
                 }
-              }, props.dataKey),
-              h('p', {
-                attrs: {
-                  title: props.record.desc
-                }
-              }, props.record.desc)
+              }, props.record.index),
+              h('p', {}, props.record.desc)
             ])
           }
         }

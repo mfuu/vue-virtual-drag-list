@@ -1,4 +1,4 @@
-export const DynamicList = Vue.component('dynamic-list', {
+export const VerticalList = Vue.component('vertical-list', {
   props: {
     disabled: {},
     dataSource: {
@@ -25,7 +25,7 @@ export const DynamicList = Vue.component('dynamic-list', {
   render(h) {
     return h('div', {
       attrs: {
-        class: 'dynamic-list',
+        class: 'vertical-list',
       }
     }, 
     [
@@ -35,7 +35,7 @@ export const DynamicList = Vue.component('dynamic-list', {
           dataSource: this.dataSource,
           dataKey: 'index',
           keeps: 20,
-          size: 60,
+          size: 99,
           disabled: this.disabled,
           draggable: '.drag',
         },
@@ -44,10 +44,11 @@ export const DynamicList = Vue.component('dynamic-list', {
           bottom: this.handleBottom,
           ondragend: this.ondragend
         },
+        style: { height: '100%' },
         scopedSlots: {
           item: props => {
             return h('div', {
-              class: 'dynamic-item',
+              class: 'vertical-item',
             }, 
             [
               this.disabled ? null : h('span', {
@@ -62,7 +63,11 @@ export const DynamicList = Vue.component('dynamic-list', {
                   click: this.handleClick
                 }
               }, props.dataKey),
-              h('p', {}, props.record.desc)
+              h('p', {
+                attrs: {
+                  title: props.record.desc
+                }
+              }, props.record.desc)
             ])
           }
         }

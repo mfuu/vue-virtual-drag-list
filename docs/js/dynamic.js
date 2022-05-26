@@ -1,4 +1,4 @@
-export const HorizontalList = Vue.component('horizontal-list', {
+export const DynamicList = Vue.component('dynamic-list', {
   props: {
     disabled: {},
     dataSource: {
@@ -25,7 +25,7 @@ export const HorizontalList = Vue.component('horizontal-list', {
   render(h) {
     return h('div', {
       attrs: {
-        class: 'horizontal-list',
+        class: 'dynamic-list',
       }
     }, 
     [
@@ -33,24 +33,22 @@ export const HorizontalList = Vue.component('horizontal-list', {
         ref: 'list',
         props: {
           dataSource: this.dataSource,
-          dataKey: 'id',
+          dataKey: 'index',
           keeps: 20,
-          size: 110,
+          size: 60,
           disabled: this.disabled,
           draggable: '.drag',
-          direction: 'horizontal',
-          wrapStyle: { display: 'flex' },
-          rootStyle: { display: 'flex' }
         },
         on: {
           top: this.handleTop,
           bottom: this.handleBottom,
           ondragend: this.ondragend
         },
+        style: { height: '100%' },
         scopedSlots: {
           item: props => {
             return h('div', {
-              class: 'horizontal-item',
+              class: 'dynamic-item',
             }, 
             [
               this.disabled ? null : h('span', {
@@ -64,7 +62,7 @@ export const HorizontalList = Vue.component('horizontal-list', {
                 on: {
                   click: this.handleClick
                 }
-              }, props.record.index),
+              }, props.dataKey),
               h('p', {}, props.record.desc)
             ])
           }
