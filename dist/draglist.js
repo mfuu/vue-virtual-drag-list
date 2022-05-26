@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.7
+ * vue-virtual-drag-list v2.6.8
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -1049,11 +1049,6 @@
       "default": 'vertical' // 纵向滚动(vertical)还是横向滚动(horizontal)
 
     },
-    // 虚拟列表高度
-    height: {
-      type: String,
-      "default": '100%'
-    },
     // 列表展示多少条数据，为0或者不传会自动计算
     keeps: {
       type: Number,
@@ -1071,13 +1066,6 @@
     rootTag: {
       type: String,
       "default": 'div'
-    },
-    rootStyle: {
-      type: Object
-    },
-    rootClass: {
-      type: String,
-      "default": ''
     },
     wrapTag: {
       type: String,
@@ -1457,7 +1445,7 @@
         var _this6 = this;
 
         this.sortable = new Sortable({
-          scrollEl: this.$refs.wrapper,
+          scrollEl: this.$refs.group,
           getDataKey: this._getDataKey,
           list: this.list,
           disabled: this.disabled,
@@ -1564,9 +1552,12 @@
       var _this$$slots = this.$slots,
           header = _this$$slots.header,
           footer = _this$$slots.footer;
-      var height = this.height,
-          isHorizontal = this.isHorizontal,
-          rootClass = this.rootClass,
+      var _this$range = this.range,
+          start = _this$range.start,
+          end = _this$range.end,
+          front = _this$range.front,
+          behind = _this$range.behind;
+      var isHorizontal = this.isHorizontal,
           headerTag = this.headerTag,
           footerTag = this.footerTag,
           itemTag = this.itemTag,
@@ -1575,16 +1566,6 @@
           itemStyle = this.itemStyle,
           itemClass = this.itemClass,
           wrapClass = this.wrapClass;
-      var _this$range = this.range,
-          start = _this$range.start,
-          end = _this$range.end,
-          front = _this$range.front,
-          behind = _this$range.behind;
-
-      var rootStyle = _objectSpread2(_objectSpread2({}, this.rootStyle), {}, {
-        height: height,
-        overflow: isHorizontal ? 'auto hidden' : 'hidden auto'
-      });
 
       var wrapStyle = _objectSpread2(_objectSpread2({}, this.wrapStyle), {}, {
         padding: isHorizontal ? "0px ".concat(behind, "px 0px ").concat(front, "px") : "".concat(front, "px 0px ").concat(behind, "px")
@@ -1592,8 +1573,9 @@
 
       return h(rootTag, {
         ref: 'root',
-        "class": rootClass,
-        style: rootStyle,
+        style: {
+          overflow: isHorizontal ? 'auto hidden' : 'hidden auto'
+        },
         on: {
           '&scroll': debounce(this._handleScroll, this.delay)
         }
@@ -1606,9 +1588,9 @@
         }
       }, header) : null, // 中间内容区域和列表项
       h(wrapTag, {
-        ref: 'wrapper',
+        ref: 'group',
         attrs: {
-          role: 'wrapper'
+          role: 'group'
         },
         "class": wrapClass,
         style: wrapStyle
