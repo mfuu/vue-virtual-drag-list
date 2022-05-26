@@ -3,297 +3,123 @@
   <head>
     <meta charset="utf-8">
     <title>vue-virtual-drag-list</title>
+    <link rel="stylesheet" href="./docs//css/global.css">
+    <link rel="stylesheet" href="./docs//css/vertical.css">
+    <link rel="stylesheet" href="./docs//css/dynamic.css">
+    <link rel="stylesheet" href="./docs//css/horizintal.css">
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/mock.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/sentences.js"></script>
     <script src="./dist/draglist.min.js"></script>
-    <style>
-      html, body {
-        height: 100%;
-        width: 100%;
-        padding: 0;
-        margin: 0;
-        color: rgba(0, 0, 0, 0.65);
-        font-size: 14px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-        font-variant: tabular-nums;
-        line-height: 1.5;
-        background-color: #fff;
-        font-feature-settings: 'tnum';
-      }
-      #app {
-        height: 100%;
-      }
-      .header {
-        height: 50px;
-        line-height: 48px;
-        background: antiquewhite;
-        text-align: center;
-      }
-      .draggable-virtual-list {
-        width: 1000px;
-        height: 800px;
-        margin: 20px auto 50px;
-        border: 1px solid #ccc;
-      }
-      .horizontal-draggable-virtual-list {
-        width: 1000px;
-        margin: 20px auto;
-        border: 1px solid #ccc;
-      }
-      .content {
-        height: 100%;
-        overflow: auto;
-      }
-      .drag {
-        cursor: grab;
-        position: absolute;
-        right: 16px;
-        top: 16px;
-        padding-left: 12px;
-      }
-      .drag::before {
-        content: '\2723';
-        font-size: 16px;
-      }
-      .index {
-        color: #1984ff;
-      }
-      .item {
-        position: relative;
-        margin: 10px;
-        padding: 16px;
-        border: 1px solid #1984ff;
-        border-radius: 5px;
-      }
-      .horizontal {
-        display: flex;
-        flex-direction: column;
-        height: 100px;
-        width: 100px;
-        overflow: hidden;
-        border: 1px dashed #1984ff;
-      }
-      .horizontal span {
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .loading {
-        font-size: 16px;
-        height: 20px;
-        text-align: center;
-        -webkit-text-stroke-width: thick;
-      }
-    </style>
   </head>
   <body>
     <div id="app">
-      <div class="header">
-        <button @click="reset">reset</button>
-        <button @click="editing = !editing">change editing</button>
-        <button @click="toBottom">bottom</button>
-        <button @click="toIndex">toIndex200</button>
-        <button @click="toOffset">toOffset5000</button>
+      <h1>common useage</h1>
+      <div class="content">
+        <vertical-list :disabled="verticalDisable" :data-source="dataSource"></vertical-list>
+        <div class="btns">
+          <button @click="verticalReset">reset</button>
+          <button @click="verticalDisable = !verticalDisable">disable drag: {{ verticalDisable }}</button>
+          <button @click="verticalToTop">top</button>
+          <button @click="verticalToBottom">bottom</button>
+          <button @click="verticalToIndex">toIndex200</button>
+          <button @click="verticalToOffset">toOffset5000</button>
+        </div>
       </div>
-      <vertical-list :editing="editing" :data-source="dataSource"></vertical-list>
 
-      <div class="header">
-        <button @click="horizontalreset">reset</button>
-        <button @click="horizontalediting = !horizontalediting">change editing</button>
-        <button @click="horizontaltoBottom">bottom</button>
-        <button @click="horizontaltoIndex">toIndex200</button>
-        <button @click="horizontaltoOffset">toOffset5000</button>
+      <h1>DYNAMIC</h1>
+      <div class="content">
+        <dynamic-list :disabled="dynamicDisable" :data-source="dataSource"></dynamic-list>
+        <div class="btns">
+          <button @click="dynamicReset">reset</button>
+          <button @click="dynamicDisable = !dynamicDisable">disable drag: {{ dynamicDisable }}</button>
+          <button @click="dynamictoTop">top</button>
+          <button @click="dynamictoBottom">bottom</button>
+          <button @click="dynamictoIndex">toIndex200</button>
+          <button @click="dynamictoOffset">toOffset5000</button>
+        </div>
       </div>
-      <horizontal-list :editing="horizontalediting" :data-source="dataSource"></horizontal-list>
+      
+      <h1>horizontal</h1>
+      <div class="horizontal">
+        <div class="oprate">
+          <button @click="horizontalreset">reset</button>
+          <button @click="horizontalDisable = !horizontalDisable">disable drag: {{ horizontalDisable }}</button>
+          <button @click="horizontaltoTop">top</button>
+          <button @click="horizontaltoBottom">bottom</button>
+          <button @click="horizontaltoIndex">toIndex200</button>
+          <button @click="horizontaltoOffset">toOffset5000</button>
+        </div>
+        <horizontal-list :disabled="horizontalDisable" :data-source="dataSource"></horizontal-list>
+      </div>
+      
     </div>
-    <script type="text/javascript">
-      Vue.component('vertical-list', {
-        props: {
-          editing: {},
-          dataSource: {
-            type: Array,
-            default: () => {
-              return []
-            }
-          }
-        },
-        methods: {
-          handleTop() {
-            console.log('is to top')
-          },
-          handleBottom() {
-            console.log('is to bottom')
-          },
-          ondragend(arr, _old, _new, chnaged) {
-            console.log(arr, _old, _new, chnaged, 'new states after drag end')
-          },
-          handleClick() {
-            console.log('click')
-          }
-        },
-        render(h) {
-          return h('div', {
-            attrs: {
-              class: 'draggable-virtual-list',
-            }
-          }, 
-          [
-            h(VirtualDragList, {
-              ref: 'list',
-              props: {
-                dataSource: this.dataSource,
-                dataKey: 'index',
-                keeps: 20,
-                size: 60,
-                disabled: !this.editing,
-                draggable: '.drag',
-              },
-              on: {
-                top: this.handleTop,
-                bottom: this.handleBottom,
-                ondragend: this.ondragend
-              },
-              scopedSlots: {
-                item: props => {
-                  return h('div', {
-                    class: 'item',
-                  }, 
-                  [
-                    h('span', {
-                      class: 'drag',
-                      attrs: {
-                        title: 'drag to reorder'
-                      }
-                    }),
-                    this.editing ? h('div', {
-                      class: 'index',
-                      on: {
-                        click: this.handleClick
-                      }
-                    }, props.dataKey) : null,
-                    h('span', {}, props.record.desc)
-                  ])
-                }
-              }
-            },[
-              h('div', { slot: 'header', class: 'loading' }, 'header'),
-              h('div', { slot: 'footer', class: 'loading' }, 'footer')
-            ])
-          ])
-        }
-      });
-      Vue.component('horizontal-list', {
-        props: {
-          editing: {},
-          dataSource: {
-            type: Array,
-            default: () => {
-              return []
-            }
-          }
-        },
-        methods: {
-          handleTop() {
-            console.log('is to top')
-          },
-          handleBottom() {
-            console.log('is to bottom')
-          },
-          ondragend(arr, _old, _new, chnaged) {
-            console.log(arr, _old, _new, chnaged, 'new states after drag end')
-          },
-          handleClick() {
-            console.log('click')
-          }
-        },
-        render(h) {
-          return h('div', {
-            attrs: {
-              class: 'horizontal-draggable-virtual-list',
-            }
-          }, 
-          [
-            h(VirtualDragList, {
-              ref: 'list',
-              props: {
-                dataSource: this.dataSource,
-                dataKey: 'id',
-                keeps: 20,
-                size: 110,
-                disabled: !this.editing,
-                draggable: '.drag',
-                direction: 'horizontal',
-                wrapStyle: { display: 'flex' },
-                rootStyle: { display: 'flex' }
-              },
-              on: {
-                top: this.handleTop,
-                bottom: this.handleBottom,
-                ondragend: this.ondragend
-              },
-              scopedSlots: {
-                item: props => {
-                  return h('div', {
-                    class: 'item horizontal',
-                  }, 
-                  [
-                    h('span', {
-                      class: 'drag',
-                      attrs: {
-                        title: 'drag to reorder'
-                      }
-                    }),
-                    this.editing ? h('div', {
-                      class: 'index',
-                      on: {
-                        click: this.handleClick
-                      }
-                    }, props.record.id) : null,
-                    h('span', {}, props.record.desc)
-                  ])
-                }
-              }
-            },[
-              h('div', { slot: 'header', class: 'loading' }, 'header'),
-              h('div', { slot: 'footer', class: 'loading' }, 'footer')
-            ])
-          ])
-        }
-      });
+    <script type="module">
+      import { VerticalList } from './docs/components/vertical.js';
+      import { DynamicList } from './docs/components/dynamic.js';
+      import { HorizontalList } from './docs/components/horizontal.js';
       new Vue({
         el: '#app',
+        components: {
+          VerticalList,
+          DynamicList,
+          HorizontalList,
+        },
         data() {
           return {
-            editing: true,
-            horizontalediting: true,
+            verticalDisable: false,
+            dynamicDisable: false,
+            horizontalDisable: false,
             dataSource: getPageData(400, 0),
           }
         },
         methods: {
-          reset() {
+          verticalReset() {
             this.$children[0].$refs.list.reset();
           },
-          toBottom() {
+          verticalToTop() {
+            this.$children[0].$refs.list.scrollToTop();
+          },
+          verticalToBottom() {
             this.$children[0].$refs.list.scrollToBottom();
           },
-          toIndex() {
+          verticalToIndex() {
             this.$children[0].$refs.list.scrollToIndex(200);
           },
-          toOffset() {
+          verticalToOffset() {
             this.$children[0].$refs.list.scrollToOffset(5000);
           },
-          horizontalreset() {
+
+          dynamicReset() {
             this.$children[1].$refs.list.reset();
           },
-          horizontaltoBottom() {
+          dynamictoTop() {
+            this.$children[1].$refs.list.scrollToTop();
+          },
+          dynamictoBottom() {
             this.$children[1].$refs.list.scrollToBottom();
           },
-          horizontaltoIndex() {
+          dynamictoIndex() {
             this.$children[1].$refs.list.scrollToIndex(200);
           },
-          horizontaltoOffset() {
+          dynamictoOffset() {
             this.$children[1].$refs.list.scrollToOffset(5000);
+          },
+
+          horizontalreset() {
+            this.$children[2].$refs.list.reset();
+          },
+          horizontaltoTop() {
+            this.$children[2].$refs.list.scrollToTop();
+          },
+          horizontaltoBottom() {
+            this.$children[2].$refs.list.scrollToBottom();
+          },
+          horizontaltoIndex() {
+            this.$children[2].$refs.list.scrollToIndex(200);
+          },
+          horizontaltoOffset() {
+            this.$children[2].$refs.list.scrollToOffset(5000);
           }
         }
       });
