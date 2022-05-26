@@ -22,7 +22,7 @@ export default [
       format: 'umd',
       file: 'dist/draglist.js',
       name: 'VirtualDragList',
-      sourcemap: false,
+      sourcemap: true,
       globals: {
         vue: 'Vue'
       },
@@ -41,7 +41,7 @@ export default [
       format: 'umd',
       file: 'dist/draglist.min.js',
       name: 'VirtualDragList',
-      sourcemap: false,
+      sourcemap: true,
       globals: {
         vue: 'Vue'
       },
