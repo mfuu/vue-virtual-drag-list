@@ -15,11 +15,6 @@ export const VirtualProps = {
     type: String,
     default: 'vertical' // 纵向滚动(vertical)还是横向滚动(horizontal)
   },
-  // 虚拟列表高度
-  height: {
-    type: String,
-    default: '100%'
-  },
   // 列表展示多少条数据，为0或者不传会自动计算
   keeps: {
     type: Number,
@@ -37,13 +32,6 @@ export const VirtualProps = {
   rootTag: {
     type: String,
     default: 'div'
-  },
-  rootStyle: {
-    type: Object
-  },
-  rootClass: {
-    type: String,
-    default: ''
   },
   wrapTag: {
     type: String,

@@ -25,6 +25,7 @@ Root component:
       :data-key="'id'"
       :data-source="list"
       :draggable="'.drag'"
+      style="height: 500px"
       @top="handleToTop"
       @bottom="handleToBottom"
       @ondragend="ondragend"
@@ -110,8 +111,6 @@ Root component:
 | `itemTag`    | `String`   | `div`       | Label type for list item element |
 | `headerTag`  | `String`   | `div`       | Label type for header slot element |
 | `footerTag`  | `String`   | `div`       | Label type for footer slot element |
-| `rootClass`  | `String`   | `''`        | Root element class |
-| `rootStyle`  | `Object`   | `{}`        | Root element style |
 | `wrapClass`  | `String`   | `''`        | List wrapper element class |
 | `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
 | `itemClass`  | `String`   | `''`        | List item element class |

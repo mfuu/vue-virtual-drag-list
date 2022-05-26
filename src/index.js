@@ -176,7 +176,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     _initSortable() {
       this.sortable = new Sortable(
         {
-          scrollEl: this.$refs.wrapper,
+          scrollEl: this.$refs.group,
           getDataKey: this._getDataKey,
           list: this.list,
 
@@ -277,17 +277,16 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   // --------------------------- render ------------------------------
   render (h) {
     const { header, footer } = this.$slots
-    const { height, isHorizontal, rootClass, headerTag, footerTag, itemTag, rootTag, wrapTag, itemStyle, itemClass, wrapClass } = this
     const { start, end, front, behind } = this.range
-    
-    const rootStyle = { ...this.rootStyle, height, overflow: isHorizontal ? 'auto hidden' : 'hidden auto' }
+    const { isHorizontal, headerTag, footerTag, itemTag, rootTag, wrapTag, itemStyle, itemClass, wrapClass } = this
     const wrapStyle = { ...this.wrapStyle, padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`}
 
     return h(rootTag, {
       ref: 'root',
-      class: rootClass,
-      style: rootStyle,
-      on: { '&scroll': debounce(this._handleScroll, this.delay) }
+      style: { overflow: isHorizontal ? 'auto hidden' : 'hidden auto' },
+      on: {
+        '&scroll': debounce(this._handleScroll, this.delay)
+      }
     }, [
       // 顶部插槽 
       header ? h(Slots, {
@@ -300,14 +299,14 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       
       // 中间内容区域和列表项
       h(wrapTag, {
-        ref: 'wrapper',
-        attrs: { role: 'wrapper' },
+        ref: 'group',
+        attrs: { role: 'group' },
         class: wrapClass,
         style: wrapStyle,
       }, this.list.slice(start, end + 1).map(record => {
         const index = this._getItemIndex(record)
         const dataKey = this._getDataKey(record)
-        const props = { isHorizontal, dataKey: dataKey, tag: itemTag, event: '_onItemResized', }
+        const props = { isHorizontal, dataKey, tag: itemTag, event: '_onItemResized', }
 
         return this.$scopedSlots.item ? 
           h(Items, {
