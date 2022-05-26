@@ -39,15 +39,14 @@ export const HorizontalList = Vue.component('horizontal-list', {
           disabled: this.disabled,
           draggable: '.drag',
           direction: 'horizontal',
-          wrapStyle: { display: 'flex' },
-          rootStyle: { display: 'flex' }
+          wrapStyle: { display: 'flex' }
         },
         on: {
           top: this.handleTop,
           bottom: this.handleBottom,
           ondragend: this.ondragend
         },
-        style: { height: '100%' },
+        style: { height: '100%', display: 'flex' },
         scopedSlots: {
           item: props => {
             return h('div', {
