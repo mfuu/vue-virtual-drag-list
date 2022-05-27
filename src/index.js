@@ -147,6 +147,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.list = [...list]
       this._updateUniqueKeys()
       this._initVirtual()
+      // sortable init
+      if (this.sortable) this.sortable.list = [...list]
     },
 
     // virtual
@@ -174,6 +176,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     // sortable
     _initSortable() {
+      this._destroySortable()
       this.sortable = new Sortable(
         {
           scrollEl: this.$refs.group,
