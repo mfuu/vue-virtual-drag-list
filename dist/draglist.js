@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.8
+ * vue-virtual-drag-list v2.6.9
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -1414,7 +1414,10 @@
 
         this._updateUniqueKeys();
 
-        this._initVirtual();
+        this._initVirtual(); // sortable init
+
+
+        if (this.sortable) this.sortable.list = _toConsumableArray(list);
       },
       // virtual
       _initVirtual: function _initVirtual() {
@@ -1443,6 +1446,8 @@
       // sortable
       _initSortable: function _initSortable() {
         var _this6 = this;
+
+        this._destroySortable();
 
         this.sortable = new Sortable({
           scrollEl: this.$refs.group,
