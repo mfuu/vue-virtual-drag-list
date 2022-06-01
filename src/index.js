@@ -51,8 +51,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
     disabled: {
       handler(val) {
-        if (!val) this.$nextTick(() => this._initSortable())
-        else this._destroySortable()
+        if (this.sortable) this.sortable.set('disabled', val)
       },
       immediate: true
     }
@@ -148,7 +147,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this._updateUniqueKeys()
       this._initVirtual()
       // sortable init
-      if (this.sortable) this.sortable.list = [...list]
+      if (!this.sortable) {
+        this.$nextTick(() => this._initSortable())
+      } else this.sortable.list = [...list]
     },
 
     // virtual
@@ -176,7 +177,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     // sortable
     _initSortable() {
-      this._destroySortable()
       this.sortable = new Sortable(
         {
           scrollEl: this.$refs.group,
@@ -190,6 +190,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           ghostStyle: this.ghostStyle,
           chosenClass: this.chosenClass,
           animation: this.animation,
+          autoScroll: this.autoScroll,
+          scrollStep: this.scrollStep,
+          scrollThreshold: this.scrollThreshold
         },
         (from) => {
           // on drag

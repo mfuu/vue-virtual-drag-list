@@ -20,6 +20,11 @@ function Sortable(options, onDrag, onDrop) {
 Sortable.prototype = {
   constructor: Sortable,
 
+  set(key, value) {
+    this.options[key] = value
+    this.drag.set(key, value)
+  },
+
   init() {
     const {
       disabled,
@@ -28,7 +33,10 @@ Sortable.prototype = {
       ghostClass,
       ghostStyle,
       chosenClass,
-      animation
+      animation,
+      autoScroll,
+      scrollStep,
+      scrollThreshold
     } = this.options
 
     let cloneList = new Array()
@@ -42,6 +50,9 @@ Sortable.prototype = {
         ghostStyle,
         chosenClass,
         animation,
+        autoScroll,
+        scrollStep,
+        scrollThreshold,
         
         onDrag: (dragEl) => {
           this.dragElement = dragEl

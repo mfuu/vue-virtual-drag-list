@@ -92,6 +92,18 @@ export const VirtualProps = {
   animation: {
     type: Number,
     default: 150
+  },
+  autoScroll: {
+    type: Boolean,
+    default: true
+  },
+  scrollStep: {
+    type: Number,
+    default: 5
+  },
+  scrollThreshold: {
+    type: Number,
+    default: 15
   }
 }
 
