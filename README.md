@@ -7,9 +7,9 @@
   </a>
 </p>
 
-A virtual scrolling list component that can be sorted by dragging, [demo](https://mfuu.github.io/vue-virtual-drag-list/)
+A virtual scrolling list component that can be sorted by dragging
 
-
+### [demo](https://mfuu.github.io/vue-virtual-drag-list/)
 
 ## Simple usage
 
@@ -71,7 +71,7 @@ Root component:
 ```
 ## Emits
 
-| **emit** | **Description** |
+| **Emit** | **Description** |
 |-------------|--------------|
 | `top`       | event fired when scroll to top |
 | `bottom`    | event fired when scroll to bottom |
@@ -90,21 +90,24 @@ Root component:
 
 **Commonly used**
 
-| **Prop**   | **Type**  | **Default** | **Description** |
-| --------   | --------  | ----------- | --------------- |
-| `keeps`    | `Number`  | `30`        | The number of lines rendered by the virtual scroll |
-| `size`     | `Number`  | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
-| `direction`| `String`  | `vertical`  | `vertical/horizontal`, scroll direction |
-| `disabled` | `Boolean` | `false`     | Disables the sortable if set to true |
-| `draggable`| `Function/String` | `undefined`    | Specifies which items inside the element should be draggable, the function type must return a boolean |
-| `dragging` | `Function`| `undefined` | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
+|   **Prop**   |  **Type**  | **Default** | **Description** |
+| ------------ | ---------  | ----------- | --------------- |
+| `keeps`      | `Number`   | `30`        | The number of lines rendered by the virtual scroll |
+| `size`       | `Number`   | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
+| `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
+| `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable, the function type must return a boolean |
+| `animation`  | `Number`   | `150`       | Animation time |
+| `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
+| `scrollStep` | `Number`   | `5`         | The distance to scroll each frame when autoscrolling |
+| `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
 
 
 **Uncommonly used**
 
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
-| `animation`  | `Number`   | `150`       | Animation time |
+| `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
+| `dragging`   | `Function` | `-`         | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
 | `delay`      | `Number`   | `10`        | Delay time of debounce function |
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
