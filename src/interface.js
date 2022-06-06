@@ -1,30 +1,25 @@
 export const VirtualProps = {
-  // 列表数据
   dataSource: {
     type: Array,
     default: () => {
       return []
     }
   },
-  // 每一项的key值键值
   dataKey: {
     type: String,
     required: true
   },
   direction: {
     type: String,
-    default: 'vertical' // 纵向滚动(vertical)还是横向滚动(horizontal)
+    default: 'vertical'
   },
-  // 列表展示多少条数据，为0或者不传会自动计算
   keeps: {
     type: Number,
     default: 30
   },
-  // 每一行预估高度
   size: {
     type: Number
   },
-  // 防抖延迟时间
   delay: {
     type: Number,
     default: 0
@@ -63,7 +58,6 @@ export const VirtualProps = {
     type: String,
     default: ''
   },
-  // 禁用拖拽？
   disabled: {
     type: Boolean,
     default: false
@@ -78,7 +72,6 @@ export const VirtualProps = {
     type: String,
     default: ''
   },
-  // 拖拽时的样式
   ghostStyle: {
     type: Object,
     default: () => {
@@ -120,5 +113,34 @@ export const SlotsProps = {
   },
   isHorizontal: {
     type: Boolean
+  }
+}
+
+// scroll range
+export class Range {
+  constructor() {
+    this.start = 0
+    this.end = 0
+    this.front = 0
+    this.behind = 0
+  } 
+}
+
+// drag state
+export class DragState {
+  constructor() {
+    this.from = { key: null, item: null, index: -1 }
+    this.to = { key: null, item: null, index: -1 }
+  }
+}
+
+// virtual state
+export class CalcSize {
+  constructor() {
+    this.average = undefined // 计算首次加载每一项的评价高度
+    this.total = undefined // 首次加载的总高度
+    this.fixed = undefined // 记录固定高度值
+    this.header = undefined // 顶部插槽高度
+    this.footer = undefined // 底部插槽高度
   }
 }

@@ -1,5 +1,5 @@
 import SortableDnd from 'sortable-dnd'
-import { DragState } from './states'
+import { DragState } from './interface'
 
 function Sortable(options, onDrag, onDrop) {
   this.options = options

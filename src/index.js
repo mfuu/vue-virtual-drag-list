@@ -1,17 +1,16 @@
 import Vue from 'vue'
-import Virtual from './plugins/virtual'
-import Sortable from './plugins/sortable'
-import { Range, DragState } from './plugins/states'
-import { VirtualProps } from './props'
-import { Slots, Items } from './slots'
+import Virtual from './virtual'
+import Sortable from './sortable'
+import { Range, DragState, VirtualProps } from './interface'
+import { Slots, Items } from './children'
 import { debounce } from './utils'
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
   props: VirtualProps,
   data() {
     return {
-      list: [], // 将dataSource克隆一份
-      uniqueKeys: [], // 通过dataKey获取所有数据的唯一键值
+      list: [],
+      uniqueKeys: [],
       virtual: null,
       sortable: null,
 
@@ -98,7 +97,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         const bottom = bottomItem[this.offsetSizeKey]
         this.scrollToOffset(bottom)
 
-        // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+        // The first scroll height may change, if the bottom is not reached, execute the scroll method again
         setTimeout(() => {
           const offset = this.getOffset()
           const clientSize = Math.ceil(root[this.clientSizeKey])
@@ -152,7 +151,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       } else this.sortable.list = [...list]
     },
 
-    // virtual
+    // virtual init
     _initVirtual() {
       this.virtual = null
       this.virtual = new Virtual(
@@ -175,7 +174,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.virtual.updateRange()
     },
 
-    // sortable
+    // sortable init
     _initSortable() {
       this.sortable = new Sortable(
         {
@@ -220,14 +219,14 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     // --------------------------- handle scroll ------------------------------
     _handleScroll() {
-      // mouseup 事件时会触发scroll事件，这里处理为了防止range改变导致页面滚动
+      // The scroll event is triggered when the mouseup event occurs, which is handled here to prevent the page from scrolling due to range changes.
       if (this.dragState.to.key) return
 
       const { root } = this.$refs
       const offset = this.getOffset()
       const clientSize = Math.ceil(root[this.clientSizeKey])
       const scrollSize = Math.ceil(root[this.scrollSizeKey])
-      // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+
       if (!scrollSize || offset < 0 || (offset + clientSize > scrollSize + 1)) return
 
       this.virtual.handleScroll(offset)
@@ -294,7 +293,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         '&scroll': debounce(this._handleScroll, this.delay)
       }
     }, [
-      // 顶部插槽 
+      // header-slot
       header ? h(Slots, {
         props: {
           tag: headerTag,
@@ -303,7 +302,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         }
       }, header) : null,
       
-      // 中间内容区域和列表项
+      // list content
       h(wrapTag, {
         ref: 'group',
         attrs: { role: 'group' },
@@ -331,7 +330,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         })
       ),
 
-      // 底部插槽 
+      // footer-slot
       footer ? h(Slots, {
         props: {
           tag: footerTag,
@@ -340,7 +339,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         }
       }, footer) : null,
 
-      // 最底部元素
+      // last element
       h('div', {
         ref: 'bottomItem',
         style: {

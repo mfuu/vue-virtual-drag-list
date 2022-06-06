@@ -1,4 +1,4 @@
-import { Range, CalcSize } from "./states"
+import { Range, CalcSize } from "./interface"
 
 const CACLTYPE = {
   INIT: 'INIT',
