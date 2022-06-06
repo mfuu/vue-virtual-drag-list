@@ -97,7 +97,7 @@ Root component:
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
 | `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable, the function type must return a boolean |
 | `animation`  | `Number`   | `150`       | Animation time |
-| `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
+| `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container, **for browsers that do not support HTML5 drag events** |
 | `scrollStep` | `Number`   | `5`         | The distance to scroll each frame when autoscrolling |
 | `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
 
