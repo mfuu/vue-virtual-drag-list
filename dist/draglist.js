@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.10
+ * vue-virtual-drag-list v2.6.11
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -113,7 +113,123 @@
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  // scroll range
+  var VirtualProps = {
+    dataSource: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
+    },
+    dataKey: {
+      type: String,
+      required: true
+    },
+    direction: {
+      type: String,
+      "default": 'vertical'
+    },
+    keeps: {
+      type: Number,
+      "default": 30
+    },
+    size: {
+      type: Number
+    },
+    delay: {
+      type: Number,
+      "default": 0
+    },
+    rootTag: {
+      type: String,
+      "default": 'div'
+    },
+    wrapTag: {
+      type: String,
+      "default": 'div'
+    },
+    wrapClass: {
+      type: String,
+      "default": ''
+    },
+    wrapStyle: {
+      type: Object
+    },
+    headerTag: {
+      type: String,
+      "default": 'div'
+    },
+    footerTag: {
+      type: String,
+      "default": 'div'
+    },
+    itemTag: {
+      type: String,
+      "default": 'div'
+    },
+    itemStyle: {
+      type: Object
+    },
+    itemClass: {
+      type: String,
+      "default": ''
+    },
+    disabled: {
+      type: Boolean,
+      "default": false
+    },
+    draggable: {
+      type: [Function, String]
+    },
+    dragging: {
+      type: Function
+    },
+    ghostClass: {
+      type: String,
+      "default": ''
+    },
+    ghostStyle: {
+      type: Object,
+      "default": function _default() {
+        return {};
+      }
+    },
+    chosenClass: {
+      type: String,
+      "default": ''
+    },
+    animation: {
+      type: Number,
+      "default": 150
+    },
+    autoScroll: {
+      type: Boolean,
+      "default": true
+    },
+    scrollStep: {
+      type: Number,
+      "default": 5
+    },
+    scrollThreshold: {
+      type: Number,
+      "default": 15
+    }
+  };
+  var SlotsProps = {
+    tag: {
+      type: String,
+      "default": 'div'
+    },
+    event: {
+      type: String
+    },
+    dataKey: {
+      type: [String, Number]
+    },
+    isHorizontal: {
+      type: Boolean
+    }
+  }; // scroll range
+
   var Range = /*#__PURE__*/_createClass(function Range() {
     _classCallCheck(this, Range);
 
@@ -1706,131 +1822,6 @@
     }
   };
 
-  var VirtualProps = {
-    // 列表数据
-    dataSource: {
-      type: Array,
-      "default": function _default() {
-        return [];
-      }
-    },
-    // 每一项的key值键值
-    dataKey: {
-      type: String,
-      required: true
-    },
-    direction: {
-      type: String,
-      "default": 'vertical' // 纵向滚动(vertical)还是横向滚动(horizontal)
-
-    },
-    // 列表展示多少条数据，为0或者不传会自动计算
-    keeps: {
-      type: Number,
-      "default": 30
-    },
-    // 每一行预估高度
-    size: {
-      type: Number
-    },
-    // 防抖延迟时间
-    delay: {
-      type: Number,
-      "default": 0
-    },
-    rootTag: {
-      type: String,
-      "default": 'div'
-    },
-    wrapTag: {
-      type: String,
-      "default": 'div'
-    },
-    wrapClass: {
-      type: String,
-      "default": ''
-    },
-    wrapStyle: {
-      type: Object
-    },
-    headerTag: {
-      type: String,
-      "default": 'div'
-    },
-    footerTag: {
-      type: String,
-      "default": 'div'
-    },
-    itemTag: {
-      type: String,
-      "default": 'div'
-    },
-    itemStyle: {
-      type: Object
-    },
-    itemClass: {
-      type: String,
-      "default": ''
-    },
-    // 禁用拖拽？
-    disabled: {
-      type: Boolean,
-      "default": false
-    },
-    draggable: {
-      type: [Function, String]
-    },
-    dragging: {
-      type: Function
-    },
-    ghostClass: {
-      type: String,
-      "default": ''
-    },
-    // 拖拽时的样式
-    ghostStyle: {
-      type: Object,
-      "default": function _default() {
-        return {};
-      }
-    },
-    chosenClass: {
-      type: String,
-      "default": ''
-    },
-    animation: {
-      type: Number,
-      "default": 150
-    },
-    autoScroll: {
-      type: Boolean,
-      "default": true
-    },
-    scrollStep: {
-      type: Number,
-      "default": 5
-    },
-    scrollThreshold: {
-      type: Number,
-      "default": 15
-    }
-  };
-  var SlotsProps = {
-    tag: {
-      type: String,
-      "default": 'div'
-    },
-    event: {
-      type: String
-    },
-    dataKey: {
-      type: [String, Number]
-    },
-    isHorizontal: {
-      type: Boolean
-    }
-  };
-
   var observer = {
     inject: ['virtualList'],
     data: function data() {
@@ -1946,9 +1937,7 @@
     data: function data() {
       return {
         list: [],
-        // 将dataSource克隆一份
         uniqueKeys: [],
-        // 通过dataKey获取所有数据的唯一键值
         virtual: null,
         sortable: null,
         range: new Range(),
@@ -2042,7 +2031,7 @@
 
         if (bottomItem) {
           var bottom = bottomItem[this.offsetSizeKey];
-          this.scrollToOffset(bottom); // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+          this.scrollToOffset(bottom); // The first scroll height may change, if the bottom is not reached, execute the scroll method again
 
           setTimeout(function () {
             var offset = _this2.getOffset();
@@ -2108,7 +2097,7 @@
           });
         } else this.sortable.list = _toConsumableArray(list);
       },
-      // virtual
+      // virtual init
       _initVirtual: function _initVirtual() {
         var _this5 = this;
 
@@ -2132,7 +2121,7 @@
         this.virtual.updateSizes(this.uniqueKeys);
         this.virtual.updateRange();
       },
-      // sortable
+      // sortable init
       _initSortable: function _initSortable() {
         var _this6 = this;
 
@@ -2179,13 +2168,12 @@
       },
       // --------------------------- handle scroll ------------------------------
       _handleScroll: function _handleScroll() {
-        // mouseup 事件时会触发scroll事件，这里处理为了防止range改变导致页面滚动
+        // The scroll event is triggered when the mouseup event occurs, which is handled here to prevent the page from scrolling due to range changes.
         if (this.dragState.to.key) return;
         var root = this.$refs.root;
         var offset = this.getOffset();
         var clientSize = Math.ceil(root[this.clientSizeKey]);
-        var scrollSize = Math.ceil(root[this.scrollSizeKey]); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
-
+        var scrollSize = Math.ceil(root[this.scrollSizeKey]);
         if (!scrollSize || offset < 0 || offset + clientSize > scrollSize + 1) return;
         this.virtual.handleScroll(offset);
 
@@ -2274,14 +2262,14 @@
         on: {
           '&scroll': debounce(this._handleScroll, this.delay)
         }
-      }, [// 顶部插槽 
+      }, [// header-slot
       header ? h(Slots, {
         props: {
           tag: headerTag,
           dataKey: 'header',
           event: '_onHeaderResized'
         }
-      }, header) : null, // 中间内容区域和列表项
+      }, header) : null, // list content
       h(wrapTag, {
         ref: 'group',
         attrs: {
@@ -2319,14 +2307,14 @@
           }),
           "class": itemClass
         }, dataKey);
-      })), // 底部插槽 
+      })), // footer-slot
       footer ? h(Slots, {
         props: {
           tag: footerTag,
           dataKey: 'footer',
           event: '_onFooterResized'
         }
-      }, footer) : null, // 最底部元素
+      }, footer) : null, // last element
       h('div', {
         ref: 'bottomItem',
         style: {
