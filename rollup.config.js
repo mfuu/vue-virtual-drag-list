@@ -14,11 +14,11 @@ const banner = `
  */
 `
 
-export default [
-  {
-    external: ['vue'],
-    input: 'src/index.js',
-    output: {
+export default {
+  external: ['vue'],
+  input: 'src/index.js',
+  output: [
+    {
       format: 'umd',
       file: 'dist/draglist.js',
       name: 'VirtualDragList',
@@ -28,16 +28,7 @@ export default [
       },
       banner: banner.replace(/\n/, '')
     },
-    plugins: [
-      babel(),
-      resolve(),
-      commonJs()
-    ]
-  },
-  {
-    external: ['vue'],
-    input: 'src/index.js',
-    output: {
+    {
       format: 'umd',
       file: 'dist/draglist.min.js',
       name: 'VirtualDragList',
@@ -45,13 +36,14 @@ export default [
       globals: {
         vue: 'Vue'
       },
-      banner: banner.replace(/\n/, '')
-    },
-    plugins: [
-      babel(),
-      uglify(),
-      resolve(),
-      commonJs()
-    ]
-  }
-]
+      banner: banner.replace(/\n/, ''),
+      plugins: [uglify()]
+    }
+  ],
+  plugins: [
+    babel(),
+    resolve(),
+    commonJs()
+  ]
+}
+
