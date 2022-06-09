@@ -35,7 +35,7 @@ export const DynamicList = Vue.component('dynamic-list', {
           dataSource: this.dataSource,
           dataKey: 'index',
           keeps: 20,
-          size: 60,
+          size: 90,
           disabled: this.disabled,
           draggable: '.drag',
         },

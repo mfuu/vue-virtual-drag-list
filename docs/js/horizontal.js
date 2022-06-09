@@ -35,7 +35,7 @@ export const HorizontalList = Vue.component('horizontal-list', {
           dataSource: this.dataSource,
           dataKey: 'id',
           keeps: 20,
-          size: 110,
+          size: 155,
           disabled: this.disabled,
           draggable: '.drag',
           direction: 'horizontal',
