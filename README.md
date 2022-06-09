@@ -62,8 +62,11 @@ Root component:
       handleToBottom() {
         ...
       },
+      ondragstart(list, from, node) {
+        ...
+      },
       ondragend(list, from, to, changed) {
-        console.log(list, from, to, changed)
+        ...
       }
     }
   }
@@ -71,13 +74,14 @@ Root component:
 ```
 ## Emits
 
-| **Emit** | **Description** |
-|-------------|--------------|
-| `top`       | event fired when scroll to top |
-| `bottom`    | event fired when scroll to bottom |
-| `ondragend` | event fired when the drag is complete |
+|   **Emit**   | **Description** |
+|--------------|-----------------|
+| `top`        | Event fired when scroll to top |
+| `bottom`     | Event fired when scroll to bottom |
+| `ondragstart`| Event fired when the drag is started |
+| `ondragend`  | Event fired when the drag is complete |
 
-## Props type
+## Props
 
 ### Required props
 
@@ -96,7 +100,8 @@ Root component:
 | `size`       | `Number`   | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
 | `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable, the function type must return a boolean |
-| `animation`  | `Number`   | `150`       | Animation time |
+| `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
+| `keepOffset` | `Boolean`  | `false`     | When scrolling up to load data, keep the same offset as the previous scroll |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container, **for browsers that do not support HTML5 drag events** |
 | `scrollStep` | `Number`   | `5`         | The distance to scroll each frame when autoscrolling |
 | `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
@@ -122,7 +127,7 @@ Root component:
 | `ghostStyle` | `Object`   | `{}`        | The style of the mask element when dragging |
 | `chosenClass`| `String`   | `''`        | The class of the selected element when dragging |
 
-### Public methods
+## Methods
 
 Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements">ref</a></code> to get the method inside the component
 
@@ -136,3 +141,8 @@ Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessi
 | `scrollToBottom()` | Scroll to bottom of list |
 | `scrollToIndex(index)`  | Scroll to the specified index position |
 | `scrollToOffset(offset)` | Scroll to the specified offset |
+
+
+## License
+
+[MIT License.](https://github.com/mfuu/vue-virtual-drag-list/blob/main/LICENSE)
