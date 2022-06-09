@@ -97,7 +97,7 @@ Root component:
 |   **Prop**   |  **Type**  | **Default** | **Description** |
 | ------------ | ---------  | ----------- | --------------- |
 | `keeps`      | `Number`   | `30`        | The number of lines rendered by the virtual scroll |
-| `size`       | `Number`   | `50`        | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
+| `size`       | `Number`   | `-`         | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
 | `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable, the function type must return a boolean |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
