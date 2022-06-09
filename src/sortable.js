@@ -21,10 +21,10 @@ Sortable.prototype = {
   constructor: Sortable,
 
   set(key, value) {
-    // When the list data changes when dragging, need to execute onDrag function
     if (key === 'list') {
       this.list = value
-      this.dragStart(this.dragElement)
+      // When the list data changes when dragging, need to execute onDrag function
+      if (this.dragElement) this.dragStart(this.dragElement)
     } else {
       this.options[key] = value
       this.drag.set(key, value)
