@@ -18,7 +18,7 @@
 
       <h1>Vertical</h1>
       <div class="content">
-        <vertical-list :disabled="verticalDisable" :data-source="dataSource"></vertical-list>
+        <vertical-list ref="vertical" :disabled="verticalDisable" :data-source="dataSource"></vertical-list>
         <div class="btns">
           <button @click="verticalReset">reset</button>
           <button @click="verticalDisable = !verticalDisable">disable drag: {{ verticalDisable }}</button>
@@ -31,7 +31,7 @@
 
       <h1>DYNAMIC</h1>
       <div class="content">
-        <dynamic-list :disabled="dynamicDisable" :data-source="dataSource"></dynamic-list>
+        <dynamic-list ref="dynamic" :disabled="dynamicDisable" :data-source="dataSource"></dynamic-list>
         <div class="btns">
           <button @click="dynamicReset">reset</button>
           <button @click="dynamicDisable = !dynamicDisable">disable drag: {{ dynamicDisable }}</button>
@@ -52,7 +52,7 @@
           <button @click="horizontaltoIndex">toIndex200</button>
           <button @click="horizontaltoOffset">toOffset5000</button>
         </div>
-        <horizontal-list :disabled="horizontalDisable" :data-source="dataSource"></horizontal-list>
+        <horizontal-list ref="horizontal" :disabled="horizontalDisable" :data-source="dataSource"></horizontal-list>
       </div>
       
     </div>
@@ -80,51 +80,51 @@
         },
         methods: {
           verticalReset() {
-            this.$children[0].$refs.list.reset();
+            this.$refs.vertical.$refs.list.reset();
           },
           verticalToTop() {
-            this.$children[0].$refs.list.scrollToTop();
+            this.$refs.vertical.$refs.list.scrollToTop();
           },
           verticalToBottom() {
-            this.$children[0].$refs.list.scrollToBottom();
+            this.$refs.vertical.$refs.list.scrollToBottom();
           },
           verticalToIndex() {
-            this.$children[0].$refs.list.scrollToIndex(200);
+            this.$refs.vertical.$refs.list.scrollToIndex(200);
           },
           verticalToOffset() {
-            this.$children[0].$refs.list.scrollToOffset(5000);
+            this.$refs.vertical.$refs.list.scrollToOffset(5000);
           },
 
           dynamicReset() {
-            this.$children[1].$refs.list.reset();
+            this.$refs.dynamic.$refs.list.reset();
           },
           dynamictoTop() {
-            this.$children[1].$refs.list.scrollToTop();
+            this.$refs.dynamic.$refs.list.scrollToTop();
           },
           dynamictoBottom() {
-            this.$children[1].$refs.list.scrollToBottom();
+            this.$refs.dynamic.$refs.list.scrollToBottom();
           },
           dynamictoIndex() {
-            this.$children[1].$refs.list.scrollToIndex(200);
+            this.$refs.dynamic.$refs.list.scrollToIndex(200);
           },
           dynamictoOffset() {
-            this.$children[1].$refs.list.scrollToOffset(5000);
+            this.$refs.dynamic.$refs.list.scrollToOffset(5000);
           },
 
           horizontalreset() {
-            this.$children[2].$refs.list.reset();
+            this.$refs.horizontal.$refs.list.reset();
           },
           horizontaltoTop() {
-            this.$children[2].$refs.list.scrollToTop();
+            this.$refs.horizontal.$refs.list.scrollToTop();
           },
           horizontaltoBottom() {
-            this.$children[2].$refs.list.scrollToBottom();
+            this.$refs.horizontal.$refs.list.scrollToBottom();
           },
           horizontaltoIndex() {
-            this.$children[2].$refs.list.scrollToIndex(200);
+            this.$refs.horizontal.$refs.list.scrollToIndex(200);
           },
           horizontaltoOffset() {
-            this.$children[2].$refs.list.scrollToOffset(5000);
+            this.$refs.horizontal.$refs.list.scrollToOffset(5000);
           }
         }
       });
