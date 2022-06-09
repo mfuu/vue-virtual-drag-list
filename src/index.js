@@ -181,7 +181,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           isHorizontal: this.isHorizontal
         },
         (range) => {
-          this.range = range
+          if (this.dragState.to.key !== undefined) this.range = range
           const { start, end } = this.range
           const { index } = this.dragState.from
           if (index > -1 && !(index >= start && index <= end)) {
