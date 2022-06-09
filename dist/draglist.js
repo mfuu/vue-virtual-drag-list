@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.11
+ * vue-virtual-drag-list v2.6.12
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -137,7 +137,7 @@
     },
     delay: {
       type: Number,
-      "default": 0
+      "default": 10
     },
     rootTag: {
       type: String,
@@ -212,6 +212,10 @@
     scrollThreshold: {
       type: Number,
       "default": 15
+    },
+    keepOffset: {
+      type: Boolean,
+      "default": false
     }
   };
   var SlotsProps = {
@@ -243,13 +247,13 @@
     _classCallCheck(this, DragState);
 
     this.from = {
-      key: null,
-      item: null,
+      key: undefined,
+      item: undefined,
       index: -1
     };
     this.to = {
-      key: null,
-      item: null,
+      key: undefined,
+      item: undefined,
       index: -1
     };
   }); // virtual state
@@ -313,8 +317,24 @@
       });
     },
     updateRange: function updateRange() {
+      var _this2 = this;
+
+      // check if need to update until loaded enough list item
       var start = Math.max(this.range.start, 0);
-      this.handleUpdate(start, this.getEndByStart(start));
+
+      if (this.sizes.size >= this.options.keeps - 1) {
+        this.handleUpdate(start, this.getEndByStart(start));
+      } else {
+        if (window.requestAnimationFrame) {
+          window.requestAnimationFrame(function () {
+            return _this2.updateRange();
+          });
+        } else {
+          setTimeout(function () {
+            return _this2.updateRange();
+          }, 3);
+        }
+      }
     },
     // --------------------------- scroll ------------------------------
     // 滚动事件
@@ -427,7 +447,7 @@
     getLastIndex: function getLastIndex() {
       return this.options.uniqueKeys.length - 1;
     },
-    // --------------------------- size ------------------------------
+    // --------------------------- size change ------------------------------
     // 获取列表项的高度
     getItemSize: function getItemSize() {
       return this.calcType === CACLTYPE.FIXED ? this.calcSize.fixed : this.calcSize.average || this.options.size;
@@ -472,7 +492,7 @@
 
   var sortable = createCommonjsModule(function (module, exports) {
   /*!
-   * sortable-dnd v0.2.6
+   * sortable-dnd v0.2.7
    * open source under the MIT license
    * https://github.com/mfuu/sortable-dnd#readme
    */
@@ -597,6 +617,22 @@
       });else CSSTRANSFORMS.forEach(function (tf) {
         return css(el, tf, '');
       });
+    }
+    /**
+     * get touch event and current event
+     * @param {Event} evt 
+     */
+
+
+    function getEvent(evt) {
+      var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
+      var e = touch || evt;
+      var target = touch ? document.elementFromPoint(e.clientX, e.clientY) : e.target;
+      return {
+        touch: touch,
+        e: e,
+        target: target
+      };
     }
     /**
      * detect passive event support
@@ -1219,7 +1255,7 @@
 
     function DNDEvent() {
       return {
-        _bindDragEventListener: function _bindDragEventListener() {
+        _bindEventListener: function _bindEventListener() {
           this._onDrag = this._onDrag.bind(this);
           this._onMove = this._onMove.bind(this);
           this._onDrop = this._onDrop.bind(this);
@@ -1235,7 +1271,7 @@
             on(this.rootEl, 'mousedown', this._onDrag);
           }
         },
-        _unbindDragEventListener: function _unbindDragEventListener() {
+        _clearEvent: function _clearEvent() {
           off(this.rootEl, 'pointerdown', this._onDrag);
           off(this.rootEl, 'touchstart', this._onDrag);
           off(this.rootEl, 'mousedown', this._onDrag);
@@ -1357,9 +1393,9 @@
       this.dragStartTimer = null; // setTimeout timer
 
       this.autoScrollTimer = null;
-      Object.assign(this, Animation(), AutoScroll(), DNDEvent());
+      Object.assign(this, DNDEvent(), Animation(), AutoScroll());
 
-      this._bindDragEventListener();
+      this._bindEventListener();
     }
 
     Sortable.prototype = {
@@ -1371,7 +1407,7 @@
       destroy: function destroy() {
         this._clearState();
 
-        this._unbindDragEventListener(); // Remove draggable attributes
+        this._clearEvent(); // Remove draggable attributes
 
 
         Array.prototype.forEach.call(this.rootEl.querySelectorAll('[draggable]'), function (el) {
@@ -1400,11 +1436,14 @@
 
         if (/mousedown|pointerdown/.test(evt.type) && evt.button !== 0 || this.options.disabled) return; // only left button and enabled
 
-        var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
-        var e = touch || evt; // Safari ignores further event handling after mousedown
+        var _getEvent = getEvent(evt),
+            touch = _getEvent.touch,
+            e = _getEvent.e,
+            target = _getEvent.target; // Safari ignores further event handling after mousedown
 
-        if (!this.nativeDraggable && Safari && e.target && e.target.tagName.toUpperCase() === 'SELECT') return;
-        if (e.target === this.rootEl) return true;
+
+        if (!this.nativeDraggable && Safari && target && target.tagName.toUpperCase() === 'SELECT') return;
+        if (target === this.rootEl) return true;
         if (this.options.stopPropagation) evt.stopPropagation();
         var _this$options = this.options,
             draggable = _this$options.draggable,
@@ -1413,7 +1452,7 @@
         if (typeof draggable === 'function') {
           if (!draggable(e)) return true;
         } else if (typeof draggable === 'string') {
-          if (!matches(e.target, draggable)) return true;
+          if (!matches(target, draggable)) return true;
         } else if (draggable !== undefined) {
           throw new Error("draggable expected \"function\" or \"string\" but received \"".concat(_typeof(draggable), "\""));
         } // Get the dragged element               
@@ -1422,11 +1461,13 @@
         if (dragging) {
           if (typeof dragging === 'function') this.dragEl = dragging(e);else throw new Error("dragging expected \"function\" or \"string\" but received \"".concat(_typeof(dragging), "\""));
         } else {
-          this.dragEl = getElement(this.rootEl, e.target, true);
+          this.dragEl = getElement(this.rootEl, target, true);
         } // No dragging is allowed when there is no dragging element
 
 
-        if (!this.dragEl || this.dragEl.animated) return true; // get the position of the dragged element in the list
+        if (!this.dragEl || this.dragEl.animated) return true; // solve the problem that the mobile cannot be dragged
+
+        if (touch) this.dragEl.style['touch-action'] = 'none'; // get the position of the dragged element in the list
 
         var _getElement = getElement(this.rootEl, this.dragEl),
             rect = _getElement.rect,
@@ -1474,6 +1515,7 @@
           on(this.ownerDocument, 'pointercancel', this._onDrop);
           on(this.ownerDocument, 'touchcancel', this._onDrop);
         } else {
+          // allow HTML5 drag event
           this.dragEl.draggable = true;
           this._onDragStart = this._onDragStart.bind(this);
           this._onDragOver = this._onDragOver.bind(this);
@@ -1530,11 +1572,13 @@
         var _this3 = this;
 
         if (!this.state.sortableDown) return;
-        var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
-        var e = touch || evt;
+
+        var _getEvent2 = getEvent(evt),
+            e = _getEvent2.e,
+            target = _getEvent2.target;
+
         var clientX = e.clientX,
             clientY = e.clientY;
-        var target = touch ? document.elementFromPoint(clientX, clientY) : e.target;
         var distanceX = clientX - this.move.x;
         var distanceY = clientY - this.move.y;
 
@@ -1581,18 +1625,16 @@
         this.state.sortableMove = e; // sortable state move is active
 
         if (!this.ghost.$el) {
-          // Init in the move event to prevent conflict with the click event
+          // onDrag callback
+          var onDrag = this.options.onDrag;
+          if (onDrag && typeof onDrag === 'function') onDrag(this.dragEl, e, evt); // Init in the move event to prevent conflict with the click event
+
           var rect = this.differ.from.rect;
           var ghostEl = this.dragEl.cloneNode(true);
           this.ghost.init(ghostEl, rect, !this.nativeDraggable); // add class for drag element
 
-          toggleClass(this.dragEl, this.options.chosenClass, true); // solve the problem that the mobile cannot be dragged
-
-          this.dragEl.style['touch-action'] = 'none';
-          this.dragEl.style['will-change'] = 'transform'; // onDrag callback
-
-          var onDrag = this.options.onDrag;
-          if (onDrag && typeof onDrag === 'function') onDrag(this.dragEl, e, evt);
+          toggleClass(this.dragEl, this.options.chosenClass, true);
+          this.dragEl.style['will-change'] = 'transform';
           if (Safari) css(document.body, 'user-select', 'none');
           if (this.nativeDraggable) this._unbindDropEvents();
         }
@@ -1653,12 +1695,16 @@
         this.dragStartTimer && clearTimeout(this.dragStartTimer);
         var stopPropagation = this.options.stopPropagation;
         stopPropagation && evt.stopPropagation();
-        evt.preventDefault && evt.preventDefault(); // clear style and class
+        evt.preventDefault && evt.preventDefault();
+
+        var _getEvent3 = getEvent(evt),
+            touch = _getEvent3.touch; // clear style and class
+
 
         toggleClass(this.dragEl, this.options.chosenClass, false);
-        this.dragEl.style['touch-action'] = '';
+        if (this.nativeDraggable) this.dragEl.draggable = false;
+        if (touch) this.dragEl.style['touch-action'] = '';
         this.dragEl.style['will-change'] = '';
-        this.dragEl.draggable = false;
 
         if (this.state.sortableDown && this.state.sortableMove) {
           // re-acquire the offset and rect values of the dragged element as the value after the drag is completed
@@ -1674,17 +1720,16 @@
           if (onDrop && typeof onDrop === 'function') onDrop(changed, evt);
         }
 
-        this._clearState();
-
-        this.ghost.destroy(this.differ.to.rect);
         if (Safari) css(document.body, 'user-select', '');
+        this.ghost.destroy(this.differ.to.rect);
+        this.state = new State();
       },
       // -------------------------------- clear ----------------------------------
       _clearState: function _clearState() {
-        this.dragEl = null;
-        this.dropEl = null;
         this.state = new State();
         this.differ.destroy();
+        this.dragEl = null;
+        this.dropEl = null;
       }
     };
     Sortable.prototype.utils = {
@@ -1703,19 +1748,25 @@
     this.onDrag = onDrag;
     this.onDrop = onDrop;
     this.list = options.list;
-    this.getDataKey = options.getDataKey;
+    this.cloneList = new Array();
     this.drag = null;
     this.dragElement = null;
-    this.dragState = new DragState();
     this.rangeIsChanged = false;
+    this.dragState = new DragState();
     this.init();
   }
 
   Sortable.prototype = {
     constructor: Sortable,
     set: function set(key, value) {
-      this.options[key] = value;
-      this.drag.set(key, value);
+      if (key === 'list') {
+        this.list = value; // When the list data changes when dragging, need to execute onDrag function
+
+        if (this.dragElement) this.dragStart(this.dragElement);
+      } else {
+        this.options[key] = value;
+        this.drag.set(key, value);
+      }
     },
     init: function init() {
       var _this = this;
@@ -1730,8 +1781,8 @@
           animation = _this$options.animation,
           autoScroll = _this$options.autoScroll,
           scrollStep = _this$options.scrollStep,
-          scrollThreshold = _this$options.scrollThreshold;
-      var cloneList = new Array();
+          scrollThreshold = _this$options.scrollThreshold,
+          getDataKey = _this$options.getDataKey;
       this.drag = new sortable(this.options.scrollEl, {
         disabled: disabled,
         dragging: dragging,
@@ -1744,23 +1795,7 @@
         scrollStep: scrollStep,
         scrollThreshold: scrollThreshold,
         onDrag: function onDrag(dragEl) {
-          _this.dragElement = dragEl;
-          cloneList = _toConsumableArray(_this.list);
-          var key = dragEl.getAttribute('data-key');
-
-          var index = _this.list.findIndex(function (el) {
-            return _this.getDataKey(el) == key;
-          });
-
-          var item = _this.list[index];
-          Object.assign(_this.dragState.from, {
-            item: item,
-            index: index,
-            key: key
-          });
-          _this.rangeIsChanged = false; // drag
-
-          _this.onDrag(_this.dragState.from);
+          return _this.dragStart(dragEl);
         },
         onChange: function onChange(_old_, _new_) {
           var oldKey = _this.dragState.from.key;
@@ -1775,9 +1810,9 @@
             item: null,
             index: -1
           };
-          cloneList.forEach(function (el, index) {
-            var key = _this.getDataKey(el);
 
+          _this.cloneList.forEach(function (el, index) {
+            var key = getDataKey(el);
             if (key == oldKey) Object.assign(from, {
               item: el,
               index: index
@@ -1787,29 +1822,48 @@
               index: index
             });
           });
-          cloneList.splice(from.index, 1);
-          cloneList.splice(to.index, 0, from.item);
+
+          _this.cloneList.splice(from.index, 1);
+
+          _this.cloneList.splice(to.index, 0, from.item);
         },
         onDrop: function onDrop(changed) {
           if (_this.rangeIsChanged && _this.dragElement) _this.dragElement.remove();
           var from = _this.dragState.from;
-          var index = cloneList.findIndex(function (el) {
-            return _this.getDataKey(el) == from.key;
-          });
-          var item = _this.list[index];
-          _this.dragState.to = {
-            index: index,
-            item: item,
-            key: _this.getDataKey(item)
-          }; // drop 
 
-          _this.onDrop(cloneList, from, _this.dragState.to, changed);
+          _this.cloneList.forEach(function (el, index) {
+            if (getDataKey(el) == from.key) _this.dragState.to = {
+              index: index,
+              item: _this.list[index],
+              key: getDataKey(el)
+            };
+          }); // drop 
 
-          _this.list = _toConsumableArray(cloneList);
+
+          _this.onDrop(_this.cloneList, from, _this.dragState.to, changed);
+
+          _this.list = _toConsumableArray(_this.cloneList);
 
           _this.clear();
         }
       });
+    },
+    dragStart: function dragStart(dragEl) {
+      var _this2 = this;
+
+      this.dragElement = dragEl;
+      this.cloneList = _toConsumableArray(this.list);
+      var key = dragEl.getAttribute('data-key');
+      this.list.forEach(function (item, index) {
+        if (_this2.options.getDataKey(item) == key) Object.assign(_this2.dragState.from, {
+          item: item,
+          index: index,
+          key: key
+        });
+      });
+      this.rangeIsChanged = false; // drag
+
+      this.onDrag(this.dragState.from, dragEl);
     },
     clear: function clear() {
       this.dragElement = null;
@@ -1890,7 +1944,7 @@
   /**
    * 防抖
    * @param {Function} func callback function
-   * @param {Number} delay delay time
+   * @param {Number} delay debounce time
    * @param {Boolean} immediate whether to execute immediately
    * @returns function
    */
@@ -1931,6 +1985,27 @@
 
     return debounced;
   }
+  /**
+   * 节流
+   * @param {Function} fn callback function
+   * @param {Number} delay throttle time
+   * @returns 
+   */
+
+  function throttle(fn, delay) {
+    var timer = null;
+    return function () {
+      var context = this,
+          args = arguments;
+
+      if (!timer) {
+        timer = setTimeout(function () {
+          timer = null;
+          fn.apply(context, args);
+        }, delay);
+      }
+    };
+  }
 
   var VirtualDragList = Vue__default["default"].component('virtual-drag-list', {
     props: VirtualProps,
@@ -1940,6 +2015,7 @@
         uniqueKeys: [],
         virtual: null,
         sortable: null,
+        lastItem: null,
         range: new Range(),
         dragState: new DragState()
       };
@@ -1980,6 +2056,14 @@
         },
         immediate: true
       }
+    },
+    created: function created() {
+      var _this2 = this;
+
+      this.range.end = this.keeps - 1;
+      this._clearDragState = throttle(function () {
+        _this2.dragState = new DragState();
+      }, this.delay + 17);
     },
     beforeDestroy: function beforeDestroy() {
       this._destroySortable();
@@ -2023,7 +2107,7 @@
        * Scroll to bottom of list
        */
       scrollToBottom: function scrollToBottom() {
-        var _this2 = this;
+        var _this3 = this;
 
         var _this$$refs = this.$refs,
             bottomItem = _this$$refs.bottomItem,
@@ -2034,12 +2118,12 @@
           this.scrollToOffset(bottom); // The first scroll height may change, if the bottom is not reached, execute the scroll method again
 
           setTimeout(function () {
-            var offset = _this2.getOffset();
+            var offset = _this3.getOffset();
 
-            var clientSize = Math.ceil(root[_this2.clientSizeKey]);
-            var scrollSize = Math.ceil(root[_this2.scrollSizeKey]);
-            if (offset + clientSize < scrollSize) _this2.scrollToBottom();
-          }, this.delay + 3);
+            var clientSize = Math.ceil(root[_this3.clientSizeKey]);
+            var scrollSize = Math.ceil(root[_this3.scrollSizeKey]);
+            if (offset + clientSize < scrollSize) _this3.scrollToBottom();
+          }, 5);
         }
       },
 
@@ -2048,7 +2132,7 @@
        * @param {Number} index 
        */
       scrollToIndex: function scrollToIndex(index) {
-        var _this3 = this;
+        var _this4 = this;
 
         if (index >= this.list.length - 1) {
           this.scrollToBottom();
@@ -2056,12 +2140,12 @@
           var indexOffset = this.virtual.getOffsetByIndex(index);
           this.scrollToOffset(indexOffset);
           setTimeout(function () {
-            var offset = _this3.getOffset();
+            var offset = _this4.getOffset();
 
-            var indexOffset = _this3.virtual.getOffsetByIndex(index);
+            var indexOffset = _this4.virtual.getOffsetByIndex(index);
 
-            if (offset !== indexOffset) _this3.scrollToIndex(index);
-          }, this.delay + 3);
+            if (offset !== indexOffset) _this4.scrollToIndex(index);
+          }, 5);
         }
       },
 
@@ -2082,40 +2166,54 @@
       },
       // --------------------------- init ------------------------------
       init: function init(list) {
-        var _this4 = this;
+        var _this5 = this;
 
         this.list = _toConsumableArray(list);
 
-        this._updateUniqueKeys();
+        this._updateUniqueKeys(); // virtual init
 
-        this._initVirtual(); // sortable init
+
+        if (!this.virtual) {
+          this._initVirtual();
+        } else {
+          this.virtual.updateUniqueKeys(this.uniqueKeys);
+          this.virtual.updateSizes(this.uniqueKeys);
+          this.virtual.updateRange();
+        } // sortable init
 
 
         if (!this.sortable) {
           this.$nextTick(function () {
-            return _this4._initSortable();
+            return _this5._initSortable();
           });
-        } else this.sortable.list = _toConsumableArray(list);
+        } else this.sortable.set('list', _toConsumableArray(list)); // if auto scroll to the last offset
+
+
+        if (this.lastItem && this.keepOffset) {
+          var index = this._getItemIndex(this.lastItem);
+
+          this.scrollToIndex(index);
+          this.lastItem = null;
+        }
       },
       // virtual init
       _initVirtual: function _initVirtual() {
-        var _this5 = this;
+        var _this6 = this;
 
-        this.virtual = null;
         this.virtual = new Virtual({
           size: this.size,
           keeps: this.keeps,
           uniqueKeys: this.uniqueKeys,
           isHorizontal: this.isHorizontal
         }, function (range) {
-          _this5.range = range;
-          var _this5$range = _this5.range,
-              start = _this5$range.start,
-              end = _this5$range.end;
-          var index = _this5.dragState.from.index;
+          _this6.range = range;
+          var _this6$range = _this6.range,
+              start = _this6$range.start,
+              end = _this6$range.end;
+          var index = _this6.dragState.from.index;
 
           if (index > -1 && !(index >= start && index <= end)) {
-            if (_this5.sortable) _this5.sortable.rangeIsChanged = true;
+            if (_this6.sortable) _this6.sortable.rangeIsChanged = true;
           }
         });
         this.virtual.updateSizes(this.uniqueKeys);
@@ -2123,7 +2221,7 @@
       },
       // sortable init
       _initSortable: function _initSortable() {
-        var _this6 = this;
+        var _this7 = this;
 
         this.sortable = new Sortable({
           scrollEl: this.$refs.group,
@@ -2139,27 +2237,26 @@
           autoScroll: this.autoScroll,
           scrollStep: this.scrollStep,
           scrollThreshold: this.scrollThreshold
-        }, function (from) {
+        }, function (from, node) {
           // on drag
-          _this6.dragState.from = from;
+          _this7.dragState.from = from;
+
+          _this7.$emit('ondragstart', _this7.list, from, node);
         }, function (list, from, to, changed) {
           // on drop
-          _this6.dragState.from = from;
-          _this6.dragState.to = to;
+          _this7.dragState.to = to;
 
-          _this6.handleDragEnd(list, from, to, changed);
+          _this7.handleDragEnd(list, from, to, changed);
 
           if (changed) {
-            _this6.list = _toConsumableArray(list);
+            _this7.list = _toConsumableArray(list);
 
-            _this6._updateUniqueKeys();
+            _this7._updateUniqueKeys();
 
-            _this6.virtual.updateUniqueKeys(_this6.uniqueKeys);
+            _this7.virtual.updateUniqueKeys(_this7.uniqueKeys);
           }
 
-          setTimeout(function () {
-            return _this6.dragState = new DragState();
-          }, _this6.delay + 10);
+          _this7._clearDragState();
         });
       },
       _destroySortable: function _destroySortable() {
@@ -2169,7 +2266,12 @@
       // --------------------------- handle scroll ------------------------------
       _handleScroll: function _handleScroll() {
         // The scroll event is triggered when the mouseup event occurs, which is handled here to prevent the page from scrolling due to range changes.
-        if (this.dragState.to.key) return;
+        if (this.dragState.to.key !== undefined) {
+          this._clearDragState();
+
+          return;
+        }
+
         var root = this.$refs.root;
         var offset = this.getOffset();
         var clientSize = Math.ceil(root[this.clientSizeKey]);
@@ -2185,6 +2287,8 @@
       },
       handleToTop: debounce(function (_this) {
         _this.$emit('top');
+
+        _this.lastItem = _this.list[0];
       }),
       handleToBottom: debounce(function (_this) {
         _this.$emit('bottom');
@@ -2201,10 +2305,10 @@
       },
       // --------------------------- methods ------------------------------
       _updateUniqueKeys: function _updateUniqueKeys() {
-        var _this7 = this;
+        var _this8 = this;
 
         this.uniqueKeys = this.list.map(function (item) {
-          return _this7._getDataKey(item);
+          return _this8._getDataKey(item);
         });
       },
       _getDataKey: function _getDataKey(obj) {
@@ -2214,10 +2318,10 @@
         }, obj);
       },
       _getItemIndex: function _getItemIndex(item) {
-        var _this8 = this;
+        var _this9 = this;
 
         return this.list.findIndex(function (el) {
-          return _this8._getDataKey(item) == _this8._getDataKey(el);
+          return _this9._getDataKey(item) == _this9._getDataKey(el);
         });
       },
       _getItemStyle: function _getItemStyle(itemKey) {
@@ -2230,7 +2334,7 @@
     },
     // --------------------------- render ------------------------------
     render: function render(h) {
-      var _this9 = this;
+      var _this10 = this;
 
       var _this$$slots = this.$slots,
           header = _this$$slots.header,
@@ -2278,9 +2382,9 @@
         "class": wrapClass,
         style: wrapStyle
       }, this.list.slice(start, end + 1).map(function (record) {
-        var index = _this9._getItemIndex(record);
+        var index = _this10._getItemIndex(record);
 
-        var dataKey = _this9._getDataKey(record);
+        var dataKey = _this10._getDataKey(record);
 
         var props = {
           isHorizontal: isHorizontal,
@@ -2288,12 +2392,12 @@
           tag: itemTag,
           event: '_onItemResized'
         };
-        return _this9.$scopedSlots.item ? h(Items, {
+        return _this10.$scopedSlots.item ? h(Items, {
           key: dataKey,
           props: props,
-          style: _objectSpread2(_objectSpread2({}, itemStyle), _this9._getItemStyle(dataKey)),
+          style: _objectSpread2(_objectSpread2({}, itemStyle), _this10._getItemStyle(dataKey)),
           "class": itemClass
-        }, _this9.$scopedSlots.item({
+        }, _this10.$scopedSlots.item({
           record: record,
           index: index,
           dataKey: dataKey
@@ -2303,7 +2407,7 @@
             'data-key': dataKey
           },
           style: _objectSpread2(_objectSpread2({}, itemStyle), {}, {
-            height: "".concat(_this9.size, "px")
+            height: "".concat(_this10.size, "px")
           }),
           "class": itemClass
         }, dataKey);
