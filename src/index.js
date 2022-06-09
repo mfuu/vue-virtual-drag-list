@@ -56,6 +56,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     }
   },
   created() {
+    this.range.end = this.keeps - 1
     this._clearDragState = throttle(() => {
       this.dragState = new DragState
     }, this.delay + 17)

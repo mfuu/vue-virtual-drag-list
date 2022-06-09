@@ -45,8 +45,17 @@ Virtual.prototype = {
   },
 
   updateRange() {
+    // check if need to update until loaded enough list item
     const start = Math.max(this.range.start, 0)
-    this.handleUpdate(start, this.getEndByStart(start))
+    if (this.sizes.size >= this.options.keeps - 1) {
+      this.handleUpdate(start, this.getEndByStart(start))
+    } else {
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => this.updateRange())
+      } else {
+        setTimeout(() => this.updateRange(), 3)
+      }
+    }
   },
 
   // --------------------------- scroll ------------------------------
