@@ -55,6 +55,11 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       immediate: true
     }
   },
+  created() {
+    this._clearDragState = throttle(() => {
+      this.dragState = new DragState
+    }, this.delay + 17)
+  },
   beforeDestroy() {
     this._destroySortable()
   },
@@ -220,7 +225,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             this._updateUniqueKeys()
             this.virtual.updateUniqueKeys(this.uniqueKeys)
           }
-          this._clearDragState(this)
+          this._clearDragState()
         }
       )
     },
@@ -230,15 +235,11 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.sortable = null
     },
 
-    _clearDragState: throttle((_this) => {
-      _this.dragState = new DragState
-    }, 17),
-
     // --------------------------- handle scroll ------------------------------
     _handleScroll() {
       // The scroll event is triggered when the mouseup event occurs, which is handled here to prevent the page from scrolling due to range changes.
       if (this.dragState.to.key !== undefined) {
-        this._clearDragState(this)
+        this._clearDragState()
         return
       }
 
