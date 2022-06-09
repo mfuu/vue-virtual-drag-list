@@ -161,7 +161,7 @@ Virtual.prototype = {
     return this.options.uniqueKeys.length - 1
   },
 
-  // --------------------------- size ------------------------------
+  // --------------------------- size change ------------------------------
   // 获取列表项的高度
   getItemSize() {
     return this.calcType === CACLTYPE.FIXED ? this.calcSize.fixed : (this.calcSize.average || this.options.size)

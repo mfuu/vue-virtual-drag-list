@@ -22,7 +22,7 @@ export const VirtualProps = {
   },
   delay: {
     type: Number,
-    default: 0
+    default: 10
   },
   rootTag: {
     type: String,
@@ -97,6 +97,10 @@ export const VirtualProps = {
   scrollThreshold: {
     type: Number,
     default: 15
+  },
+  keepOffset: {
+    type: Boolean,
+    default: false
   }
 }
 
@@ -129,8 +133,8 @@ export class Range {
 // drag state
 export class DragState {
   constructor() {
-    this.from = { key: null, item: null, index: -1 }
-    this.to = { key: null, item: null, index: -1 }
+    this.from = { key: undefined, item: undefined, index: -1 }
+    this.to = { key: undefined, item: undefined, index: -1 }
   }
 }
 

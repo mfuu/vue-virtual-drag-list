@@ -3,7 +3,7 @@ import Virtual from './virtual'
 import Sortable from './sortable'
 import { Range, DragState, VirtualProps } from './interface'
 import { Slots, Items } from './children'
-import { debounce } from './utils'
+import { debounce, throttle } from './utils'
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
   props: VirtualProps,
@@ -13,7 +13,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       uniqueKeys: [],
       virtual: null,
       sortable: null,
-
+      lastItem: null,
       range: new Range,
       dragState: new DragState
     }
@@ -103,7 +103,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           const clientSize = Math.ceil(root[this.clientSizeKey])
           const scrollSize = Math.ceil(root[this.scrollSizeKey])
           if (offset + clientSize < scrollSize) this.scrollToBottom()
-        }, this.delay + 3)
+        }, 5)
       }
     },
     /**
@@ -121,7 +121,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           const offset = this.getOffset()
           const indexOffset = this.virtual.getOffsetByIndex(index)
           if (offset !== indexOffset) this.scrollToIndex(index)
-        }, this.delay + 3)
+        }, 5)
       }
     },
     /**
@@ -144,16 +144,29 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     init(list) {
       this.list = [...list]
       this._updateUniqueKeys()
-      this._initVirtual()
+      // virtual init
+      if (!this.virtual) {
+        this._initVirtual()
+      } else {
+        this.virtual.updateUniqueKeys(this.uniqueKeys)
+        this.virtual.updateSizes(this.uniqueKeys)
+        this.virtual.updateRange()
+      }
       // sortable init
       if (!this.sortable) {
         this.$nextTick(() => this._initSortable())
-      } else this.sortable.list = [...list]
+      } else this.sortable.set('list', [...list])
+
+      // if auto scroll to the last offset
+      if (this.lastItem && this.keepOffset) {
+        const index = this._getItemIndex(this.lastItem)
+        this.scrollToIndex(index)
+        this.lastItem = null
+      }
     },
 
     // virtual init
     _initVirtual() {
-      this.virtual = null
       this.virtual = new Virtual(
         {
           size: this.size,
@@ -193,13 +206,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           scrollStep: this.scrollStep,
           scrollThreshold: this.scrollThreshold
         },
-        (from) => {
+        (from, node) => {
           // on drag
           this.dragState.from = from
+          this.$emit('ondragstart', this.list, from, node)
         },
         (list, from, to, changed) => {
           // on drop
-          this.dragState.from = from
           this.dragState.to = to
           this.handleDragEnd(list, from, to, changed)
           if (changed) {
@@ -207,7 +220,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             this._updateUniqueKeys()
             this.virtual.updateUniqueKeys(this.uniqueKeys)
           }
-          setTimeout(() => this.dragState = new DragState, this.delay + 10)
+          this._clearDragState(this)
         }
       )
     },
@@ -217,10 +230,17 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.sortable = null
     },
 
+    _clearDragState: throttle((_this) => {
+      _this.dragState = new DragState
+    }, 17),
+
     // --------------------------- handle scroll ------------------------------
     _handleScroll() {
       // The scroll event is triggered when the mouseup event occurs, which is handled here to prevent the page from scrolling due to range changes.
-      if (this.dragState.to.key) return
+      if (this.dragState.to.key !== undefined) {
+        this._clearDragState(this)
+        return
+      }
 
       const { root } = this.$refs
       const offset = this.getOffset()
@@ -240,6 +260,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     handleToTop: debounce((_this) => {
       _this.$emit('top')
+      _this.lastItem = _this.list[0]
     }),
 
     handleToBottom: debounce((_this) => {
