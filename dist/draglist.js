@@ -1824,6 +1824,8 @@
         this.rangeIsChanged = false; // on-drag callback
 
         this.onDrag(this.dragState.from, dragEl);
+      } else {
+        this.rangeIsChanged = true;
       }
     },
     onChange: function onChange(_old_, _new_) {
