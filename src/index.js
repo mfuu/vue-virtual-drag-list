@@ -226,6 +226,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             this._updateUniqueKeys()
             this.virtual.updateUniqueKeys(this.uniqueKeys)
           }
+          // recalculate the range once when scrolling down
+          if (this.sortable.rangeIsChanged && this.virtual.direction === 'BEHIND') {
+            if (this.range.start > 0) {
+              this.range.start -= 1
+              this.range.end -= 1
+            }
+          }
           this._clearDragState()
         }
       )
