@@ -321,8 +321,9 @@
 
       // check if need to update until loaded enough list item
       var start = Math.max(this.range.start, 0);
+      var length = Math.min(this.options.keeps, this.options.uniqueKeys.length);
 
-      if (this.sizes.size >= this.options.keeps - 1) {
+      if (this.sizes.size >= length - 1) {
         this.handleUpdate(start, this.getEndByStart(start));
       } else {
         if (window.requestAnimationFrame) {
@@ -2206,7 +2207,7 @@
           uniqueKeys: this.uniqueKeys,
           isHorizontal: this.isHorizontal
         }, function (range) {
-          _this6.range = range;
+          if (_this6.dragState.to.key !== undefined) _this6.range = range;
           var _this6$range = _this6.range,
               start = _this6$range.start,
               end = _this6$range.end;
