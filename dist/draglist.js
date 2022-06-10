@@ -2260,6 +2260,17 @@
           _this7.handleDragEnd(list, from, to, changed);
 
           if (changed) {
+            // recalculate the range once when scrolling down
+            if (_this7.sortable.rangeIsChanged && _this7.virtual.direction && _this7.range.start > 0) {
+              var index = list.indexOf(_this7.list[_this7.range.start]);
+
+              if (index > -1) {
+                _this7.range.start = index;
+                _this7.range.end = index + _this7.keeps - 1;
+              }
+            } // list change
+
+
             _this7.list = _toConsumableArray(list);
 
             _this7._updateUniqueKeys();
