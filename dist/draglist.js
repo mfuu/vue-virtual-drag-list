@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.12
+ * vue-virtual-drag-list v2.6.13
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -1763,7 +1763,7 @@
       if (key === 'list') {
         this.list = value; // When the list data changes when dragging, need to execute onDrag function
 
-        if (this.dragElement) this.dragStart(this.dragElement);
+        if (this.dragElement) this.dragStart(this.dragElement, false);
       } else {
         this.options[key] = value;
         this.drag.set(key, value);
@@ -1782,8 +1782,7 @@
           animation = _this$options.animation,
           autoScroll = _this$options.autoScroll,
           scrollStep = _this$options.scrollStep,
-          scrollThreshold = _this$options.scrollThreshold,
-          getDataKey = _this$options.getDataKey;
+          scrollThreshold = _this$options.scrollThreshold;
       this.drag = new sortable(this.options.scrollEl, {
         disabled: disabled,
         dragging: dragging,
@@ -1795,63 +1794,21 @@
         autoScroll: autoScroll,
         scrollStep: scrollStep,
         scrollThreshold: scrollThreshold,
+        onChange: function onChange(from, to) {
+          return _this.onChange(from, to);
+        },
         onDrag: function onDrag(dragEl) {
           return _this.dragStart(dragEl);
         },
-        onChange: function onChange(_old_, _new_) {
-          var oldKey = _this.dragState.from.key;
-
-          var newKey = _new_.node.getAttribute('data-key');
-
-          var from = {
-            item: null,
-            index: -1
-          };
-          var to = {
-            item: null,
-            index: -1
-          };
-
-          _this.cloneList.forEach(function (el, index) {
-            var key = getDataKey(el);
-            if (key == oldKey) Object.assign(from, {
-              item: el,
-              index: index
-            });
-            if (key == newKey) Object.assign(to, {
-              item: el,
-              index: index
-            });
-          });
-
-          _this.cloneList.splice(from.index, 1);
-
-          _this.cloneList.splice(to.index, 0, from.item);
-        },
         onDrop: function onDrop(changed) {
-          if (_this.rangeIsChanged && _this.dragElement) _this.dragElement.remove();
-          var from = _this.dragState.from;
-
-          _this.cloneList.forEach(function (el, index) {
-            if (getDataKey(el) == from.key) _this.dragState.to = {
-              index: index,
-              item: _this.list[index],
-              key: getDataKey(el)
-            };
-          }); // drop 
-
-
-          _this.onDrop(_this.cloneList, from, _this.dragState.to, changed);
-
-          _this.list = _toConsumableArray(_this.cloneList);
-
-          _this.clear();
+          return _this.dragEnd(changed);
         }
       });
     },
     dragStart: function dragStart(dragEl) {
       var _this2 = this;
 
+      var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       this.dragElement = dragEl;
       this.cloneList = _toConsumableArray(this.list);
       var key = dragEl.getAttribute('data-key');
@@ -1862,9 +1819,60 @@
           key: key
         });
       });
-      this.rangeIsChanged = false; // drag
 
-      this.onDrag(this.dragState.from, dragEl);
+      if (callback) {
+        this.rangeIsChanged = false; // on-drag callback
+
+        this.onDrag(this.dragState.from, dragEl);
+      }
+    },
+    onChange: function onChange(_old_, _new_) {
+      var _this3 = this;
+
+      var oldKey = this.dragState.from.key;
+
+      var newKey = _new_.node.getAttribute('data-key');
+
+      var from = {
+        item: null,
+        index: -1
+      };
+      var to = {
+        item: null,
+        index: -1
+      };
+      this.cloneList.forEach(function (el, index) {
+        var key = _this3.options.getDataKey(el);
+
+        if (key == oldKey) Object.assign(from, {
+          item: el,
+          index: index
+        });
+        if (key == newKey) Object.assign(to, {
+          item: el,
+          index: index
+        });
+      });
+      this.cloneList.splice(from.index, 1);
+      this.cloneList.splice(to.index, 0, from.item);
+    },
+    dragEnd: function dragEnd(changed) {
+      var _this4 = this;
+
+      if (this.rangeIsChanged && this.dragElement) this.dragElement.remove();
+      var getDataKey = this.options.getDataKey;
+      var from = this.dragState.from;
+      this.cloneList.forEach(function (el, index) {
+        if (getDataKey(el) == from.key) _this4.dragState.to = {
+          index: index,
+          item: _this4.list[index],
+          key: getDataKey(el)
+        };
+      }); // on-drop callback
+
+      this.onDrop(this.cloneList, from, this.dragState.to, changed);
+      this.list = _toConsumableArray(this.cloneList);
+      this.clear();
     },
     clear: function clear() {
       this.dragElement = null;
@@ -2207,7 +2215,7 @@
           uniqueKeys: this.uniqueKeys,
           isHorizontal: this.isHorizontal
         }, function (range) {
-          if (_this6.dragState.to.key !== undefined) _this6.range = range;
+          if (_this6.dragState.to.key === undefined) _this6.range = range;
           var _this6$range = _this6.range,
               start = _this6$range.start,
               end = _this6$range.end;
