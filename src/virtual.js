@@ -47,7 +47,8 @@ Virtual.prototype = {
   updateRange() {
     // check if need to update until loaded enough list item
     const start = Math.max(this.range.start, 0)
-    if (this.sizes.size >= this.options.keeps - 1) {
+    const length = Math.min(this.options.keeps, this.options.uniqueKeys.length)
+    if (this.sizes.size >= length - 1) {
       this.handleUpdate(start, this.getEndByStart(start))
     } else {
       if (window.requestAnimationFrame) {
