@@ -168,7 +168,8 @@ Virtual.prototype = {
   },
 
   getLastIndex() {
-    return this.options.uniqueKeys.length - 1
+    const { uniqueKeys, keeps } = this.options
+    return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1
   },
 
   // --------------------------- size change ------------------------------
