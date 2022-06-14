@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.14
+ * vue-virtual-drag-list v2.6.15
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -356,6 +356,9 @@
     isBehind: function isBehind() {
       return this.direction === DIRECTION.BEHIND;
     },
+    isFixed: function isFixed() {
+      return this.calcType === CACLTYPE.FIXED;
+    },
     getScrollItems: function getScrollItems(offset) {
       var _this$calcSize = this.calcSize,
           fixed = _this$calcSize.fixed,
@@ -364,7 +367,7 @@
       if (header) offset -= header;
       if (offset <= 0) return 0; // 固定高度
 
-      if (this.calcType === CACLTYPE.FIXED) return Math.floor(offset / fixed); // 非固定高度使用二分查找
+      if (this.isFixed()) return Math.floor(offset / fixed); // 非固定高度使用二分查找
 
       var low = 0,
           high = this.options.uniqueKeys.length;
@@ -410,7 +413,7 @@
       this.callback(_objectSpread2({}, this.range));
     },
     getFrontOffset: function getFrontOffset() {
-      if (this.calcType === CACLTYPE.FIXED) {
+      if (this.isFixed()) {
         return this.calcSize.fixed * this.range.start;
       } else {
         return this.getOffsetByIndex(this.range.start);
@@ -419,7 +422,7 @@
     getBehindOffset: function getBehindOffset() {
       var last = this.getLastIndex();
 
-      if (this.calcType === CACLTYPE.FIXED) {
+      if (this.isFixed()) {
         return (last - this.range.end) * this.calcSize.fixed;
       }
 
@@ -446,12 +449,15 @@
       return Math.min(start + this.options.keeps - 1, this.getLastIndex());
     },
     getLastIndex: function getLastIndex() {
-      return this.options.uniqueKeys.length - 1;
+      var _this$options2 = this.options,
+          uniqueKeys = _this$options2.uniqueKeys,
+          keeps = _this$options2.keeps;
+      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
     },
     // --------------------------- size change ------------------------------
     // 获取列表项的高度
     getItemSize: function getItemSize() {
-      return this.calcType === CACLTYPE.FIXED ? this.calcSize.fixed : this.calcSize.average || this.options.size;
+      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
     },
     // 列表项高度变化
     handleItemSizeChange: function handleItemSizeChange(id, size) {
@@ -461,7 +467,7 @@
         this.calcType = CACLTYPE.FIXED; // 固定高度
 
         this.calcSize.fixed = size;
-      } else if (this.calcType === CACLTYPE.FIXED && this.calcSize.fixed !== size) {
+      } else if (this.isFixed() && this.calcSize.fixed !== size) {
         // 如果当前为 'FIXED' 状态并且 size 与固定高度不同，表示当前高度不固定，fixed值也就不需要了
         this.calcType = CACLTYPE.DYNAMIC;
         this.calcSize.fixed = undefined;
