@@ -82,13 +82,17 @@ Virtual.prototype = {
     return this.direction === DIRECTION.BEHIND
   },
 
+  isFixed() {
+    return this.calcType === CACLTYPE.FIXED
+  },
+
   getScrollItems(offset) {
     const { fixed, header } = this.calcSize
     // 减去顶部插槽高度
     if (header) offset -= header
     if (offset <= 0) return 0
     // 固定高度
-    if (this.calcType === CACLTYPE.FIXED) return Math.floor(offset / fixed)
+    if (this.isFixed()) return Math.floor(offset / fixed)
     // 非固定高度使用二分查找
     let low = 0, high = this.options.uniqueKeys.length
     let middle = 0, middleOffset = 0
@@ -133,7 +137,7 @@ Virtual.prototype = {
   },
 
   getFrontOffset() {
-    if (this.calcType === CACLTYPE.FIXED) {
+    if (this.isFixed()) {
       return this.calcSize.fixed * this.range.start
     } else {
       return this.getOffsetByIndex(this.range.start)
@@ -142,7 +146,7 @@ Virtual.prototype = {
 
   getBehindOffset() {
     const last = this.getLastIndex()
-    if (this.calcType === CACLTYPE.FIXED) {
+    if (this.isFixed()) {
       return (last - this.range.end) * this.calcSize.fixed
     }
     if (this.calcIndex === last) {
@@ -175,7 +179,7 @@ Virtual.prototype = {
   // --------------------------- size change ------------------------------
   // 获取列表项的高度
   getItemSize() {
-    return this.calcType === CACLTYPE.FIXED ? this.calcSize.fixed : (this.calcSize.average || this.options.size)
+    return this.isFixed() ? this.calcSize.fixed : (this.calcSize.average || this.options.size)
   },
 
   // 列表项高度变化
@@ -186,7 +190,7 @@ Virtual.prototype = {
     if (this.calcType === CACLTYPE.INIT) {
       this.calcType = CACLTYPE.FIXED // 固定高度
       this.calcSize.fixed = size
-    } else if (this.calcType === CACLTYPE.FIXED && this.calcSize.fixed !== size) {
+    } else if (this.isFixed() && this.calcSize.fixed !== size) {
       // 如果当前为 'FIXED' 状态并且 size 与固定高度不同，表示当前高度不固定，fixed值也就不需要了
       this.calcType = CACLTYPE.DYNAMIC
       this.calcSize.fixed = undefined
