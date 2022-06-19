@@ -49,12 +49,12 @@ Root component:
 
   export default {
     name: 'root',
+    components: { virtualDragList },
     data () {
       return {
         list: [{id: '1', text: 'asd'}, {id: '2', text: 'fgh'}, ...]
       }
     },
-    components: { virtualDragList },
     methods: {
       handleToTop() {
         ...
@@ -79,7 +79,7 @@ Root component:
 | `top`        | Event fired when scroll to top |
 | `bottom`     | Event fired when scroll to bottom |
 | `ondragstart`| Event fired when the drag is started |
-| `ondragend`  | Event fired when the drag is complete |
+| `ondragend`  | Event fired when the drag is completed |
 
 ## Props
 
