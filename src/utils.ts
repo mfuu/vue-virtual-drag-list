@@ -37,6 +37,6 @@ export function throttle(fn: Function, delay: number) {
   }
 }
 
-export function getDataKey(item: any, dataKey: string) {
+export function getDataKey(item: any, dataKey: any) {
   return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce((o, k) => (o || {})[k], item)
 }

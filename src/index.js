@@ -1,9 +1,115 @@
 import Vue from 'vue'
 import Virtual from './virtual'
 import Sortable from './sortable'
-import { Range, DragState, VirtualProps } from './interface'
+import { Range, DragState } from './interface'
 import { Slots, Items } from './children'
 import { debounce, throttle } from './utils'
+
+const VirtualProps = {
+  dataSource: {
+    type: Array,
+    default: () => {
+      return []
+    }
+  },
+  dataKey: {
+    type: String,
+    required: true
+  },
+  direction: {
+    type: String,
+    default: 'vertical'
+  },
+  keeps: {
+    type: Number,
+    default: 30
+  },
+  size: {
+    type: Number
+  },
+  delay: {
+    type: Number,
+    default: 10
+  },
+  rootTag: {
+    type: String,
+    default: 'div'
+  },
+  wrapTag: {
+    type: String,
+    default: 'div'
+  },
+  wrapClass: {
+    type: String,
+    default: ''
+  },
+  wrapStyle: {
+    type: Object
+  },
+  headerTag: {
+    type: String,
+    default: 'div'
+  },
+  footerTag: {
+    type: String,
+    default: 'div'
+  },
+  itemTag: {
+    type: String,
+    default: 'div'
+  },
+  itemStyle: {
+    type: Object
+  },
+  itemClass: {
+    type: String,
+    default: ''
+  },
+  disabled: {
+    type: Boolean,
+    default: false
+  },
+  draggable: {
+    type: [Function, String]
+  },
+  dragging: {
+    type: Function
+  },
+  ghostClass: {
+    type: String,
+    default: ''
+  },
+  ghostStyle: {
+    type: Object,
+    default: () => {
+      return {}
+    }
+  },
+  chosenClass: {
+    type: String,
+    default: ''
+  },
+  animation: {
+    type: Number,
+    default: 150
+  },
+  autoScroll: {
+    type: Boolean,
+    default: true
+  },
+  scrollStep: {
+    type: Number,
+    default: 5
+  },
+  scrollThreshold: {
+    type: Number,
+    default: 15
+  },
+  keepOffset: {
+    type: Boolean,
+    default: false
+  }
+}
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
   props: VirtualProps,

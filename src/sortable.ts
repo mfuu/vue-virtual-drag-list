@@ -39,7 +39,6 @@ class Sortable {
   init() {
     const {
       disabled,
-      dragging,
       draggable,
       ghostClass,
       ghostStyle,
@@ -54,7 +53,6 @@ class Sortable {
       this.options.scrollEl,
       {
         disabled,
-        dragging,
         draggable,
         ghostClass,
         ghostStyle,

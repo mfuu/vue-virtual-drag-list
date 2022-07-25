@@ -11,7 +11,6 @@ export interface SortableOptions {
   dataSource: any[];
   disabled: boolean;
   draggable: string | Function;
-  dragging: Function;
   ghostStyle: object;
   ghostClass: string;
   chosenClass: string;
