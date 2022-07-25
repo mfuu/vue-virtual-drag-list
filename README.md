@@ -1,8 +1,8 @@
 # vue-virtual-draglist
 
-[![npm](https://img.shields.io/npm/v/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist)  [![npm](https://img.shields.io/npm/dt/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-collection)  [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/)
+[![npm](https://img.shields.io/npm/v/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist)  [![npm](https://img.shields.io/npm/dt/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-collection)  [![vue2](https://img.shields.io/badge/vue-3.x-brightgreen.svg)](https://vuejs.org/)
 
-A virtual scrolling list component that can be sorted by dragging
+A virtual scrolling list component that can be sorted by dragging, for vue3
 
 ### [demo](https://mfuu.github.io/vue-virtual-drag-list/)
 
@@ -14,58 +14,7 @@ npm i vue-virtual-draglist -D
 
 Root component:
 ```vue
-<template>
-  <div>
-    <virtual-drag-list
-      :data-key="'id'"
-      :data-source="list"
-      :draggable="'.drag'"
-      style="height: 500px"
-      @top="handleToTop"
-      @bottom="handleToBottom"
-      @ondragend="ondragend"
-    >
-      <template slot="item" slot-scope="{ record, index, dataKey }">
-        <span class="drag">{{ record.id }}</span>
-        {{ record.text }}
-      </template>
-      <template slot="header">
-        <div class="loading">top loading...</div>
-      </template>
-      <template slot="footer">
-        <div class="loading">bottom loading...</div>
-      </template>
-    </virtual-drag-list>
-  </div>
-</template>
 
-<script>
-  import virtualDragList from 'vue-virtual-draglist'
-
-  export default {
-    name: 'root',
-    components: { virtualDragList },
-    data () {
-      return {
-        list: [{id: '1', text: 'asd'}, {id: '2', text: 'fgh'}, ...]
-      }
-    },
-    methods: {
-      handleToTop() {
-        ...
-      },
-      handleToBottom() {
-        ...
-      },
-      ondragstart(list, from, node) {
-        ...
-      },
-      ondragend(list, from, to, changed) {
-        ...
-      }
-    }
-  }
-</script>
 ```
 ## Emits
 
@@ -124,9 +73,6 @@ Root component:
 
 ## Methods
 
-Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements">ref</a></code> to get the method inside the component
-
-
 | **Method**         | **Description** |
 | ------------------ | --------------- |
 | `reset()`          | Reset to initial |
@@ -136,12 +82,6 @@ Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessi
 | `scrollToBottom()` | Scroll to bottom of list |
 | `scrollToIndex(index)`  | Scroll to the specified index position |
 | `scrollToOffset(offset)` | Scroll to the specified offset |
-
-
-## Links
-
-* [https://github.com/tangbc/vue-virtual-scroll-list/](https://github.com/tangbc/vue-virtual-scroll-list/)
-
 
 ## License
 
