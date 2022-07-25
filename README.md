@@ -1,11 +1,6 @@
-<p>
-  <a href="https://npm-stat.com/charts.html?package=vue-virtual-draglist">
-    <img alt="Downloads" src="https://img.shields.io/npm/dm/vue-virtual-draglist.svg">
-  </a>
-  <a href="https://www.npmjs.com/package/vue-virtual-draglist">
-    <img alt="Version" src="https://img.shields.io/npm/v/vue-virtual-draglist.svg"/>
-  </a>
-</p>
+# vue-virtual-drag-list
+
+[![npm](https://img.shields.io/npm/v/vue-virtual-draglist.svg) ![npm](https://img.shields.io/npm/dm/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist) [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/)
 
 A virtual scrolling list component that can be sorted by dragging
 
@@ -141,6 +136,11 @@ Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessi
 | `scrollToBottom()` | Scroll to bottom of list |
 | `scrollToIndex(index)`  | Scroll to the specified index position |
 | `scrollToOffset(offset)` | Scroll to the specified offset |
+
+
+## Links
+
+* [https://github.com/tangbc/vue-virtual-scroll-list/](https://github.com/tangbc/vue-virtual-scroll-list/)
 
 
 ## License
