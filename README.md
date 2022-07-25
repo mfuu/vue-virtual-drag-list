@@ -1,4 +1,4 @@
-# vue-virtual-drag-list
+# vue-virtual-draglist
 
 [![npm](https://img.shields.io/npm/v/vue-virtual-draglist.svg) ![npm](https://img.shields.io/npm/dm/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist) [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/)
 
