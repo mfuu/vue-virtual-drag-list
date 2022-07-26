@@ -142,7 +142,7 @@ class Sortable {
       if (getKey(el) == from.key)
         this.dragState.to = { 
           index,
-          key: getKey(el),
+          key: getKey(this.dataSource[index]),
           item: this.dataSource[index]
         }
     })

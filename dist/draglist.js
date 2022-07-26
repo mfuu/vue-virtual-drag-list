@@ -1408,7 +1408,7 @@
                 if (getKey(el) == from.key)
                     this.dragState.to = {
                         index,
-                        key: getKey(el),
+                        key: getKey(this.dataSource[index]),
                         item: this.dataSource[index]
                     };
             });
@@ -1864,7 +1864,7 @@
             const scrollDirectionKey = isHorizontal ? 'scrollLeft' : 'scrollTop';
             const offsetSizeKey = isHorizontal ? 'offsetLeft' : 'offsetTop';
             const clientSizeKey = isHorizontal ? 'clientWidth' : 'clientHeight';
-            const sortable = vue.ref(null);
+            let sortable;
             let virtual;
             /**
              * Get the current scroll height
@@ -1927,8 +1927,8 @@
                     virtual.updateSizes(uniqueKeys.value);
                     virtual.updateRange();
                 }
-                if (sortable.value)
-                    sortable.value.set('list', [...list]);
+                if (sortable)
+                    sortable.set('dataSource', [...list]);
                 else
                     vue.nextTick(() => initSortable());
                 // if auto scroll to the last offset
@@ -1953,14 +1953,14 @@
                     const { start, end } = range.value;
                     const { index } = dragState.value.from;
                     if (index > -1 && !(index >= start && index <= end)) {
-                        if (sortable.value)
-                            sortable.value.rangeIsChanged = true;
+                        if (sortable)
+                            sortable.rangeIsChanged = true;
                     }
                 });
             };
             // --------------------------- sortable ------------------------------
             const initSortable = () => {
-                sortable.value = new Sortable({
+                sortable = new Sortable({
                     scrollEl: groupRef.value,
                     dataSource: viewlist.value,
                     getKey: getDataKey,
@@ -1982,7 +1982,7 @@
                     dragState.value.to = to;
                     emit('ondragend', list, from, to, changed);
                     if (changed) {
-                        if (sortable.value.rangeIsChanged && virtual.direction && range.value.start > 0) {
+                        if (sortable.rangeIsChanged && virtual.direction && range.value.start > 0) {
                             const index = list.indexOf(viewlist.value[range.value.start]);
                             if (index > -1) {
                                 range.value.start = index;
@@ -2052,10 +2052,10 @@
                 });
             };
             const getItemStyle = (dataKey) => {
-                if (!sortable.value)
+                if (!sortable)
                     return {};
                 const { key } = dragState.value.from;
-                if (sortable.value.rangeIsChanged && dataKey == key)
+                if (sortable.rangeIsChanged && dataKey == key)
                     return { display: 'none' };
                 return {};
             };
@@ -2067,8 +2067,8 @@
                 immediate: true
             });
             vue.watch(() => props.disabled, (newVal) => {
-                if (sortable.value)
-                    sortable.value.set('disabled', newVal);
+                if (sortable)
+                    sortable.set('disabled', newVal);
             }, {
                 immediate: true
             });
@@ -2081,8 +2081,8 @@
                 scrollToOffset(virtual.offset);
             });
             vue.onUnmounted(() => {
-                sortable.value && sortable.value.destroy();
-                sortable.value = null;
+                sortable && sortable.destroy();
+                sortable = null;
             });
             // --------------------------- render ------------------------------
             return () => {
@@ -2102,7 +2102,7 @@
                             event: 'onHeaderResized'
                         },
                         on: { onHeaderResized }
-                    }, slots.header) : null,
+                    }, slots.header()) : null,
                     // list
                     vue.h(WrapTag, {
                         ref: groupRef,
@@ -2138,7 +2138,7 @@
                             event: 'onFooterResized'
                         },
                         on: { onFooterResized }
-                    }, slots.footer) : null,
+                    }, slots.footer()) : null,
                     // last el
                     vue.h('div', {
                         ref: lastRef,

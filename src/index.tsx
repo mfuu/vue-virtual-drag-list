@@ -133,7 +133,7 @@ const VirtualDragList = defineComponent({
     const offsetSizeKey = isHorizontal ? 'offsetLeft' : 'offsetTop'
     const clientSizeKey = isHorizontal ? 'clientWidth' : 'clientHeight'
 
-    const sortable = ref<Sortable | null>(null);
+    let sortable: Sortable;
     let virtual: Virtual;
 
     // --------------------------- emit functions ------------------------------
@@ -216,7 +216,7 @@ const VirtualDragList = defineComponent({
         virtual.updateRange()
       }
 
-      if (sortable.value) sortable.value.set('list', [...list])
+      if (sortable) sortable.set('dataSource', [...list])
       else nextTick(() => initSortable())
 
       // if auto scroll to the last offset
@@ -244,7 +244,7 @@ const VirtualDragList = defineComponent({
           const { start, end } = range.value
           const { index } = dragState.value.from
           if (index > -1 && !(index >= start && index <= end)) {
-            if (sortable.value) sortable.value.rangeIsChanged = true
+            if (sortable) sortable.rangeIsChanged = true
           }
         }
       )
@@ -252,7 +252,7 @@ const VirtualDragList = defineComponent({
 
     // --------------------------- sortable ------------------------------
     const initSortable = () => {
-      sortable.value = new Sortable(
+      sortable = new Sortable(
         {
           scrollEl: groupRef.value,
           dataSource: viewlist.value,
@@ -279,7 +279,7 @@ const VirtualDragList = defineComponent({
           dragState.value.to = to
           emit('ondragend', list, from, to, changed)
           if (changed) {
-            if (sortable.value.rangeIsChanged && virtual.direction && range.value.start > 0) {
+            if (sortable.rangeIsChanged && virtual.direction && range.value.start > 0) {
               const index = list.indexOf(viewlist.value[range.value.start])
               if (index > -1) {
                 range.value.start = index
@@ -357,9 +357,9 @@ const VirtualDragList = defineComponent({
     }
 
     const getItemStyle = (dataKey: any) => {
-      if (!sortable.value) return {}
+      if (!sortable) return {}
       const { key } = dragState.value.from
-      if (sortable.value.rangeIsChanged && dataKey == key)
+      if (sortable.rangeIsChanged && dataKey == key)
         return { display: 'none' }
       return {}
     }
@@ -373,7 +373,7 @@ const VirtualDragList = defineComponent({
     })
 
     watch(() => props.disabled, (newVal: boolean) => {
-      if (sortable.value) sortable.value.set('disabled', newVal)
+      if (sortable) sortable.set('disabled', newVal)
     }, {
       immediate: true
     })
@@ -389,8 +389,8 @@ const VirtualDragList = defineComponent({
     })
 
     onUnmounted(() => {
-      sortable.value && sortable.value.destroy()
-      sortable.value = null
+      sortable && sortable.destroy()
+      sortable = null
     })
 
     // --------------------------- render ------------------------------
@@ -419,7 +419,7 @@ const VirtualDragList = defineComponent({
             event: 'onHeaderResized'
           },
           on: { onHeaderResized }
-        }, slots.header) : null,
+        }, slots.header()) : null,
   
         // list
         h(WrapTag, {
@@ -458,7 +458,7 @@ const VirtualDragList = defineComponent({
             event: 'onFooterResized'
           },
           on: {onFooterResized}
-        }, slots.footer) : null,
+        }, slots.footer()) : null,
   
         // last el
         h('div', {
