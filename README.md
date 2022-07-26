@@ -9,11 +9,30 @@ A virtual scrolling list component that can be sorted by dragging, for vue3
 ## Simple usage
 
 ```bash
-npm i vue-virtual-draglist -D
+npm i vue-virtual-draglist@next -D
 ```
 
 Root component:
 ```vue
+<template>
+  <div>
+    <virtual-list
+      style="height: 360px; overflow-y: auto;" // make list scrollable
+      :data-key="'id'"
+      :data-source="items"
+    >
+      <template slot="item" slot-scope="{ record, index, dataKey }">
+        <span>{{ record.text }}</span>
+      </template>
+    </virtual-list>
+  </div>
+</template>
+
+<script setup lang="ts">
+import VirtualList from 'vue-virtual-draglist';
+
+const items = ref([{id: '1', text: 'abc'}, {id: '2', text: 'def'}]);
+</script>
 
 ```
 ## Emits
@@ -22,7 +41,7 @@ Root component:
 |--------------|-----------------|
 | `top`        | Event fired when scroll to top |
 | `bottom`     | Event fired when scroll to bottom |
-| `ondragstart`| Event fired when the drag is started |
+| `ondragstart`| Event fired when the drag is started, `()` |
 | `ondragend`  | Event fired when the drag is completed |
 
 ## Props
