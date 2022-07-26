@@ -41,8 +41,8 @@ const items = ref([{id: '1', text: 'abc'}, {id: '2', text: 'def'}]);
 |--------------|-----------------|
 | `top`        | Event fired when scroll to top |
 | `bottom`     | Event fired when scroll to bottom |
-| `ondragstart`| Event fired when the drag is started, `()` |
-| `ondragend`  | Event fired when the drag is completed |
+| `ondragstart`| Event fired when the drag is started, `(list, from, node) => {}` |
+| `ondragend`  | Event fired when the drag is completed, `(list, from, to, changed) => {}` |
 
 ## Props
 
@@ -62,7 +62,7 @@ const items = ref([{id: '1', text: 'abc'}, {id: '2', text: 'def'}]);
 | `keeps`      | `Number`   | `30`        | The number of lines rendered by the virtual scroll |
 | `size`       | `Number`   | `-`         | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
-| `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable, the function type must return a boolean |
+| `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `keepOffset` | `Boolean`  | `false`     | When scrolling up to load data, keep the same offset as the previous scroll |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container, **for browsers that do not support HTML5 drag events** |
@@ -75,7 +75,6 @@ const items = ref([{id: '1', text: 'abc'}, {id: '2', text: 'def'}]);
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
-| `dragging`   | `Function` | `-`         | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
 | `delay`      | `Number`   | `10`        | Delay time of debounce function |
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
