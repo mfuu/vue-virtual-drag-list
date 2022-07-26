@@ -1,11 +1,41 @@
 import SortableDnd from 'sortable-dnd'
-import { SortableOptions, DragState } from './types'
+
+export interface SortableOptions {
+  getKey: Function;
+  scrollEl: HTMLElement | null;
+  dataSource: any[];
+  disabled: boolean;
+  draggable: string | Function | undefined;
+  ghostStyle: object;
+  ghostClass: string;
+  chosenClass: string;
+  animation: number;
+  autoScroll: boolean;
+  scrollStep: number;
+  scrollThreshold: number;
+}
+
+interface DragStateType {
+  key: any;
+  index: number;
+  item: any;
+}
+
+// drag state
+export class DragState {
+  from: DragStateType;
+  to: DragStateType;
+  constructor() {
+    this.from = { key: undefined, item: undefined, index: -1 }
+    this.to = { key: undefined, item: undefined, index: -1 }
+  }
+}
 
 class Sortable {
   onDrag: Function;
   onDrop: Function;
   dragState: DragState;
-  dragElement: HTMLElement;
+  dragElement?: HTMLElement | null;
   drag: SortableDnd;
   options: SortableOptions;
   dataSource: any[];
@@ -22,16 +52,17 @@ class Sortable {
     this.dragState = new DragState
     this.rangeIsChanged = false
 
+    if (!options.scrollEl) return
     this.init()
   }
 
-  set(key: string, value: any) {
+  set(key: any, value: any) {
     this[key] = value
     // When the list data changes when dragging, need to execute onDrag function
     if (key === 'dataSource' && this.dragElement) this.dragStart(this.dragElement, false)
   }
 
-  setOption(key: string, value: any) {
+  setOption(key: any, value: any) {
     this.options[key] = value
     this.drag.set(key, value)
   }

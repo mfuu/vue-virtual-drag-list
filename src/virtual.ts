@@ -1,4 +1,37 @@
-import { VirtualOptions, CalcSize, Range } from "./types"
+// scroll range
+export class Range {
+  start: number;
+  end: number;
+  front: number;
+  behind: number;
+  constructor(options: any = {}) {
+    this.start = options.start || 0
+    this.end = options.end || 0
+    this.front = options.front || 0
+    this.behind = options.behind || 0
+  } 
+}
+
+export interface VirtualOptions {
+  size: number;
+  keeps: number;
+  uniqueKeys: any[];
+  isHorizontal: boolean;
+}
+export class CalcSize {
+  average: number;
+  total: number;
+  fixed: number;
+  header: number;
+  footer: number;
+  constructor() {
+    this.average = 0 // 计算首次加载每一项的评价高度
+    this.total = 0 // 首次加载的总高度
+    this.fixed = 0 // 记录固定高度值
+    this.header = 0 // 顶部插槽高度
+    this.footer = 0 // 底部插槽高度
+  }
+}
 
 const CACLTYPE = {
   INIT: 'INIT',
@@ -41,7 +74,7 @@ class Virtual {
     this.direction = ''
     this.offset = 0
 
-    this.range = new Range
+    this.range = Object.create(null)
     if (options) this.checkIfUpdate(0, options.keeps - 1)
   }
 
@@ -196,7 +229,7 @@ class Virtual {
   }
 
   // 列表项高度变化
-  handleItemSizeChange(id: T, size: number) {
+  handleItemSizeChange(id: any, size: number) {
     this.sizes.set(id, size)
 
     // 'INIT' 状态表示每一项的高度都相同
@@ -206,7 +239,7 @@ class Virtual {
     } else if (this.isFixed() && this.calcSize.fixed !== size) {
       // 如果当前为 'FIXED' 状态并且 size 与固定高度不同，表示当前高度不固定，fixed值也就不需要了
       this.calcType = CACLTYPE.DYNAMIC
-      this.calcSize.fixed = undefined
+      this.calcSize.fixed = 0
     }
     // 非固定高度的情况下，计算平均高度与总高度
     if (this.calcType !== CACLTYPE.FIXED) {

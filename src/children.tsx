@@ -1,35 +1,61 @@
-import { h, defineComponent } from 'vue'
-import { Observer } from './hooks'
-import { SlotsProps } from './props'
+import { defineComponent, h, ref } from 'vue'
+import { useObserver } from './hooks'
+
+export const SlotsProps = {
+  tag: {
+    type: String,
+    default: 'div'
+  },
+  event: {
+    type: String
+  },
+  dataKey: {
+    type: [String, Number]
+  },
+  isHorizontal: {
+    type: Boolean
+  }
+}
 
 export const Items = defineComponent({
   name: 'virtual-draglist-items',
   props: SlotsProps,
-  render() {
-    const { tag, dataKey } = this
-    return h(Observer, { props: SlotsProps },
-      [
-        h(tag, {
-          key: dataKey,
-          attrs: { 'data-key': dataKey },
-        }, this.$slots.default)
-      ]
-    )
+  setup(props, { emit, slots }) {
+    const itemRef = ref<HTMLElement | null>(null);
+    useObserver(props, itemRef, emit)
+
+    return () => {
+      const { tag: Tag, dataKey } = props
+
+      return h(Tag, {
+        ref: itemRef,
+        key: dataKey,
+        attrs: {
+          'data-key': dataKey
+        }
+      }, slots.default?.())
+    }
   }
 })
 
 export const Slots = defineComponent({
   name: 'virtual-draglist-slots',
   props: SlotsProps,
-  render() {
-    const { tag, dataKey } = this
-    return h(Observer, { props: SlotsProps },
-      [
-        h(tag, {
-          key: dataKey,
-          attrs: { role: dataKey }
-        }, this.$slots.default)
-      ]
-    )
+  setup(props, { emit, slots }) {
+    const slotRef = ref<HTMLElement | null>(null);
+
+    useObserver(props, slotRef, emit)
+
+    return () => {
+      const { tag: Tag, dataKey } = props
+
+      return h(Tag, {
+        ref: slotRef,
+        key: dataKey,
+        attrs: {
+          'data-key': dataKey
+        }
+      }, slots.default?.())
+    }
   }
 })
