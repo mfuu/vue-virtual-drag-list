@@ -4,7 +4,7 @@
 
 A virtual scrolling list component that can be sorted by dragging
 
-For Vue 3 support, see [here](https://github.com/mfuu/vue-virtual-drag-list/tree/next)
+For Vue 3 support, see [here](https://github.com/mfuu/vue3-virtual-drag-list)
 
 ### [Live demo](https://mfuu.github.io/vue-virtual-drag-list/)
 
