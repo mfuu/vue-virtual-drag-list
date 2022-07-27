@@ -391,6 +391,7 @@ const VirtualDragList = defineComponent({
     onUnmounted(() => {
       sortable && sortable.destroy()
       sortable = null
+      virtual = null
     })
 
     // --------------------------- render ------------------------------

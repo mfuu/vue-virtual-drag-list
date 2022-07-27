@@ -2407,6 +2407,7 @@
       vue.onUnmounted(function () {
         sortable && sortable.destroy();
         sortable = null;
+        virtual = null;
       }); // --------------------------- render ------------------------------
 
       return function () {
