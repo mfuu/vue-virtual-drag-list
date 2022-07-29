@@ -114,7 +114,6 @@ Root component:
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
-| `dragging`   | `Function` | `-`         | Specifies the drag element, which must return an HTMLElement: `(e) => e.target` |
 | `delay`      | `Number`   | `10`        | Delay time of debounce function |
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
