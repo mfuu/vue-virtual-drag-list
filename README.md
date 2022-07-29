@@ -18,6 +18,11 @@ Root component:
 ```vue
 <template>
   <div>
+    <!--
+      :draggable="'i'" // use tagName 
+      :draggable="'.drag'" // use class
+      :draggable="'#drag'" // use id
+    -->
     <virtual-drag-list
       :data-key="'id'"
       :data-source="list"
@@ -96,7 +101,7 @@ Root component:
 | `keeps`      | `Number`   | `30`        | The number of lines rendered by the virtual scroll |
 | `size`       | `Number`   | `-`         | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
-| `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable, the function type must return a boolean |
+| `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `keepOffset` | `Boolean`  | `false`     | When scrolling up to load data, keep the same offset as the previous scroll |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container, **for browsers that do not support HTML5 drag events** |
