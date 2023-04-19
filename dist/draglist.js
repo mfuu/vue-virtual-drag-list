@@ -35,6 +35,337 @@
     }
     return target;
   }
+  function _regeneratorRuntime() {
+    _regeneratorRuntime = function () {
+      return exports;
+    };
+    var exports = {},
+      Op = Object.prototype,
+      hasOwn = Op.hasOwnProperty,
+      defineProperty = Object.defineProperty || function (obj, key, desc) {
+        obj[key] = desc.value;
+      },
+      $Symbol = "function" == typeof Symbol ? Symbol : {},
+      iteratorSymbol = $Symbol.iterator || "@@iterator",
+      asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator",
+      toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+    function define(obj, key, value) {
+      return Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: !0,
+        configurable: !0,
+        writable: !0
+      }), obj[key];
+    }
+    try {
+      define({}, "");
+    } catch (err) {
+      define = function (obj, key, value) {
+        return obj[key] = value;
+      };
+    }
+    function wrap(innerFn, outerFn, self, tryLocsList) {
+      var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator,
+        generator = Object.create(protoGenerator.prototype),
+        context = new Context(tryLocsList || []);
+      return defineProperty(generator, "_invoke", {
+        value: makeInvokeMethod(innerFn, self, context)
+      }), generator;
+    }
+    function tryCatch(fn, obj, arg) {
+      try {
+        return {
+          type: "normal",
+          arg: fn.call(obj, arg)
+        };
+      } catch (err) {
+        return {
+          type: "throw",
+          arg: err
+        };
+      }
+    }
+    exports.wrap = wrap;
+    var ContinueSentinel = {};
+    function Generator() {}
+    function GeneratorFunction() {}
+    function GeneratorFunctionPrototype() {}
+    var IteratorPrototype = {};
+    define(IteratorPrototype, iteratorSymbol, function () {
+      return this;
+    });
+    var getProto = Object.getPrototypeOf,
+      NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+    NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype);
+    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
+    function defineIteratorMethods(prototype) {
+      ["next", "throw", "return"].forEach(function (method) {
+        define(prototype, method, function (arg) {
+          return this._invoke(method, arg);
+        });
+      });
+    }
+    function AsyncIterator(generator, PromiseImpl) {
+      function invoke(method, arg, resolve, reject) {
+        var record = tryCatch(generator[method], generator, arg);
+        if ("throw" !== record.type) {
+          var result = record.arg,
+            value = result.value;
+          return value && "object" == typeof value && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) {
+            invoke("next", value, resolve, reject);
+          }, function (err) {
+            invoke("throw", err, resolve, reject);
+          }) : PromiseImpl.resolve(value).then(function (unwrapped) {
+            result.value = unwrapped, resolve(result);
+          }, function (error) {
+            return invoke("throw", error, resolve, reject);
+          });
+        }
+        reject(record.arg);
+      }
+      var previousPromise;
+      defineProperty(this, "_invoke", {
+        value: function (method, arg) {
+          function callInvokeWithMethodAndArg() {
+            return new PromiseImpl(function (resolve, reject) {
+              invoke(method, arg, resolve, reject);
+            });
+          }
+          return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+        }
+      });
+    }
+    function makeInvokeMethod(innerFn, self, context) {
+      var state = "suspendedStart";
+      return function (method, arg) {
+        if ("executing" === state) throw new Error("Generator is already running");
+        if ("completed" === state) {
+          if ("throw" === method) throw arg;
+          return doneResult();
+        }
+        for (context.method = method, context.arg = arg;;) {
+          var delegate = context.delegate;
+          if (delegate) {
+            var delegateResult = maybeInvokeDelegate(delegate, context);
+            if (delegateResult) {
+              if (delegateResult === ContinueSentinel) continue;
+              return delegateResult;
+            }
+          }
+          if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) {
+            if ("suspendedStart" === state) throw state = "completed", context.arg;
+            context.dispatchException(context.arg);
+          } else "return" === context.method && context.abrupt("return", context.arg);
+          state = "executing";
+          var record = tryCatch(innerFn, self, context);
+          if ("normal" === record.type) {
+            if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue;
+            return {
+              value: record.arg,
+              done: context.done
+            };
+          }
+          "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg);
+        }
+      };
+    }
+    function maybeInvokeDelegate(delegate, context) {
+      var methodName = context.method,
+        method = delegate.iterator[methodName];
+      if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator.return && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel;
+      var record = tryCatch(method, delegate.iterator, context.arg);
+      if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel;
+      var info = record.arg;
+      return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel);
+    }
+    function pushTryEntry(locs) {
+      var entry = {
+        tryLoc: locs[0]
+      };
+      1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry);
+    }
+    function resetTryEntry(entry) {
+      var record = entry.completion || {};
+      record.type = "normal", delete record.arg, entry.completion = record;
+    }
+    function Context(tryLocsList) {
+      this.tryEntries = [{
+        tryLoc: "root"
+      }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0);
+    }
+    function values(iterable) {
+      if (iterable) {
+        var iteratorMethod = iterable[iteratorSymbol];
+        if (iteratorMethod) return iteratorMethod.call(iterable);
+        if ("function" == typeof iterable.next) return iterable;
+        if (!isNaN(iterable.length)) {
+          var i = -1,
+            next = function next() {
+              for (; ++i < iterable.length;) if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next;
+              return next.value = undefined, next.done = !0, next;
+            };
+          return next.next = next;
+        }
+      }
+      return {
+        next: doneResult
+      };
+    }
+    function doneResult() {
+      return {
+        value: undefined,
+        done: !0
+      };
+    }
+    return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", {
+      value: GeneratorFunctionPrototype,
+      configurable: !0
+    }), defineProperty(GeneratorFunctionPrototype, "constructor", {
+      value: GeneratorFunction,
+      configurable: !0
+    }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) {
+      var ctor = "function" == typeof genFun && genFun.constructor;
+      return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name));
+    }, exports.mark = function (genFun) {
+      return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun;
+    }, exports.awrap = function (arg) {
+      return {
+        __await: arg
+      };
+    }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () {
+      return this;
+    }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+      void 0 === PromiseImpl && (PromiseImpl = Promise);
+      var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
+      return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) {
+        return result.done ? result.value : iter.next();
+      });
+    }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () {
+      return this;
+    }), define(Gp, "toString", function () {
+      return "[object Generator]";
+    }), exports.keys = function (val) {
+      var object = Object(val),
+        keys = [];
+      for (var key in object) keys.push(key);
+      return keys.reverse(), function next() {
+        for (; keys.length;) {
+          var key = keys.pop();
+          if (key in object) return next.value = key, next.done = !1, next;
+        }
+        return next.done = !0, next;
+      };
+    }, exports.values = values, Context.prototype = {
+      constructor: Context,
+      reset: function (skipTempReset) {
+        if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined);
+      },
+      stop: function () {
+        this.done = !0;
+        var rootRecord = this.tryEntries[0].completion;
+        if ("throw" === rootRecord.type) throw rootRecord.arg;
+        return this.rval;
+      },
+      dispatchException: function (exception) {
+        if (this.done) throw exception;
+        var context = this;
+        function handle(loc, caught) {
+          return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught;
+        }
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i],
+            record = entry.completion;
+          if ("root" === entry.tryLoc) return handle("end");
+          if (entry.tryLoc <= this.prev) {
+            var hasCatch = hasOwn.call(entry, "catchLoc"),
+              hasFinally = hasOwn.call(entry, "finallyLoc");
+            if (hasCatch && hasFinally) {
+              if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0);
+              if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc);
+            } else if (hasCatch) {
+              if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0);
+            } else {
+              if (!hasFinally) throw new Error("try statement without catch or finally");
+              if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc);
+            }
+          }
+        }
+      },
+      abrupt: function (type, arg) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+          if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
+            var finallyEntry = entry;
+            break;
+          }
+        }
+        finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null);
+        var record = finallyEntry ? finallyEntry.completion : {};
+        return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record);
+      },
+      complete: function (record, afterLoc) {
+        if ("throw" === record.type) throw record.arg;
+        return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel;
+      },
+      finish: function (finallyLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+          if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel;
+        }
+      },
+      catch: function (tryLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+          if (entry.tryLoc === tryLoc) {
+            var record = entry.completion;
+            if ("throw" === record.type) {
+              var thrown = record.arg;
+              resetTryEntry(entry);
+            }
+            return thrown;
+          }
+        }
+        throw new Error("illegal catch attempt");
+      },
+      delegateYield: function (iterable, resultName, nextLoc) {
+        return this.delegate = {
+          iterator: values(iterable),
+          resultName: resultName,
+          nextLoc: nextLoc
+        }, "next" === this.method && (this.arg = undefined), ContinueSentinel;
+      }
+    }, exports;
+  }
+  function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+    try {
+      var info = gen[key](arg);
+      var value = info.value;
+    } catch (error) {
+      reject(error);
+      return;
+    }
+    if (info.done) {
+      resolve(value);
+    } else {
+      Promise.resolve(value).then(_next, _throw);
+    }
+  }
+  function _asyncToGenerator(fn) {
+    return function () {
+      var self = this,
+        args = arguments;
+      return new Promise(function (resolve, reject) {
+        var gen = fn.apply(self, args);
+        function _next(value) {
+          asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+        }
+        function _throw(err) {
+          asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+        }
+        _next(undefined);
+      });
+    };
+  }
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -231,227 +562,106 @@
     }
   };
 
-  // scroll range
-  var Range = /*#__PURE__*/_createClass(function Range() {
-    _classCallCheck(this, Range);
-    this.start = 0;
-    this.end = 0;
-    this.front = 0;
-    this.behind = 0;
-  });
-
-  // drag state
-  var DragState = /*#__PURE__*/_createClass(function DragState() {
-    _classCallCheck(this, DragState);
-    this.from = {
-      list: [],
-      key: undefined,
-      item: undefined,
-      index: -1
-    };
-    this.to = {
-      list: [],
-      key: undefined,
-      item: undefined,
-      index: -1
-    };
-  });
-
-  // virtual state
-  var CalcSize = /*#__PURE__*/_createClass(function CalcSize() {
-    _classCallCheck(this, CalcSize);
-    this.average = undefined;
-    this.total = undefined;
-    this.fixed = undefined;
-    this.header = undefined;
-    this.footer = undefined;
-  });
-
-  var CACLTYPE = {
-    INIT: 'INIT',
-    FIXED: 'FIXED',
-    DYNAMIC: 'DYNAMIC'
-  };
-  var DIRECTION = {
-    FRONT: 'FRONT',
-    BEHIND: 'BEHIND'
-  };
-  function Virtual(options, callback) {
-    this.options = options;
-    this.callback = callback;
-    this.sizes = new Map(); // store item size
-    this.isHorizontal = options.isHorizontal;
-    this.calcIndex = 0; // record last index
-    this.calcType = CACLTYPE.INIT;
-    this.calcSize = new CalcSize();
-    this.direction = '';
-    this.offset = 0;
-    this.range = new Range();
-    if (options) this.checkIfUpdate(0, options.keeps - 1);
-  }
-  Virtual.prototype = {
-    construcrot: Virtual,
-    // --------------------------- update ------------------------------
-    updateUniqueKeys: function updateUniqueKeys(value) {
-      this.options.uniqueKeys = value;
-    },
-    // Deletes data that is not in the current list
-    updateSizes: function updateSizes(uniqueKeys) {
+  /**
+   * @param {Function} func callback function
+   * @param {Number} delay debounce time
+   * @param {Boolean} immediate whether to execute immediately
+   * @returns function
+   */
+  function debounce(func) {
+    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
+    var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+    var timer = null;
+    var result;
+    var debounced = function debounced() {
       var _this = this;
-      this.sizes.forEach(function (v, k) {
-        if (!uniqueKeys.includes(k)) _this.sizes["delete"](k);
-      });
-    },
-    updateRange: function updateRange() {
-      var _this2 = this;
-      // check if need to update until loaded enough list item
-      var start = Math.max(this.range.start, 0);
-      var length = Math.min(this.options.keeps, this.options.uniqueKeys.length);
-      if (this.sizes.size >= length - 1) {
-        this.handleUpdate(start, this.getEndByStart(start));
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      if (timer) clearTimeout(timer);
+      if (immediate) {
+        var callNow = !timer;
+        timer = setTimeout(function () {
+          timer = null;
+        }, delay);
+        if (callNow) result = func.apply(this, args);
       } else {
-        if (window.requestAnimationFrame) {
-          window.requestAnimationFrame(function () {
-            return _this2.updateRange();
-          });
-        } else {
-          setTimeout(function () {
-            return _this2.updateRange();
-          }, 3);
-        }
+        timer = setTimeout(function () {
+          func.apply(_this, args);
+        }, delay);
+      }
+      return result;
+    };
+    debounced.cancel = function () {
+      clearTimeout(timer);
+      timer = null;
+    };
+    return debounced;
+  }
+
+  var observer = {
+    inject: ['virtualList'],
+    data: function data() {
+      return {
+        observer: null
+      };
+    },
+    mounted: function mounted() {
+      var _this = this;
+      if (typeof ResizeObserver !== 'undefined') {
+        this.observer = new ResizeObserver(function () {
+          _this.onSizeChange();
+        });
+        this.$el && this.observer.observe(this.$el);
       }
     },
-    // --------------------------- scroll ------------------------------
-    handleScroll: function handleScroll(offset) {
-      this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
-      this.offset = offset;
-      var scrolls = this.getScrollItems(offset);
-      if (this.isFront()) {
-        this.handleScrollFront(scrolls);
-      } else if (this.isBehind()) {
-        this.handleScrollBehind(scrolls);
+    updated: function updated() {
+      this.onSizeChange();
+    },
+    beforeDestroy: function beforeDestroy() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
       }
     },
-    isFront: function isFront() {
-      return this.direction === DIRECTION.FRONT;
-    },
-    isBehind: function isBehind() {
-      return this.direction === DIRECTION.BEHIND;
-    },
-    isFixed: function isFixed() {
-      return this.calcType === CACLTYPE.FIXED;
-    },
-    getScrollItems: function getScrollItems(offset) {
-      var _this$calcSize = this.calcSize,
-        fixed = _this$calcSize.fixed,
-        header = _this$calcSize.header;
-      if (header) offset -= header;
-      if (offset <= 0) return 0;
-      if (this.isFixed()) return Math.floor(offset / fixed);
-      var low = 0,
-        high = this.options.uniqueKeys.length;
-      var middle = 0,
-        middleOffset = 0;
-      while (low <= high) {
-        middle = low + Math.floor((high - low) / 2);
-        middleOffset = this.getOffsetByIndex(middle);
-        if (middleOffset === offset) return middle;else if (middleOffset < offset) low = middle + 1;else if (middleOffset > offset) high = middle - 1;
+    methods: {
+      onSizeChange: function onSizeChange() {
+        this.virtualList[this.event](this.dataKey, this.getCurrentSize());
+      },
+      getCurrentSize: function getCurrentSize() {
+        var sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
+        return this.$el ? this.$el[sizeKey] : 0;
       }
-      return low > 0 ? --low : 0;
-    },
-    handleScrollFront: function handleScrollFront(scrolls) {
-      if (scrolls > this.range.start) return;
-      var start = Math.max(scrolls - Math.round(this.options.keeps / 3), 0);
-      this.checkIfUpdate(start, this.getEndByStart(start));
-    },
-    handleScrollBehind: function handleScrollBehind(scrolls) {
-      if (scrolls < this.range.start + Math.round(this.options.keeps / 3)) return;
-      this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
-    },
-    checkIfUpdate: function checkIfUpdate(start, end) {
-      var _this$options = this.options,
-        uniqueKeys = _this$options.uniqueKeys,
-        keeps = _this$options.keeps;
-      if (uniqueKeys.length <= keeps) {
-        start = 0;
-        end = uniqueKeys.length - 1;
-      } else if (end - start < keeps - 1) {
-        start = end - keeps + 1;
-      }
-      if (this.range.start !== start) this.handleUpdate(start, end);
-    },
-    handleUpdate: function handleUpdate(start, end) {
-      this.range.start = start;
-      this.range.end = end;
-      this.range.front = this.getFrontOffset();
-      this.range.behind = this.getBehindOffset();
-      this.callback(_objectSpread2({}, this.range));
-    },
-    getFrontOffset: function getFrontOffset() {
-      if (this.isFixed()) {
-        return this.calcSize.fixed * this.range.start;
-      } else {
-        return this.getOffsetByIndex(this.range.start);
-      }
-    },
-    getBehindOffset: function getBehindOffset() {
-      var last = this.getLastIndex();
-      if (this.isFixed()) {
-        return (last - this.range.end) * this.calcSize.fixed;
-      }
-      if (this.calcIndex === last) {
-        return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.range.end);
-      }
-      return (last - this.range.end) * this.getItemSize();
-    },
-    getOffsetByIndex: function getOffsetByIndex(index) {
-      if (!index) return 0;
-      var offset = 0;
-      for (var i = 0; i < index; i++) {
-        var size = this.sizes.get(this.options.uniqueKeys[i]);
-        offset = offset + (typeof size === 'number' ? size : this.getItemSize());
-      }
-      this.calcIndex = Math.max(this.calcIndex, index - 1);
-      this.calcIndex = Math.min(this.calcIndex, this.getLastIndex());
-      return offset;
-    },
-    getEndByStart: function getEndByStart(start) {
-      return Math.min(start + this.options.keeps - 1, this.getLastIndex());
-    },
-    getLastIndex: function getLastIndex() {
-      var _this$options2 = this.options,
-        uniqueKeys = _this$options2.uniqueKeys,
-        keeps = _this$options2.keeps;
-      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
-    },
-    // --------------------------- size change ------------------------------
-    getItemSize: function getItemSize() {
-      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
-    },
-    handleItemSizeChange: function handleItemSizeChange(id, size) {
-      this.sizes.set(id, size);
-      if (this.calcType === CACLTYPE.INIT) {
-        this.calcType = CACLTYPE.FIXED;
-        this.calcSize.fixed = size;
-      } else if (this.isFixed() && this.calcSize.fixed !== size) {
-        this.calcType = CACLTYPE.DYNAMIC;
-        this.calcSize.fixed = undefined;
-      }
-      // In the case of non-fixed heights, the average height and the total height are calculated
-      if (this.calcType !== CACLTYPE.FIXED) {
-        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
-          return t + i;
-        }, 0);
-        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
-      }
-    },
-    handleHeaderSizeChange: function handleHeaderSizeChange(size) {
-      this.calcSize.header = size;
-    },
-    handleFooterSizeChange: function handleFooterSizeChange(size) {
-      this.calcSize.footer = size;
     }
   };
+  var Items = Vue__default["default"].component('virtual-draglist-items', {
+    mixins: [observer],
+    props: SlotsProps,
+    render: function render(h) {
+      var tag = this.tag,
+        dataKey = this.dataKey;
+      return h(tag, {
+        key: dataKey,
+        attrs: {
+          'data-key': dataKey
+        }
+      }, this.$slots["default"]);
+    }
+  });
+  var Slots = Vue__default["default"].component('virtual-draglist-slots', {
+    mixins: [observer],
+    props: SlotsProps,
+    render: function render(h) {
+      var tag = this.tag,
+        dataKey = this.dataKey;
+      return h(tag, {
+        key: dataKey,
+        attrs: {
+          role: dataKey
+        }
+      }, this.$slots["default"]);
+    }
+  });
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1789,300 +1999,558 @@
   });
   });
 
-  var dragState = new DragState();
+  var storeKey = 'virtualSortableState';
+  function Storage() {}
+  Storage.prototype = {
+    constructor: Storage,
+    clear: function clear() {
+      localStorage.removeItem(storeKey);
+    },
+    /**
+     * @returns drag states: { from, to }
+     */
+    getValue: function getValue() {
+      return new Promise(function (resolve, reject) {
+        try {
+          var result = JSON.parse(localStorage.getItem(storeKey));
+          resolve(result);
+        } catch (e) {
+          reject({});
+        }
+      });
+    },
+    /**
+     * @param {*} value { from, to }
+     */
+    setValue: function setValue(value) {
+      return new Promise(function (resolve, reject) {
+        try {
+          var store = JSON.parse(localStorage.getItem(storeKey));
+          var result = JSON.stringify(_objectSpread2(_objectSpread2({}, store), value));
+          localStorage.setItem(storeKey, result);
+          resolve(result);
+        } catch (e) {
+          reject({});
+        }
+      });
+    }
+  };
+
+  var attributes = ['group', 'handle', 'disabled', 'draggable', 'ghostClass', 'ghostStyle', 'chosenClass', 'animation', 'autoScroll', 'scrollThreshold'];
+  var storage = new Storage();
   var dragEl = null;
-  function Sortable(options, onDrag, onDrop) {
-    this.options = options;
-    this.onDrag = onDrag;
-    this.onDrop = onDrop;
-    this.list = options.list;
-    this.cloneList = _toConsumableArray(this.list);
+  function Sortable(context, callback) {
+    this.context = context;
+    this.callback = callback;
+    this.initialList = _toConsumableArray(context.list);
+    this.dynamicList = _toConsumableArray(context.list);
     this.drag = null;
     this.rangeIsChanged = false;
-    this.init();
+    this._init();
   }
   Sortable.prototype = {
     constructor: Sortable,
-    set: function set(key, value) {
+    destroy: function destroy() {
+      this.drag && this.drag.destroy();
+      this.drag = null;
+    },
+    getState: function getState() {
+      return storage.getValue();
+    },
+    setValue: function setValue(key, value) {
       if (key === 'list') {
-        this.list = value;
+        this.initialList = value;
         // When the list data changes when dragging, need to execute onDrag function
-        if (dragEl) this.dragStart(dragEl, false);
+        if (dragEl) this._onDrag(dragEl, false);
       } else {
-        this.options[key] = value;
+        this.context[key] = value;
         this.drag.set(key, value);
       }
     },
-    init: function init() {
+    _init: function _init() {
       var _this = this;
-      var _this$options = this.options,
-        group = _this$options.group,
-        handle = _this$options.handle,
-        disabled = _this$options.disabled,
-        draggable = _this$options.draggable,
-        ghostClass = _this$options.ghostClass,
-        ghostStyle = _this$options.ghostStyle,
-        chosenClass = _this$options.chosenClass,
-        animation = _this$options.animation,
-        autoScroll = _this$options.autoScroll,
-        scrollStep = _this$options.scrollStep,
-        scrollThreshold = _this$options.scrollThreshold;
-      this.drag = new sortable(this.options.scrollEl, {
-        group: group,
-        handle: handle,
-        disabled: disabled,
-        draggable: draggable,
-        ghostClass: ghostClass,
-        ghostStyle: ghostStyle,
-        chosenClass: chosenClass,
-        animation: animation,
-        autoScroll: autoScroll,
-        scrollStep: scrollStep,
-        scrollThreshold: scrollThreshold,
-        onChange: function onChange(_ref) {
-          var from = _ref.from,
-            to = _ref.to;
-          return _this.onChange(from, to);
+      var props = attributes.reduce(function (res, key) {
+        res[key] = _this.context[key];
+        return res;
+      }, {});
+      this.drag = new sortable(this.context.$refs.group, _objectSpread2(_objectSpread2({}, props), {}, {
+        initialList: this.initialList,
+        onDrag: function onDrag(_ref) {
+          var from = _ref.from;
+          return _this._onDrag(from.node);
         },
-        onDrag: function onDrag(_ref2) {
-          var from = _ref2.from;
-          return _this.dragStart(from.node);
+        onDrop: function onDrop(_ref2) {
+          var changed = _ref2.changed;
+          return _this._onDrop(changed);
         },
-        onDrop: function onDrop(_ref3) {
-          var changed = _ref3.changed;
-          return _this.dragEnd(changed);
+        onChange: function onChange(_ref3) {
+          var from = _ref3.from,
+            to = _ref3.to;
+          return _this._onChange(from, to);
         },
         onAdd: function onAdd(_ref4) {
           var from = _ref4.from,
             to = _ref4.to;
-          return _this.onAdd(from, to);
+          return _this._onAdd(from, to);
         },
         onRemove: function onRemove(_ref5) {
           var from = _ref5.from,
             to = _ref5.to;
-          return _this.onRemove(from, to);
+          return _this._onRemove(from, to);
         }
-      });
+      }));
     },
-    dragStart: function dragStart(node) {
-      var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      dragEl = node;
-      this.cloneList = _toConsumableArray(this.list);
-      var key = dragEl.dataset.key;
-      var index = this.getIndex(this.list, key);
-      if (index > -1) {
-        Object.assign(dragState.from, {
-          list: _toConsumableArray(this.list),
-          item: this.list[index],
-          index: index,
-          key: key
-        });
-      }
-      if (callback) {
-        this.rangeIsChanged = false;
-        // on-drag callback
-        this.onDrag(dragState.from, dragEl);
-      } else {
-        this.rangeIsChanged = true;
-      }
+    _onDrag: function _onDrag(node) {
+      var _arguments = arguments,
+        _this2 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+        var callback, key, index, res;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              callback = _arguments.length > 1 && _arguments[1] !== undefined ? _arguments[1] : true;
+              dragEl = node;
+              _this2.dynamicList = _toConsumableArray(_this2.initialList);
+              key = node.dataset.key;
+              index = _this2._getIndex(_this2.initialList, key);
+              if (index > -1) {
+                storage.setValue({
+                  from: {
+                    list: _toConsumableArray(_this2.initialList),
+                    item: _this2.initialList[index],
+                    index: index,
+                    key: key
+                  }
+                });
+              }
+              if (!callback) {
+                _context.next = 14;
+                break;
+              }
+              _this2.rangeIsChanged = false;
+              _context.next = 10;
+              return storage.getValue();
+            case 10:
+              res = _context.sent;
+              _this2.context.$emit('drag', _objectSpread2({
+                list: _this2.list
+              }, res));
+              _context.next = 15;
+              break;
+            case 14:
+              _this2.rangeIsChanged = true;
+            case 15:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee);
+      }))();
     },
-    onAdd: function onAdd(_from, _to) {
-      var oldKey = _from.node.dataset.key;
-      var newKey = _to.node.dataset.key;
-      var newIndex = this.getIndex(this.cloneList, newKey);
-      var oldIndex = this.getIndex(dragState.from.list, oldKey);
-      var oldItem = dragState.from.list[oldIndex];
-      this.cloneList.splice(newIndex, 0, oldItem);
-    },
-    onRemove: function onRemove(_from, _to) {
-      var oldKey = _from.node.dataset.key;
-      var oldIndex = this.getIndex(this.cloneList, oldKey);
-      this.cloneList.splice(oldIndex, 1);
-    },
-    onChange: function onChange(_from, _to) {
-      var _this2 = this;
-      var oldKey = dragState.from.key;
-      var newKey = _to.node.dataset.key;
-      var from = {
-        item: null,
-        index: -1
-      };
-      var to = {
-        item: null,
-        index: -1
-      };
-      this.cloneList.forEach(function (el, index) {
-        var key = _this2.options.getDataKey(el);
-        if (key == oldKey) Object.assign(from, {
-          item: el,
-          index: index
-        });
-        if (key == newKey) Object.assign(to, {
-          item: el,
-          index: index
-        });
-      });
-      this.cloneList.splice(from.index, 1);
-      this.cloneList.splice(to.index, 0, from.item);
-    },
-    dragEnd: function dragEnd(changed) {
+    _onAdd: function _onAdd(from, to) {
       var _this3 = this;
-      dragEl && dragEl.remove();
-      var getDataKey = this.options.getDataKey;
-      var _dragState = dragState,
-        from = _dragState.from;
-      this.cloneList.forEach(function (el, index) {
-        if (getDataKey(el) == from.key) dragState.to = {
-          list: _toConsumableArray(_this3.cloneList),
-          item: _this3.cloneList[index],
-          key: getDataKey(el),
-          index: index
-        };
-      });
-      console.log(dragState);
-      // on-drop callback
-      this.onDrop(this.cloneList, from, dragState.to, changed);
-      this.list = _toConsumableArray(this.cloneList);
-      this.clear();
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+        var state, oldKey, newKey, newIndex, oldIndex, newItem, oldItem, res;
+        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              _context2.next = 2;
+              return storage.getValue();
+            case 2:
+              state = _context2.sent;
+              oldKey = from.node.dataset.key;
+              newKey = to.node.dataset.key;
+              newIndex = _this3._getIndex(_this3.dynamicList, newKey);
+              oldIndex = _this3._getIndex(state.from.list, oldKey);
+              newItem = _this3.dynamicList[newIndex];
+              oldItem = state.from.list[oldIndex];
+              _this3.dynamicList.splice(newIndex, 0, oldItem);
+              _context2.next = 12;
+              return storage.setValue({
+                from: {
+                  list: _toConsumableArray(state.from.list),
+                  item: oldItem,
+                  index: oldIndex,
+                  key: oldKey
+                },
+                to: {
+                  list: _toConsumableArray(_this3.dynamicList),
+                  item: newItem,
+                  index: newIndex,
+                  key: newKey
+                }
+              });
+            case 12:
+              _context2.next = 14;
+              return storage.getValue();
+            case 14:
+              res = _context2.sent;
+              _this3.context.$emit('add', _objectSpread2({
+                list: _this3.dynamicList
+              }, res));
+            case 16:
+            case "end":
+              return _context2.stop();
+          }
+        }, _callee2);
+      }))();
     },
-    getIndex: function getIndex(list, key) {
+    _onRemove: function _onRemove(from, to) {
       var _this4 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+        var state, toList, oldKey, newKey, oldIndex, newIndex, oldItem, newItem, res;
+        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              _context3.next = 2;
+              return storage.getValue();
+            case 2:
+              state = _context3.sent;
+              toList = to.sortable.options.initialList;
+              oldKey = from.node.dataset.key;
+              newKey = to.node.dataset.key;
+              oldIndex = _this4._getIndex(_this4.dynamicList, oldKey);
+              newIndex = _this4._getIndex(toList, newKey);
+              oldItem = _this4.dynamicList[oldIndex];
+              newItem = toList[newIndex];
+              _context3.next = 12;
+              return storage.setValue({
+                from: {
+                  list: _toConsumableArray(state.from.list),
+                  item: oldItem,
+                  index: oldIndex,
+                  key: oldKey
+                },
+                to: {
+                  list: _toConsumableArray(_this4.dynamicList),
+                  item: newItem,
+                  index: newIndex,
+                  key: newKey
+                }
+              });
+            case 12:
+              _context3.next = 14;
+              return storage.getValue();
+            case 14:
+              res = _context3.sent;
+              _this4.context.$emit('remove', _objectSpread2({
+                list: _this4.dynamicList
+              }, res));
+            case 16:
+            case "end":
+              return _context3.stop();
+          }
+        }, _callee3);
+      }))();
+    },
+    _onChange: function _onChange(from, to) {
+      var _this5 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+        var state, oldKey, newKey, oldIndex, oldItem, newIndex;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.next = 2;
+              return storage.getValue();
+            case 2:
+              state = _context4.sent;
+              oldKey = state.from.key;
+              newKey = to.node.dataset.key;
+              oldIndex = -1;
+              oldItem = null;
+              newIndex = -1;
+              _this5.dynamicList.forEach(function (item, index) {
+                var key = _this5.context._getDataKey(item);
+                if (key == oldKey) {
+                  oldIndex = index;
+                  oldItem = item;
+                }
+                if (key == newKey) {
+                  newIndex = index;
+                }
+              });
+              _this5.dynamicList.splice(oldIndex, 1);
+              _this5.dynamicList.splice(newIndex, 0, oldItem);
+            case 12:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee4);
+      }))();
+    },
+    _onDrop: function _onDrop(changed) {
+      var _this6 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+        var state, _getDataKey, res, params;
+        return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+          while (1) switch (_context6.prev = _context6.next) {
+            case 0:
+              dragEl && dragEl.remove();
+              _context6.next = 3;
+              return storage.getValue();
+            case 3:
+              state = _context6.sent;
+              _getDataKey = _this6.context._getDataKey;
+              _this6.dynamicList.forEach( /*#__PURE__*/function () {
+                var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(item, index) {
+                  return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+                    while (1) switch (_context5.prev = _context5.next) {
+                      case 0:
+                        if (!(_getDataKey(item) == state.from.key)) {
+                          _context5.next = 3;
+                          break;
+                        }
+                        _context5.next = 3;
+                        return storage.setValue({
+                          to: {
+                            list: _toConsumableArray(_this6.dynamicList),
+                            item: _this6.dynamicList[index],
+                            key: _getDataKey(item),
+                            index: index
+                          }
+                        });
+                      case 3:
+                      case "end":
+                        return _context5.stop();
+                    }
+                  }, _callee5);
+                }));
+                return function (_x, _x2) {
+                  return _ref6.apply(this, arguments);
+                };
+              }());
+              _context6.next = 8;
+              return storage.getValue();
+            case 8:
+              res = _context6.sent;
+              params = _objectSpread2(_objectSpread2({
+                list: _this6.dynamicList
+              }, res), {}, {
+                changed: changed
+              });
+              _this6.context.$emit('drop', params);
+              _this6.callback && _this6.callback(params);
+              _this6.initialList = _toConsumableArray(_this6.dynamicList);
+              _this6._clear();
+            case 14:
+            case "end":
+              return _context6.stop();
+          }
+        }, _callee6);
+      }))();
+    },
+    _getIndex: function _getIndex(list, key) {
+      var _this7 = this;
       return list.findIndex(function (item) {
-        return _this4.options.getDataKey(item) == key;
+        return _this7.context._getDataKey(item) == key;
       });
     },
-    clear: function clear() {
+    _clear: function _clear() {
       dragEl = null;
+      storage.clear();
       this.rangeIsChanged = false;
-      dragState = new DragState();
-    },
-    destroy: function destroy() {
-      this.drag && this.drag.destroy();
-      this.drag = null;
     }
   };
 
-  var observer = {
-    inject: ['virtualList'],
-    data: function data() {
-      return {
-        observer: null
-      };
-    },
-    mounted: function mounted() {
-      var _this = this;
-      if (typeof ResizeObserver !== 'undefined') {
-        this.observer = new ResizeObserver(function () {
-          _this.onSizeChange();
-        });
-        this.$el && this.observer.observe(this.$el);
-      }
-    },
-    updated: function updated() {
-      this.onSizeChange();
-    },
-    beforeDestroy: function beforeDestroy() {
-      if (this.observer) {
-        this.observer.disconnect();
-        this.observer = null;
-      }
-    },
-    methods: {
-      onSizeChange: function onSizeChange() {
-        this.virtualList[this.event](this.dataKey, this.getCurrentSize());
-      },
-      getCurrentSize: function getCurrentSize() {
-        var sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
-        return this.$el ? this.$el[sizeKey] : 0;
-      }
-    }
+  var Range = /*#__PURE__*/_createClass(function Range() {
+    _classCallCheck(this, Range);
+    this.start = 0;
+    this.end = 0;
+    this.front = 0;
+    this.behind = 0;
+  });
+  var CalcSize = /*#__PURE__*/_createClass(function CalcSize() {
+    _classCallCheck(this, CalcSize);
+    this.average = undefined;
+    this.total = undefined;
+    this.fixed = undefined;
+    this.header = undefined;
+    this.footer = undefined;
+  });
+  var CACLTYPE = {
+    INIT: 'INIT',
+    FIXED: 'FIXED',
+    DYNAMIC: 'DYNAMIC'
   };
-  var Items = Vue__default["default"].component('virtual-draglist-items', {
-    mixins: [observer],
-    props: SlotsProps,
-    render: function render(h) {
-      var tag = this.tag,
-        dataKey = this.dataKey;
-      return h(tag, {
-        key: dataKey,
-        attrs: {
-          'data-key': dataKey
-        }
-      }, this.$slots["default"]);
-    }
-  });
-  var Slots = Vue__default["default"].component('virtual-draglist-slots', {
-    mixins: [observer],
-    props: SlotsProps,
-    render: function render(h) {
-      var tag = this.tag,
-        dataKey = this.dataKey;
-      return h(tag, {
-        key: dataKey,
-        attrs: {
-          role: dataKey
-        }
-      }, this.$slots["default"]);
-    }
-  });
-
-  /**
-   * 防抖
-   * @param {Function} func callback function
-   * @param {Number} delay debounce time
-   * @param {Boolean} immediate whether to execute immediately
-   * @returns function
-   */
-  function debounce(func) {
-    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
-    var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    var timer = null;
-    var result;
-    var debounced = function debounced() {
+  var DIRECTION = {
+    FRONT: 'FRONT',
+    BEHIND: 'BEHIND'
+  };
+  function Virtual(options, callback) {
+    this.options = options;
+    this.callback = callback;
+    this.sizes = new Map(); // store item size
+    this.isHorizontal = options.isHorizontal;
+    this.calcIndex = 0; // record last index
+    this.calcType = CACLTYPE.INIT;
+    this.calcSize = new CalcSize();
+    this.direction = '';
+    this.offset = 0;
+    this.range = new Range();
+    if (options) this.checkIfUpdate(0, options.keeps - 1);
+  }
+  Virtual.prototype = {
+    constructor: Virtual,
+    // --------------------------- update ------------------------------
+    updateUniqueKeys: function updateUniqueKeys(value) {
+      this.options.uniqueKeys = value;
+    },
+    // Deletes data that is not in the current list
+    updateSizes: function updateSizes(uniqueKeys) {
       var _this = this;
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      if (timer) clearTimeout(timer);
-      if (immediate) {
-        var callNow = !timer;
-        timer = setTimeout(function () {
-          timer = null;
-        }, delay);
-        if (callNow) result = func.apply(this, args);
+      this.sizes.forEach(function (v, k) {
+        if (!uniqueKeys.includes(k)) _this.sizes["delete"](k);
+      });
+    },
+    updateRange: function updateRange() {
+      var _this2 = this;
+      // check if need to update until loaded enough list item
+      var start = Math.max(this.range.start, 0);
+      var length = Math.min(this.options.keeps, this.options.uniqueKeys.length);
+      if (this.sizes.size >= length - 1) {
+        this.handleUpdate(start, this.getEndByStart(start));
       } else {
-        timer = setTimeout(function () {
-          func.apply(_this, args);
-        }, delay);
+        if (window.requestAnimationFrame) {
+          window.requestAnimationFrame(function () {
+            return _this2.updateRange();
+          });
+        } else {
+          setTimeout(function () {
+            return _this2.updateRange();
+          }, 3);
+        }
       }
-      return result;
-    };
-    debounced.cancel = function () {
-      clearTimeout(timer);
-      timer = null;
-    };
-    return debounced;
-  }
-
-  /**
-   * 节流
-   * @param {Function} fn callback function
-   * @param {Number} delay throttle time
-   * @returns
-   */
-  function throttle(fn, delay) {
-    var timer = null;
-    return function () {
-      var context = this,
-        args = arguments;
-      if (!timer) {
-        timer = setTimeout(function () {
-          timer = null;
-          fn.apply(context, args);
-        }, delay);
+    },
+    // --------------------------- scroll ------------------------------
+    handleScroll: function handleScroll(offset) {
+      this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
+      this.offset = offset;
+      var scrolls = this.getScrollItems(offset);
+      if (this.isFront()) {
+        this.handleScrollFront(scrolls);
+      } else if (this.isBehind()) {
+        this.handleScrollBehind(scrolls);
       }
-    };
-  }
+    },
+    isFront: function isFront() {
+      return this.direction === DIRECTION.FRONT;
+    },
+    isBehind: function isBehind() {
+      return this.direction === DIRECTION.BEHIND;
+    },
+    isFixed: function isFixed() {
+      return this.calcType === CACLTYPE.FIXED;
+    },
+    getScrollItems: function getScrollItems(offset) {
+      var _this$calcSize = this.calcSize,
+        fixed = _this$calcSize.fixed,
+        header = _this$calcSize.header;
+      if (header) offset -= header;
+      if (offset <= 0) return 0;
+      if (this.isFixed()) return Math.floor(offset / fixed);
+      var low = 0,
+        high = this.options.uniqueKeys.length;
+      var middle = 0,
+        middleOffset = 0;
+      while (low <= high) {
+        middle = low + Math.floor((high - low) / 2);
+        middleOffset = this.getOffsetByIndex(middle);
+        if (middleOffset === offset) return middle;else if (middleOffset < offset) low = middle + 1;else if (middleOffset > offset) high = middle - 1;
+      }
+      return low > 0 ? --low : 0;
+    },
+    handleScrollFront: function handleScrollFront(scrolls) {
+      if (scrolls > this.range.start) return;
+      var start = Math.max(scrolls - Math.round(this.options.keeps / 3), 0);
+      this.checkIfUpdate(start, this.getEndByStart(start));
+    },
+    handleScrollBehind: function handleScrollBehind(scrolls) {
+      if (scrolls < this.range.start + Math.round(this.options.keeps / 3)) return;
+      this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
+    },
+    checkIfUpdate: function checkIfUpdate(start, end) {
+      var _this$options = this.options,
+        uniqueKeys = _this$options.uniqueKeys,
+        keeps = _this$options.keeps;
+      if (uniqueKeys.length <= keeps) {
+        start = 0;
+        end = uniqueKeys.length - 1;
+      } else if (end - start < keeps - 1) {
+        start = end - keeps + 1;
+      }
+      if (this.range.start !== start) this.handleUpdate(start, end);
+    },
+    handleUpdate: function handleUpdate(start, end) {
+      this.range.start = start;
+      this.range.end = end;
+      this.range.front = this.getFrontOffset();
+      this.range.behind = this.getBehindOffset();
+      this.callback(_objectSpread2({}, this.range));
+    },
+    getFrontOffset: function getFrontOffset() {
+      if (this.isFixed()) {
+        return this.calcSize.fixed * this.range.start;
+      } else {
+        return this.getOffsetByIndex(this.range.start);
+      }
+    },
+    getBehindOffset: function getBehindOffset() {
+      var last = this.getLastIndex();
+      if (this.isFixed()) {
+        return (last - this.range.end) * this.calcSize.fixed;
+      }
+      if (this.calcIndex === last) {
+        return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.range.end);
+      }
+      return (last - this.range.end) * this.getItemSize();
+    },
+    getOffsetByIndex: function getOffsetByIndex(index) {
+      if (!index) return 0;
+      var offset = 0;
+      for (var i = 0; i < index; i++) {
+        var size = this.sizes.get(this.options.uniqueKeys[i]);
+        offset = offset + (typeof size === 'number' ? size : this.getItemSize());
+      }
+      this.calcIndex = Math.max(this.calcIndex, index - 1);
+      this.calcIndex = Math.min(this.calcIndex, this.getLastIndex());
+      return offset;
+    },
+    getEndByStart: function getEndByStart(start) {
+      return Math.min(start + this.options.keeps - 1, this.getLastIndex());
+    },
+    getLastIndex: function getLastIndex() {
+      var _this$options2 = this.options,
+        uniqueKeys = _this$options2.uniqueKeys,
+        keeps = _this$options2.keeps;
+      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
+    },
+    // --------------------------- size change ------------------------------
+    getItemSize: function getItemSize() {
+      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
+    },
+    handleItemSizeChange: function handleItemSizeChange(id, size) {
+      this.sizes.set(id, size);
+      if (this.calcType === CACLTYPE.INIT) {
+        this.calcType = CACLTYPE.FIXED;
+        this.calcSize.fixed = size;
+      } else if (this.isFixed() && this.calcSize.fixed !== size) {
+        this.calcType = CACLTYPE.DYNAMIC;
+        this.calcSize.fixed = undefined;
+      }
+      // In the case of non-fixed heights, the average height and the total height are calculated
+      if (this.calcType !== CACLTYPE.FIXED) {
+        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
+          return t + i;
+        }, 0);
+        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
+      }
+    },
+    handleHeaderSizeChange: function handleHeaderSizeChange(size) {
+      this.calcSize.header = size;
+    },
+    handleFooterSizeChange: function handleFooterSizeChange(size) {
+      this.calcSize.footer = size;
+    }
+  };
 
   var VirtualDragList = Vue__default["default"].component('virtual-drag-list', {
     props: VirtualProps,
@@ -2093,8 +2561,11 @@
         virtual: null,
         sortable: null,
         lastItem: null,
-        range: new Range(),
-        dragState: new DragState()
+        state: {
+          from: {},
+          to: {}
+        },
+        range: new Range()
       };
     },
     provide: function provide() {
@@ -2129,23 +2600,18 @@
       },
       disabled: {
         handler: function handler(val) {
-          if (this.sortable) this.sortable.set('disabled', val);
+          if (this.sortable) this.sortable.setValue('disabled', val);
         },
         immediate: true
       }
     },
     created: function created() {
-      var _this2 = this;
       this.range.end = this.keeps - 1;
-      this._clearDragState = throttle(function () {
-        _this2.dragState = new DragState();
-      }, this.delay + 17);
     },
     beforeDestroy: function beforeDestroy() {
       this._destroySortable();
     },
     methods: {
-      // --------------------------- emits ------------------------------
       /**
        * reset component
        */
@@ -2178,7 +2644,7 @@
        * Scroll to bottom of list
        */
       scrollToBottom: function scrollToBottom() {
-        var _this3 = this;
+        var _this2 = this;
         var _this$$refs = this.$refs,
           bottomItem = _this$$refs.bottomItem,
           root = _this$$refs.root;
@@ -2188,10 +2654,10 @@
 
           // The first scroll height may change, if the bottom is not reached, execute the scroll method again
           setTimeout(function () {
-            var offset = _this3.getOffset();
-            var clientSize = Math.ceil(root[_this3.clientSizeKey]);
-            var scrollSize = Math.ceil(root[_this3.scrollSizeKey]);
-            if (offset + clientSize < scrollSize) _this3.scrollToBottom();
+            var offset = _this2.getOffset();
+            var clientSize = Math.ceil(root[_this2.clientSizeKey]);
+            var scrollSize = Math.ceil(root[_this2.scrollSizeKey]);
+            if (offset + clientSize < scrollSize) _this2.scrollToBottom();
           }, 5);
         }
       },
@@ -2200,16 +2666,16 @@
        * @param {Number} index
        */
       scrollToIndex: function scrollToIndex(index) {
-        var _this4 = this;
+        var _this3 = this;
         if (index >= this.list.length - 1) {
           this.scrollToBottom();
         } else {
           var indexOffset = this.virtual.getOffsetByIndex(index);
           this.scrollToOffset(indexOffset);
           setTimeout(function () {
-            var offset = _this4.getOffset();
-            var indexOffset = _this4.virtual.getOffsetByIndex(index);
-            if (offset !== indexOffset) _this4.scrollToIndex(index);
+            var offset = _this3.getOffset();
+            var indexOffset = _this3.virtual.getOffsetByIndex(index);
+            if (offset !== indexOffset) _this3.scrollToIndex(index);
           }, 5);
         }
       },
@@ -2227,9 +2693,8 @@
       handleDragEnd: function handleDragEnd(list, _old, _new, changed) {
         this.$emit('ondragend', list, _old, _new, changed);
       },
-      // --------------------------- init ------------------------------
       init: function init(list) {
-        var _this5 = this;
+        var _this4 = this;
         this.list = _toConsumableArray(list);
         this._updateUniqueKeys();
         // virtual init
@@ -2243,9 +2708,11 @@
         // sortable init
         if (!this.sortable) {
           this.$nextTick(function () {
-            return _this5._initSortable();
+            return _this4._initSortable();
           });
-        } else this.sortable.set('list', _toConsumableArray(list));
+        } else {
+          this.sortable.setValue('list', _toConsumableArray(list));
+        }
 
         // if auto scroll to the last offset
         if (this.lastItem && this.keepOffset) {
@@ -2256,20 +2723,22 @@
       },
       // virtual init
       _initVirtual: function _initVirtual() {
-        var _this6 = this;
+        var _this5 = this;
         this.virtual = new Virtual({
           size: this.size,
           keeps: this.keeps,
           uniqueKeys: this.uniqueKeys,
           isHorizontal: this.isHorizontal
         }, function (range) {
-          if (_this6.dragState.to.key === undefined) _this6.range = range;
-          var _this6$range = _this6.range,
-            start = _this6$range.start,
-            end = _this6$range.end;
-          var index = _this6.dragState.from.index;
+          if (_this5.state.to.key === undefined) {
+            _this5.range = range;
+          }
+          var _this5$range = _this5.range,
+            start = _this5$range.start,
+            end = _this5$range.end;
+          var index = _this5.state.from.index;
           if (index > -1 && !(index >= start && index <= end)) {
-            if (_this6.sortable) _this6.sortable.rangeIsChanged = true;
+            if (_this5.sortable) _this5.sortable.rangeIsChanged = true;
           }
         });
         this.virtual.updateSizes(this.uniqueKeys);
@@ -2277,46 +2746,23 @@
       },
       // sortable init
       _initSortable: function _initSortable() {
-        var _this7 = this;
-        this.sortable = new Sortable({
-          scrollEl: this.$refs.group,
-          getDataKey: this._getDataKey,
-          list: this.list,
-          group: this.group,
-          handle: this.handle,
-          disabled: this.disabled,
-          draggable: this.draggable,
-          animation: this.animation,
-          autoScroll: this.autoScroll,
-          scrollThreshold: this.scrollThreshold,
-          ghostClass: this.ghostClass,
-          ghostStyle: this.ghostStyle,
-          chosenClass: this.chosenClass
-        }, function (from, node) {
-          // on drag
-          _this7.dragState.from = from;
-          _this7.$emit('ondragstart', _this7.list, from, node);
-        }, function (list, from, to, changed) {
+        var _this6 = this;
+        this.sortable = new Sortable(this, function (state) {
+          _this6.state = state;
           // on drop
-          _this7.dragState.to = to;
-          _this7.handleDragEnd(list, from, to, changed);
-          if (changed) {
+          if (state.changed) {
             // recalculate the range once when scrolling down
-            if (_this7.sortable.rangeIsChanged && _this7.virtual.direction && _this7.range.start > 0) {
-              var index = list.indexOf(_this7.list[_this7.range.start]);
+            if (_this6.sortable.rangeIsChanged && _this6.virtual.direction && _this6.range.start > 0) {
+              var index = state.list.indexOf(_this6.list[_this6.range.start]);
               if (index > -1) {
-                _this7.range.start = index;
-                _this7.range.end = index + _this7.keeps - 1;
+                _this6.range.start = index;
+                _this6.range.end = index + _this6.keeps - 1;
               }
             }
-            // list change
-            _this7.$nextTick(function () {
-              _this7.list = _toConsumableArray(list);
-              _this7._updateUniqueKeys();
-              _this7.virtual.updateUniqueKeys(_this7.uniqueKeys);
-            });
+            _this6.list = _toConsumableArray(state.list);
+            _this6._updateUniqueKeys();
+            _this6.virtual.updateUniqueKeys(_this6.uniqueKeys);
           }
-          _this7._clearDragState();
         });
       },
       _destroySortable: function _destroySortable() {
@@ -2327,8 +2773,11 @@
       _handleScroll: function _handleScroll() {
         // The scroll event is triggered when the mouseup event occurs
         // which is handled here to prevent the page from scrolling due to range changes
-        if (this.dragState.to.key !== undefined) {
-          this._clearDragState();
+        if (this.state.to.key !== undefined) {
+          this.state = {
+            from: {},
+            to: {}
+          };
           return;
         }
         var root = this.$refs.root;
@@ -2362,9 +2811,9 @@
       },
       // --------------------------- methods ------------------------------
       _updateUniqueKeys: function _updateUniqueKeys() {
-        var _this8 = this;
+        var _this7 = this;
         this.uniqueKeys = this.list.map(function (item) {
-          return _this8._getDataKey(item);
+          return _this7._getDataKey(item);
         });
       },
       _getDataKey: function _getDataKey(obj) {
@@ -2374,13 +2823,13 @@
         }, obj);
       },
       _getItemIndex: function _getItemIndex(item) {
-        var _this9 = this;
+        var _this8 = this;
         return this.list.findIndex(function (el) {
-          return _this9._getDataKey(item) == _this9._getDataKey(el);
+          return _this8._getDataKey(item) == _this8._getDataKey(el);
         });
       },
       _getItemStyle: function _getItemStyle(itemKey) {
-        var key = this.dragState.from.key;
+        var key = this.state.from.key;
         if (this.sortable && this.sortable.rangeIsChanged && itemKey == key) return {
           display: 'none'
         };
@@ -2389,7 +2838,7 @@
     },
     // --------------------------- render ------------------------------
     render: function render(h) {
-      var _this10 = this;
+      var _this9 = this;
       var _this$$slots = this.$slots,
         header = _this$$slots.header,
         footer = _this$$slots.footer;
@@ -2436,20 +2885,20 @@
         "class": wrapClass,
         style: wrapStyle
       }, this.list.slice(start, end + 1).map(function (record) {
-        var index = _this10._getItemIndex(record);
-        var dataKey = _this10._getDataKey(record);
+        var index = _this9._getItemIndex(record);
+        var dataKey = _this9._getDataKey(record);
         var props = {
           isHorizontal: isHorizontal,
           dataKey: dataKey,
           tag: itemTag,
           event: '_onItemResized'
         };
-        return _this10.$scopedSlots.item ? h(Items, {
+        return _this9.$scopedSlots.item ? h(Items, {
           key: dataKey,
           props: props,
-          style: _objectSpread2(_objectSpread2({}, itemStyle), _this10._getItemStyle(dataKey)),
+          style: _objectSpread2(_objectSpread2({}, itemStyle), _this9._getItemStyle(dataKey)),
           "class": itemClass
-        }, _this10.$scopedSlots.item({
+        }, _this9.$scopedSlots.item({
           record: record,
           index: index,
           dataKey: dataKey
@@ -2459,7 +2908,7 @@
             'data-key': dataKey
           },
           style: _objectSpread2(_objectSpread2({}, itemStyle), {}, {
-            height: "".concat(_this10.size, "px")
+            height: "".concat(_this9.size, "px")
           }),
           "class": itemClass
         }, dataKey);

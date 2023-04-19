@@ -19,21 +19,26 @@ Root component:
 <template>
   <div>
     <!--
-      :draggable="'i'" // use tagName 
-      :draggable="'.drag'" // use class
-      :draggable="'#drag'" // use id
+      :draggable="'div'" // use tagName 
+      :draggable="'.item'" // use class
+      :draggable="'#item'" // use id
     -->
     <virtual-drag-list
       :data-key="'id'"
       :data-source="list"
-      :draggable="'.drag'"
+      :draggable="'.item'"
+      :handle="'.handle'"
+      :item-class="'item'"
       style="height: 500px"
       @top="handleToTop"
       @bottom="handleToBottom"
-      @ondragend="ondragend"
+      @drag="ondragstart"
+      @drop="ondragend"
+      @add="onAdd"
+      @remove="onRemove"
     >
       <template slot="item" slot-scope="{ record, index, dataKey }">
-        <span class="drag">{{ record.id }}</span>
+        <span class="handle">{{ record.id }}</span>
         {{ record.text }}
       </template>
       <template slot="header">
@@ -59,16 +64,22 @@ Root component:
     },
     methods: {
       handleToTop() {
-        ...
+        // code here
       },
       handleToBottom() {
-        ...
+        // code here
       },
       ondragstart(list, from, node) {
-        ...
+        // code here
       },
       ondragend(list, from, to, changed) {
-        ...
+        // code here
+      },
+      onAdd() {
+        // code here
+      },
+      onRemove() {
+        // code here
       }
     }
   }
@@ -80,8 +91,10 @@ Root component:
 |--------------|-----------------|
 | `top`        | Event fired when scroll to top |
 | `bottom`     | Event fired when scroll to bottom |
-| `ondragstart`| Event fired when the drag is started |
-| `ondragend`  | Event fired when the drag is completed |
+| `drag`       | Event fired when the drag is started |
+| `drop`       | Event fired when the drag is completed |
+| `add`        | Event fired when element is dropped into the list from another |
+| `remove`     | Event fired when element is removed from the list into another |
 
 ## Props
 
@@ -112,7 +125,7 @@ Root component:
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
-| `delay`      | `Number`   | `10`        | Delay time of debounce function |
+| `delay`      | `Number`   | `0`        | Delay time of debounce function |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
 | `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |

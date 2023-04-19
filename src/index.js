@@ -1,9 +1,9 @@
 import Vue from 'vue';
-import Virtual from './virtual';
-import Sortable from './sortable';
-import { Range, DragState, VirtualProps } from './interface';
-import { Slots, Items } from './children';
+import { VirtualProps } from './props';
 import { debounce, throttle } from './utils';
+import { Slots, Items } from './Plugins/Slots';
+import Sortable from './Plugins/Sortable';
+import Virtual, { Range } from './Plugins/Virtual';
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
   props: VirtualProps,
@@ -14,8 +14,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       virtual: null,
       sortable: null,
       lastItem: null,
+      state: { from: {}, to: {} },
       range: new Range(),
-      dragState: new DragState(),
     };
   },
   provide() {
@@ -50,22 +50,18 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
     disabled: {
       handler(val) {
-        if (this.sortable) this.sortable.set('disabled', val);
+        if (this.sortable) this.sortable.setValue('disabled', val);
       },
       immediate: true,
     },
   },
   created() {
     this.range.end = this.keeps - 1;
-    this._clearDragState = throttle(() => {
-      this.dragState = new DragState();
-    }, this.delay + 17);
   },
   beforeDestroy() {
     this._destroySortable();
   },
   methods: {
-    // --------------------------- emits ------------------------------
     /**
      * reset component
      */
@@ -146,7 +142,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.$emit('ondragend', list, _old, _new, changed);
     },
 
-    // --------------------------- init ------------------------------
     init(list) {
       this.list = [...list];
       this._updateUniqueKeys();
@@ -161,7 +156,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       // sortable init
       if (!this.sortable) {
         this.$nextTick(() => this._initSortable());
-      } else this.sortable.set('list', [...list]);
+      } else {
+        this.sortable.setValue('list', [...list]);
+      }
 
       // if auto scroll to the last offset
       if (this.lastItem && this.keepOffset) {
@@ -181,9 +178,11 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           isHorizontal: this.isHorizontal,
         },
         (range) => {
-          if (this.dragState.to.key === undefined) this.range = range;
+          if (this.state.to.key === undefined) {
+            this.range = range;
+          }
           const { start, end } = this.range;
-          const { index } = this.dragState.from;
+          const { index } = this.state.from;
           if (index > -1 && !(index >= start && index <= end)) {
             if (this.sortable) this.sortable.rangeIsChanged = true;
           }
@@ -195,56 +194,28 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     // sortable init
     _initSortable() {
-      this.sortable = new Sortable(
-        {
-          scrollEl: this.$refs.group,
-          getDataKey: this._getDataKey,
-          list: this.list,
-
-          group: this.group,
-          handle: this.handle,
-          disabled: this.disabled,
-          draggable: this.draggable,
-          animation: this.animation,
-          autoScroll: this.autoScroll,
-          scrollThreshold: this.scrollThreshold,
-
-          ghostClass: this.ghostClass,
-          ghostStyle: this.ghostStyle,
-          chosenClass: this.chosenClass,
-        },
-        (from, node) => {
-          // on drag
-          this.dragState.from = from;
-          this.$emit('ondragstart', this.list, from, node);
-        },
-        (list, from, to, changed) => {
-          // on drop
-          this.dragState.to = to;
-          this.handleDragEnd(list, from, to, changed);
-          if (changed) {
-            // recalculate the range once when scrolling down
-            if (
-              this.sortable.rangeIsChanged &&
-              this.virtual.direction &&
-              this.range.start > 0
-            ) {
-              const index = list.indexOf(this.list[this.range.start]);
-              if (index > -1) {
-                this.range.start = index;
-                this.range.end = index + this.keeps - 1;
-              }
+      this.sortable = new Sortable(this, (state) => {
+        this.state = state;
+        // on drop
+        if (state.changed) {
+          // recalculate the range once when scrolling down
+          if (
+            this.sortable.rangeIsChanged &&
+            this.virtual.direction &&
+            this.range.start > 0
+          ) {
+            const index = state.list.indexOf(this.list[this.range.start]);
+            if (index > -1) {
+              this.range.start = index;
+              this.range.end = index + this.keeps - 1;
             }
-            // list change
-            this.$nextTick(() => {
-              this.list = [...list];
-              this._updateUniqueKeys();
-              this.virtual.updateUniqueKeys(this.uniqueKeys);
-            });
           }
-          this._clearDragState();
+
+          this.list = [...state.list];
+          this._updateUniqueKeys();
+          this.virtual.updateUniqueKeys(this.uniqueKeys);
         }
-      );
+      });
     },
 
     _destroySortable() {
@@ -256,8 +227,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     _handleScroll() {
       // The scroll event is triggered when the mouseup event occurs
       // which is handled here to prevent the page from scrolling due to range changes
-      if (this.dragState.to.key !== undefined) {
-        this._clearDragState();
+      if (this.state.to.key !== undefined) {
+        this.state = { from: {}, to: {} };
         return;
       }
 
@@ -316,7 +287,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       );
     },
     _getItemStyle(itemKey) {
-      const { key } = this.dragState.from;
+      const { key } = this.state.from;
       if (this.sortable && this.sortable.rangeIsChanged && itemKey == key)
         return { display: 'none' };
       return {};

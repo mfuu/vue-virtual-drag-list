@@ -1,5 +1,4 @@
 /**
- * 防抖
  * @param {Function} func callback function
  * @param {Number} delay debounce time
  * @param {Boolean} immediate whether to execute immediately
@@ -31,7 +30,6 @@ export function debounce(func, delay = 50, immediate = false) {
 }
 
 /**
- * 节流
  * @param {Function} fn callback function
  * @param {Number} delay throttle time
  * @returns

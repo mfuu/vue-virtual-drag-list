@@ -119,31 +119,10 @@ export const SlotsProps = {
   },
 };
 
-// scroll range
-export class Range {
-  constructor() {
-    this.start = 0;
-    this.end = 0;
-    this.front = 0;
-    this.behind = 0;
-  }
-}
-
 // drag state
 export class DragState {
   constructor() {
     this.from = { list: [], key: undefined, item: undefined, index: -1 };
     this.to = { list: [], key: undefined, item: undefined, index: -1 };
-  }
-}
-
-// virtual state
-export class CalcSize {
-  constructor() {
-    this.average = undefined;
-    this.total = undefined;
-    this.fixed = undefined;
-    this.header = undefined;
-    this.footer = undefined;
   }
 }

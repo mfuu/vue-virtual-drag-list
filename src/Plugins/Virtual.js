@@ -1,4 +1,21 @@
-import { Range, CalcSize } from './interface';
+export class Range {
+  constructor() {
+    this.start = 0;
+    this.end = 0;
+    this.front = 0;
+    this.behind = 0;
+  }
+}
+
+class CalcSize {
+  constructor() {
+    this.average = undefined;
+    this.total = undefined;
+    this.fixed = undefined;
+    this.header = undefined;
+    this.footer = undefined;
+  }
+}
 
 const CACLTYPE = {
   INIT: 'INIT',
@@ -30,7 +47,7 @@ function Virtual(options, callback) {
 }
 
 Virtual.prototype = {
-  construcrot: Virtual,
+  constructor: Virtual,
 
   // --------------------------- update ------------------------------
   updateUniqueKeys(value) {
