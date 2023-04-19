@@ -90,7 +90,7 @@ button:not(:last-child) {
 /* vertical */
 .vertical-list {
   width: 800px;
-  height: 800px;
+  height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
@@ -150,7 +150,7 @@ button:not(:last-child) {
 /* dynamic */
 .dynamic-list {
   width: 800px;
-  height: 800px;
+  height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
@@ -171,7 +171,7 @@ button:not(:last-child) {
 /* infinity */
 .infinity-list {
   width: 800px;
-  height: 800px;
+  height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
@@ -195,6 +195,28 @@ button:not(:last-child) {
   -webkit-box-orient: vertical;
 }
 
+/* group */
+.group {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 100px;
+}
+
+.group-list {
+  width: 800px;
+  height: 600px;
+  border: 1px solid #ccc;
+}
+
+.group-item {
+  position: relative;
+  height: 65px;
+  margin: 10px;
+  padding: 16px;
+  border: 1px solid #1984ff;
+  border-radius: 5px;
+  overflow: hidden;
+}
 
 /* loading */
 .spinner {

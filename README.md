@@ -102,11 +102,9 @@ Root component:
 | `size`       | `Number`   | `-`         | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
 | `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable |
-| `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
+| `handle`     | `Function/String` | `-`  | Drag handle selector within list items |
+| `group`      | `Function/String` | `-`  | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false }` |
 | `keepOffset` | `Boolean`  | `false`     | When scrolling up to load data, keep the same offset as the previous scroll |
-| `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container, **for browsers that do not support HTML5 drag events** |
-| `scrollStep` | `Number`   | `5`         | The distance to scroll each frame when autoscrolling |
-| `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
 
 
 **Uncommonly used**
@@ -115,6 +113,9 @@ Root component:
 |  --------    | --------   | ----------- | --------------- |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
 | `delay`      | `Number`   | `10`        | Delay time of debounce function |
+| `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
+| `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
+| `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
 | `itemTag`    | `String`   | `div`       | Label type for list item element |

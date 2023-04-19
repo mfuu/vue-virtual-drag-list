@@ -36,8 +36,10 @@ export const VerticalList = Vue.component('vertical-list', {
           dataKey: 'index',
           keeps: 20,
           size: 99,
+          itemClass: 'vertical-item',
           disabled: this.disabled,
-          draggable: '.drag',
+          draggable: '.vertical-item',
+          handle: '.drag',
         },
         on: {
           top: this.handleTop,

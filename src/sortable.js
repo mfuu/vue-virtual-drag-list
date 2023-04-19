@@ -1,20 +1,21 @@
-import SortableDnd from 'sortable-dnd'
-import { DragState } from './interface'
+import SortableDnd from 'sortable-dnd';
+import { DragState } from './interface';
+
+let dragState = new DragState();
+let dragEl = null;
 
 function Sortable(options, onDrag, onDrop) {
-  this.options = options
-  this.onDrag = onDrag
-  this.onDrop = onDrop
+  this.options = options;
+  this.onDrag = onDrag;
+  this.onDrop = onDrop;
 
-  this.list = options.list
-  this.cloneList = new Array()
+  this.list = options.list;
+  this.cloneList = [...this.list];
 
-  this.drag = null
-  this.dragElement = null
-  this.rangeIsChanged = false
-  this.dragState = new DragState
+  this.drag = null;
+  this.rangeIsChanged = false;
 
-  this.init()
+  this.init();
 }
 
 Sortable.prototype = {
@@ -22,20 +23,20 @@ Sortable.prototype = {
 
   set(key, value) {
     if (key === 'list') {
-      this.list = value
+      this.list = value;
       // When the list data changes when dragging, need to execute onDrag function
-      if (this.dragElement) this.dragStart(this.dragElement, false)
+      if (dragEl) this.dragStart(dragEl, false);
     } else {
-      this.options[key] = value
-      this.drag.set(key, value)
+      this.options[key] = value;
+      this.drag.set(key, value);
     }
-    
   },
 
   init() {
     const {
+      group,
+      handle,
       disabled,
-      dragging,
       draggable,
       ghostClass,
       ghostStyle,
@@ -43,94 +44,123 @@ Sortable.prototype = {
       animation,
       autoScroll,
       scrollStep,
-      scrollThreshold
-    } = this.options
+      scrollThreshold,
+    } = this.options;
 
-    this.drag = new SortableDnd(
-      this.options.scrollEl,
-      {
-        disabled,
-        dragging,
-        draggable,
-        ghostClass,
-        ghostStyle,
-        chosenClass,
-        animation,
-        autoScroll,
-        scrollStep,
-        scrollThreshold,
-        onChange: (from, to) => this.onChange(from, to),
-        onDrag: (dragEl) => this.dragStart(dragEl),
-        onDrop: (changed) => this.dragEnd(changed)
-      }
-    )
+    this.drag = new SortableDnd(this.options.scrollEl, {
+      group,
+      handle,
+      disabled,
+      draggable,
+      ghostClass,
+      ghostStyle,
+      chosenClass,
+      animation,
+      autoScroll,
+      scrollStep,
+      scrollThreshold,
+      onChange: ({ from, to }) => this.onChange(from, to),
+      onDrag: ({ from }) => this.dragStart(from.node),
+      onDrop: ({ changed }) => this.dragEnd(changed),
+      onAdd: ({ from, to }) => this.onAdd(from, to),
+      onRemove: ({ from, to }) => this.onRemove(from, to),
+    });
   },
 
-  dragStart(dragEl, callback = true) {
-    this.dragElement = dragEl
-    this.cloneList = [...this.list]
+  dragStart(node, callback = true) {
+    dragEl = node;
+    this.cloneList = [...this.list];
 
-    const key = dragEl.getAttribute('data-key')
+    const key = dragEl.dataset.key;
 
-    this.list.forEach((item, index) => {
-      if (this.options.getDataKey(item) == key)
-        Object.assign(this.dragState.from, { item, index, key })
-    })
+    const index = this.getIndex(this.list, key);
+    if (index > -1) {
+      Object.assign(dragState.from, {
+        list: [...this.list],
+        item: this.list[index],
+        index,
+        key,
+      });
+    }
 
     if (callback) {
-      this.rangeIsChanged = false
+      this.rangeIsChanged = false;
       // on-drag callback
-      this.onDrag(this.dragState.from, dragEl)
+      this.onDrag(dragState.from, dragEl);
     } else {
-      this.rangeIsChanged = true
+      this.rangeIsChanged = true;
     }
   },
 
-  onChange(_old_, _new_) {
-    const oldKey = this.dragState.from.key
-    const newKey = _new_.node.getAttribute('data-key')
+  onAdd(_from, _to) {
+    const oldKey = _from.node.dataset.key;
+    const newKey = _to.node.dataset.key;
+    const newIndex = this.getIndex(this.cloneList, newKey);
+    const oldIndex = this.getIndex(dragState.from.list, oldKey);
 
-    const from = { item: null, index: -1 }
-    const to = { item: null, index: -1 }
+    const oldItem = dragState.from.list[oldIndex];
+
+    this.cloneList.splice(newIndex, 0, oldItem);
+  },
+
+  onRemove(_from, _to) {
+    const oldKey = _from.node.dataset.key;
+    const oldIndex = this.getIndex(this.cloneList, oldKey);
+
+    this.cloneList.splice(oldIndex, 1);
+  },
+
+  onChange(_from, _to) {
+    const oldKey = dragState.from.key;
+    const newKey = _to.node.dataset.key;
+
+    const from = { item: null, index: -1 };
+    const to = { item: null, index: -1 };
 
     this.cloneList.forEach((el, index) => {
-      const key = this.options.getDataKey(el)
-      if (key == oldKey) Object.assign(from, { item: el, index })
-      if (key == newKey) Object.assign(to, { item: el, index })
-    })
+      const key = this.options.getDataKey(el);
+      if (key == oldKey) Object.assign(from, { item: el, index });
+      if (key == newKey) Object.assign(to, { item: el, index });
+    });
 
-    this.cloneList.splice(from.index, 1)
-    this.cloneList.splice(to.index, 0, from.item)
+    this.cloneList.splice(from.index, 1);
+    this.cloneList.splice(to.index, 0, from.item);
   },
 
   dragEnd(changed) {
-    if (this.rangeIsChanged && this.dragElement) this.dragElement.remove()
-    const { getDataKey } = this.options
-    const { from } = this.dragState
+    dragEl && dragEl.remove();
+    const { getDataKey } = this.options;
+    const { from } = dragState;
     this.cloneList.forEach((el, index) => {
       if (getDataKey(el) == from.key)
-        this.dragState.to = {
+        dragState.to = {
+          list: [...this.cloneList],
+          item: this.cloneList[index],
+          key: getDataKey(el),
           index,
-          item: this.list[index],
-          key: getDataKey(el)
-        }
-    })
+        };
+    });
+    console.log(dragState);
     // on-drop callback
-    this.onDrop(this.cloneList, from, this.dragState.to, changed)
-    this.list = [...this.cloneList]
-    this.clear()
+    this.onDrop(this.cloneList, from, dragState.to, changed);
+    this.list = [...this.cloneList];
+    this.clear();
+  },
+
+  getIndex(list, key) {
+    return list.findIndex((item) => this.options.getDataKey(item) == key);
   },
 
   clear() {
-    this.dragElement = null
-    this.rangeIsChanged = false
-    this.dragState = new DragState
+    dragEl = null;
+    this.rangeIsChanged = false;
+    dragState = new DragState();
   },
 
   destroy() {
-    this.drag && this.drag.destroy()
-    this.drag = null
-  }
-}
+    this.drag && this.drag.destroy();
+    this.drag = null;
+  },
+};
 
-export default Sortable
+export default Sortable;

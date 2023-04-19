@@ -1,4 +1,4 @@
-export const HorizontalList = Vue.component('horizontal-list', {
+export const GroupList = Vue.component('group-list', {
   props: {
     disabled: {},
     dataSource: {
@@ -25,7 +25,7 @@ export const HorizontalList = Vue.component('horizontal-list', {
   render(h) {
     return h('div', {
       attrs: {
-        class: 'horizontal-list',
+        class: 'group-list',
       }
     }, 
     [
@@ -33,22 +33,21 @@ export const HorizontalList = Vue.component('horizontal-list', {
         ref: 'list',
         props: {
           dataSource: this.dataSource,
-          dataKey: 'id',
+          dataKey: 'index',
           keeps: 20,
-          size: 155,
-          itemClass: 'horizontal-item',
+          size: 99,
+          group: 'g',
+          itemClass: 'group-item',
           disabled: this.disabled,
-          draggable: '.horizontal-item',
+          draggable: '.group-item',
           handle: '.drag',
-          direction: 'horizontal',
-          wrapStyle: { display: 'flex' }
         },
         on: {
           top: this.handleTop,
           bottom: this.handleBottom,
           ondragend: this.ondragend
         },
-        style: { height: '100%', display: 'flex' },
+        style: { height: '100%' },
         scopedSlots: {
           item: props => {
             return h('div', {}, 
@@ -64,8 +63,12 @@ export const HorizontalList = Vue.component('horizontal-list', {
                 on: {
                   click: this.handleClick
                 }
-              }, props.record.index),
-              h('p', {}, props.record.desc)
+              }, props.dataKey),
+              h('p', {
+                attrs: {
+                  title: props.record.desc
+                }
+              }, props.record.desc)
             ])
           }
         }

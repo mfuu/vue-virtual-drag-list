@@ -2,149 +2,148 @@ export const VirtualProps = {
   dataSource: {
     type: Array,
     default: () => {
-      return []
-    }
+      return [];
+    },
   },
   dataKey: {
     type: String,
-    required: true
+    required: true,
   },
   direction: {
     type: String,
-    default: 'vertical'
+    default: 'vertical',
   },
   keeps: {
     type: Number,
-    default: 30
+    default: 30,
   },
   size: {
-    type: Number
+    type: Number,
+  },
+  draggable: {
+    type: [Function, String],
+  },
+  handle: {
+    type: [Function, String],
+  },
+  group: {
+    type: [String, Object],
   },
   delay: {
     type: Number,
-    default: 10
+    default: 0,
+  },
+  animation: {
+    type: Number,
+    default: 150,
+  },
+  autoScroll: {
+    type: Boolean,
+    default: true,
+  },
+  scrollThreshold: {
+    type: Number,
+    default: 15,
+  },
+  keepOffset: {
+    type: Boolean,
+    default: false,
   },
   rootTag: {
     type: String,
-    default: 'div'
+    default: 'div',
   },
   wrapTag: {
     type: String,
-    default: 'div'
+    default: 'div',
   },
   wrapClass: {
     type: String,
-    default: ''
+    default: '',
   },
   wrapStyle: {
-    type: Object
+    type: Object,
   },
   headerTag: {
     type: String,
-    default: 'div'
+    default: 'div',
   },
   footerTag: {
     type: String,
-    default: 'div'
+    default: 'div',
   },
   itemTag: {
     type: String,
-    default: 'div'
+    default: 'div',
   },
   itemStyle: {
-    type: Object
+    type: Object,
   },
   itemClass: {
     type: String,
-    default: ''
+    default: '',
   },
   disabled: {
     type: Boolean,
-    default: false
-  },
-  draggable: {
-    type: [Function, String]
-  },
-  dragging: {
-    type: Function
+    default: false,
   },
   ghostClass: {
     type: String,
-    default: ''
+    default: '',
   },
   ghostStyle: {
     type: Object,
     default: () => {
-      return {}
-    }
+      return {};
+    },
   },
   chosenClass: {
     type: String,
-    default: ''
+    default: '',
   },
-  animation: {
-    type: Number,
-    default: 150
-  },
-  autoScroll: {
-    type: Boolean,
-    default: true
-  },
-  scrollStep: {
-    type: Number,
-    default: 5
-  },
-  scrollThreshold: {
-    type: Number,
-    default: 15
-  },
-  keepOffset: {
-    type: Boolean,
-    default: false
-  }
-}
+};
 
 export const SlotsProps = {
   tag: {
     type: String,
-    default: 'div'
+    default: 'div',
   },
   event: {
-    type: String
+    type: String,
   },
   dataKey: {
-    type: [String, Number]
+    type: [String, Number],
   },
   isHorizontal: {
-    type: Boolean
-  }
-}
+    type: Boolean,
+  },
+};
 
 // scroll range
 export class Range {
   constructor() {
-    this.start = 0
-    this.end = 0
-    this.front = 0
-    this.behind = 0
-  } 
+    this.start = 0;
+    this.end = 0;
+    this.front = 0;
+    this.behind = 0;
+  }
 }
 
 // drag state
 export class DragState {
   constructor() {
-    this.from = { key: undefined, item: undefined, index: -1 }
-    this.to = { key: undefined, item: undefined, index: -1 }
+    this.from = { list: [], key: undefined, item: undefined, index: -1 };
+    this.to = { list: [], key: undefined, item: undefined, index: -1 };
   }
 }
 
 // virtual state
 export class CalcSize {
   constructor() {
-    this.average = undefined // 计算首次加载每一项的评价高度
-    this.total = undefined // 首次加载的总高度
-    this.fixed = undefined // 记录固定高度值
-    this.header = undefined // 顶部插槽高度
-    this.footer = undefined // 底部插槽高度
+    this.average = undefined;
+    this.total = undefined;
+    this.fixed = undefined;
+    this.header = undefined;
+    this.footer = undefined;
   }
 }

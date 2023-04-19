@@ -55,12 +55,18 @@
         <horizontal-list ref="horizontal" :disabled="horizontalDisable" :data-source="dataSource"></horizontal-list>
       </div>
       
+      <h1>GroupList</h1>
+      <div class="group">
+        <group-list ref="group" :data-source="dataSource"></group-list>
+        <group-list ref="group" :data-source="dataSource1"></group-list>
+      </div>
     </div>
     <script type="module">
       import { VerticalList } from './docs/js/vertical.js';
       import { DynamicList } from './docs/js/dynamic.js';
       import { HorizontalList } from './docs/js/horizontal.js';
       import { InfinityList } from './docs/js/infinity.js';
+      import { GroupList } from './docs/js/group.js';
       new Vue({
         el: '#app',
         components: {
@@ -68,6 +74,7 @@
           VerticalList,
           DynamicList,
           HorizontalList,
+          GroupList,
         },
         data() {
           return {
@@ -76,6 +83,7 @@
             dynamicDisable: false,
             horizontalDisable: false,
             dataSource: getPageData(400, 0),
+            dataSource1: getPageData(400, 1000),
           }
         },
         methods: {
