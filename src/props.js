@@ -118,11 +118,3 @@ export const SlotsProps = {
     type: Boolean,
   },
 };
-
-// drag state
-export class DragState {
-  constructor() {
-    this.from = { list: [], key: undefined, item: undefined, index: -1 };
-    this.to = { list: [], key: undefined, item: undefined, index: -1 };
-  }
-}

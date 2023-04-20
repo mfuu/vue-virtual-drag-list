@@ -1,5 +1,5 @@
 import SortableDnd from 'sortable-dnd';
-import Storage from './Storage';
+import { Store } from './Storage';
 
 const attributes = [
   'group',
@@ -14,7 +14,6 @@ const attributes = [
   'scrollThreshold',
 ];
 
-const storage = new Storage();
 let dragEl = null;
 
 function Sortable(context, callback) {
@@ -24,8 +23,8 @@ function Sortable(context, callback) {
   this.initialList = [...context.list];
   this.dynamicList = [...context.list];
 
-  this.drag = null;
-  this.rangeIsChanged = false;
+  this.sortable = null;
+  this.rangeChanged = false;
 
   this._init();
 }
@@ -34,12 +33,8 @@ Sortable.prototype = {
   constructor: Sortable,
 
   destroy() {
-    this.drag && this.drag.destroy();
-    this.drag = null;
-  },
-
-  getState() {
-    return storage.getValue();
+    this.sortable && this.sortable.destroy();
+    this.sortable = null;
   },
 
   setValue(key, value) {
@@ -49,7 +44,7 @@ Sortable.prototype = {
       if (dragEl) this._onDrag(dragEl, false);
     } else {
       this.context[key] = value;
-      this.drag.set(key, value);
+      this.sortable.options[key] = value;
     }
   },
 
@@ -59,14 +54,14 @@ Sortable.prototype = {
       return res;
     }, {});
 
-    this.drag = new SortableDnd(this.context.$refs.group, {
+    this.sortable = new SortableDnd(this.context.$refs.group, {
       ...props,
-      initialList: this.initialList,
+      initialList: [...this.initialList],
       onDrag: ({ from }) => this._onDrag(from.node),
-      onDrop: ({ changed }) => this._onDrop(changed),
-      onChange: ({ from, to }) => this._onChange(from, to),
       onAdd: ({ from, to }) => this._onAdd(from, to),
       onRemove: ({ from, to }) => this._onRemove(from, to),
+      onChange: ({ from, to }) => this._onChange(from, to),
+      onDrop: ({ from, to, changed }) => this._onDrop(from, to, changed),
     });
   },
 
@@ -74,143 +69,87 @@ Sortable.prototype = {
     dragEl = node;
     this.dynamicList = [...this.initialList];
 
-    const key = node.dataset.key;
-    const index = this._getIndex(this.initialList, key);
+    const fromList = [...this.initialList];
+    const fromState = this._getFromTo({ node }, fromList)
 
-    if (index > -1) {
-      storage.setValue({
-        from: {
-          list: [...this.initialList],
-          item: this.initialList[index],
-          index,
-          key,
-        },
-      });
-    }
+    await Store.setValue({ from: { list: fromList, ...fromState} });
 
     if (callback) {
-      this.rangeIsChanged = false;
-      const res = await storage.getValue();
-      this.context.$emit('drag', { list: this.list, ...res });
+      this.rangeChanged = false;
+      const store = await Store.getValue();
+      this.context.$emit('drag', { list: fromList, ...store });
     } else {
-      this.rangeIsChanged = true;
+      this.rangeChanged = true;
     }
   },
 
   async _onAdd(from, to) {
-    const state = await storage.getValue();
+    const state = await Store.getValue();
+    const fromList = [...state.from.list];
+    const toList = [...this.dynamicList];
+    const fromState = this._getFromTo(from, fromList);
+    const toState = this._getFromTo(to, toList);
 
-    const oldKey = from.node.dataset.key;
-    const newKey = to.node.dataset.key;
-    const newIndex = this._getIndex(this.dynamicList, newKey);
-    const oldIndex = this._getIndex(state.from.list, oldKey);
-    const newItem = this.dynamicList[newIndex];
-    const oldItem = state.from.list[oldIndex];
+    this.dynamicList.splice(toState.index, 0, fromState.item);
 
-    this.dynamicList.splice(newIndex, 0, oldItem);
-
-    await storage.setValue({
-      from: {
-        list: [...state.from.list],
-        item: oldItem,
-        index: oldIndex,
-        key: oldKey,
-      },
-      to: {
-        list: [...this.dynamicList],
-        item: newItem,
-        index: newIndex,
-        key: newKey,
-      },
-    });
-
-    const res = await storage.getValue();
-
-    this.context.$emit('add', { list: this.dynamicList, ...res });
+    const params = {
+      from: { list: fromList, ...fromState },
+      to: { list: toList, ...toState },
+    };
+    this.context.$emit('add', { list: this.dynamicList, ...params });
   },
 
   async _onRemove(from, to) {
-    const state = await storage.getValue();
-    const toList = to.sortable.options.initialList;
+    const fromList = [...this.initialList];
+    const toList = [...to.sortable.options.initialList];
+    const fromState = this._getFromTo(from, fromList);
+    const toState = this._getFromTo(to, toList);
 
-    const oldKey = from.node.dataset.key;
-    const newKey = to.node.dataset.key;
-    const oldIndex = this._getIndex(this.dynamicList, oldKey);
-    const newIndex = this._getIndex(toList, newKey);
-    const oldItem = this.dynamicList[oldIndex];
-    const newItem = toList[newIndex];
+    this.dynamicList.splice(fromState.index, 1);
 
-    await storage.setValue({
-      from: {
-        list: [...state.from.list],
-        item: oldItem,
-        index: oldIndex,
-        key: oldKey,
-      },
-      to: {
-        list: [...this.dynamicList],
-        item: newItem,
-        index: newIndex,
-        key: newKey,
-      },
-    });
-
-    const res = await storage.getValue();
-
-    this.context.$emit('remove', { list: this.dynamicList, ...res });
+    const params = {
+      from: { list: fromList, ...fromState },
+      to: { list: toList, ...toState },
+    }
+    this.context.$emit('remove', { list: this.dynamicList, ...params });
   },
 
   async _onChange(from, to) {
-    const state = await storage.getValue();
+    const fromList = [...this.dynamicList];
+    const toList = [...this.dynamicList];
+    const fromState = this._getFromTo(from, fromList);
+    const toState = this._getFromTo(to, toList);
 
-    const oldKey = state.from.key;
-    const newKey = to.node.dataset.key;
-    let oldIndex = -1;
-    let oldItem = null;
-    let newIndex = -1;
-    let newItem = null;
+    // await Store.setValue({ to: { list: toList, ...toState } });
 
-    this.dynamicList.forEach((item, index) => {
-      const key = this.context._getDataKey(item);
-      if (key == oldKey) {
-        oldIndex = index;
-        oldItem = item;
-      }
-      if (key == newKey) {
-        newIndex = index;
-        newItem = item;
-      }
-    });
-
-    this.dynamicList.splice(oldIndex, 1);
-    this.dynamicList.splice(newIndex, 0, oldItem);
+    this.dynamicList.splice(fromState.index, 1);
+    this.dynamicList.splice(toState.index, 0, fromState.item);
   },
 
-  async _onDrop(changed) {
-    dragEl && dragEl.remove();
+  async _onDrop(from, to, changed) {
+    (this.rangeChanged || from.sortable !== to.sortable) && dragEl && dragEl.remove();
 
-    const state = await storage.getValue();
-    const { _getDataKey } = this.context;
+    const toList = [...this.dynamicList];
+    const toState = this._getFromTo(from, toList);
 
-    this.dynamicList.forEach(async (item, index) => {
-      if (_getDataKey(item) == state.from.key) {
-        await storage.setValue({
-          to: {
-            list: [...this.dynamicList],
-            item: this.dynamicList[index],
-            key: _getDataKey(item),
-            index,
-          },
-        });
-      }
-    });
+    await Store.setValue({ to: { list: [...this.initialList], ...toState } });
 
-    const res = await storage.getValue();
-    const params = { list: this.dynamicList, ...res, changed };
+    const store = await Store.getValue();
+    const params = { list: this.dynamicList, ...store, changed };
+
     this.context.$emit('drop', params);
     this.callback && this.callback(params);
+
     this.initialList = [...this.dynamicList];
     this._clear();
+  },
+
+  _getFromTo(fromTo, list) {
+    const key = fromTo.node.dataset.key;
+    const index = this._getIndex(list, key);
+    const item = list[index];
+
+    return { key, item, index }
   },
 
   _getIndex(list, key) {
@@ -219,8 +158,8 @@ Sortable.prototype = {
 
   _clear() {
     dragEl = null;
-    storage.clear();
-    this.rangeIsChanged = false;
+    Store.clear();
+    this.rangeChanged = false;
   },
 };
 

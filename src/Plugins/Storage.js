@@ -1,4 +1,5 @@
 const storeKey = 'virtualSortableState';
+const defaultStore = { from: {}, to: {} };
 
 function Storage() {}
 
@@ -10,21 +11,34 @@ Storage.prototype = {
   },
 
   /**
-   * @returns drag states: { from, to }
+   * Obtaining Synchronization Data
+   * @returns states: { from, to }
+   */
+  getStore() {
+    try {
+      const result = JSON.parse(localStorage.getItem(storeKey));
+      return result || defaultStore;
+    } catch (e) {
+      return defaultStore;
+    }
+  },
+
+  /**
+   * @returns states: { from, to }
    */
   getValue() {
     return new Promise((resolve, reject) => {
       try {
         const result = JSON.parse(localStorage.getItem(storeKey));
-        resolve(result);
+        resolve(result || defaultStore);
       } catch (e) {
-        reject({});
+        reject(defaultStore);
       }
     });
   },
 
   /**
-   * @param {*} value { from, to }
+   * @param {Object} value { from, to }
    */
   setValue(value) {
     return new Promise((resolve, reject) => {
@@ -34,10 +48,10 @@ Storage.prototype = {
         localStorage.setItem(storeKey, result);
         resolve(result);
       } catch (e) {
-        reject({});
+        reject(defaultStore);
       }
     });
   },
 };
 
-export default Storage;
+export const Store = new Storage();
