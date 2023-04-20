@@ -1,9 +1,9 @@
 import Vue from 'vue';
 import { VirtualProps } from './props';
-import { debounce, throttle } from './utils';
+import { debounce } from './utils';
 import { Slots, Items } from './Plugins/Slots';
-import Sortable from './Plugins/Sortable';
 import Virtual, { Range } from './Plugins/Virtual';
+import Sortable from './Plugins/Sortable';
 import { Store } from './Plugins/Storage';
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
@@ -15,6 +15,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       virtual: null,
       sortable: null,
       lastItem: null,
+      isDrop: false,
       range: new Range(),
     };
   },
@@ -135,13 +136,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       root[this.scrollDirectionKey] = offset;
     },
 
-    /**
-     * callback function after drop
-     */
-    handleDragEnd(list, _old, _new, changed) {
-      this.$emit('ondragend', list, _old, _new, changed);
-    },
-
     init(list) {
       this.list = [...list];
       this._updateUniqueKeys();
@@ -179,13 +173,12 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         },
         (range) => {
           this.range = range;
-          if (!this.sortable) return
+          if (!this.sortable) return;
           const state = Store.getStore();
           const { start, end } = this.range;
           const { index } = state.from;
           if (index > -1 && !(index >= start && index <= end)) {
             this.sortable.rangeChanged = true;
-            console.log('rangeChanged');
           }
         }
       );
@@ -197,24 +190,25 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     _initSortable() {
       this.sortable = new Sortable(this, ({ list, changed }) => {
         // on drop
-        if (changed) {
-          // recalculate the range once when scrolling down
-          if (
-            this.sortable.rangeChanged &&
-            this.virtual.direction &&
-            this.range.start > 0
-          ) {
-            const index = list.indexOf(this.list[this.range.start]);
-            if (index > -1) {
-              this.range.start = index;
-              this.range.end = index + this.keeps - 1;
-            }
+        if (!changed) return;
+        this.isDrop = true;
+        // recalculate the range once when scrolling down
+        if (
+          this.sortable.rangeChanged &&
+          this.virtual.direction &&
+          this.range.start > 0
+        ) {
+          const index = list.indexOf(this.list[this.range.start]);
+          if (index > -1) {
+            this.range.start = index;
+            this.range.end = index + this.keeps - 1;
           }
-
-          this.list = [...list];
+        }
+        this.$nextTick(() => {
+          this.list = list;
           this._updateUniqueKeys();
           this.virtual.updateUniqueKeys(this.uniqueKeys);
-        }
+        });
       });
     },
 
@@ -225,13 +219,18 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     // --------------------------- handle scroll ------------------------------
     _handleScroll() {
+      if (this.isDrop) {
+        this.isDrop = false;
+        return;
+      }
       const { root } = this.$refs;
       const offset = this.getOffset();
       const clientSize = Math.ceil(root[this.clientSizeKey]);
       const scrollSize = Math.ceil(root[this.scrollSizeKey]);
 
-      if (!scrollSize || offset < 0 || offset + clientSize > scrollSize + 1)
+      if (!scrollSize || offset < 0 || offset + clientSize > scrollSize + 1) {
         return;
+      }
 
       this.virtual.handleScroll(offset);
 
