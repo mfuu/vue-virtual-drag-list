@@ -87,17 +87,14 @@ Sortable.prototype = {
   async _onAdd(from, to) {
     const store = await Store.getValue();
     const list = [...this.dynamicList];
-    const state = this._getFromTo(to, list);
-
-    const params = { ...state }
-
+    const index = this._getIndex(list, to.node.dataset.key);
+    const params = { ...store.from, index };
     if (from.node === to.node) {
       // insert to end of list
-      params.item = store.from.item;
       params.index = this.dynamicList.length;
       this.dynamicList.push(store.from.item);
     } else {
-      this.dynamicList.splice(state.index, 0, store.from.item);
+      this.dynamicList.splice(index, 0, store.from.item);
     }
 
     this.context.$emit('add', { ...params });
