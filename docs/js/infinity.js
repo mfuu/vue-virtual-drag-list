@@ -45,8 +45,10 @@ export const InfinityList = Vue.component('infinity-list', {
           dataKey: 'id',
           keeps: 20,
           size: 99,
+          itemClass: 'infinity-item',
           disabled: this.disabled,
-          draggable: '.drag',
+          draggable: '.infinity-item',
+          handle: '.drag',
           keepOffset: true
         },
         on: {
@@ -57,9 +59,7 @@ export const InfinityList = Vue.component('infinity-list', {
         style: { height: '100%' },
         scopedSlots: {
           item: props => {
-            return h('div', {
-              class: 'infinity-item',
-            }, 
+            return h('div', {}, 
             [
               this.disabled ? null : h('span', {
                 class: 'drag',

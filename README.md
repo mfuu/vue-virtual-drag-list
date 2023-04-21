@@ -19,21 +19,26 @@ Root component:
 <template>
   <div>
     <!--
-      :draggable="'i'" // use tagName 
-      :draggable="'.drag'" // use class
-      :draggable="'#drag'" // use id
+      :draggable="'div'" // use tagName 
+      :draggable="'.item'" // use class
+      :draggable="'#item'" // use id
     -->
     <virtual-drag-list
       :data-key="'id'"
       :data-source="list"
-      :draggable="'.drag'"
+      :draggable="'.item'"
+      :handle="'.handle'"
+      :item-class="'item'"
       style="height: 500px"
       @top="handleToTop"
       @bottom="handleToBottom"
-      @ondragend="ondragend"
+      @drag="ondragstart"
+      @drop="ondragend"
+      @add="onAdd"
+      @remove="onRemove"
     >
       <template slot="item" slot-scope="{ record, index, dataKey }">
-        <span class="drag">{{ record.id }}</span>
+        <span class="handle">{{ record.id }}</span>
         {{ record.text }}
       </template>
       <template slot="header">
@@ -59,16 +64,22 @@ Root component:
     },
     methods: {
       handleToTop() {
-        ...
+        // code here
       },
       handleToBottom() {
-        ...
+        // code here
       },
       ondragstart(list, from, node) {
-        ...
+        // code here
       },
       ondragend(list, from, to, changed) {
-        ...
+        // code here
+      },
+      onAdd() {
+        // code here
+      },
+      onRemove() {
+        // code here
       }
     }
   }
@@ -80,8 +91,10 @@ Root component:
 |--------------|-----------------|
 | `top`        | Event fired when scroll to top |
 | `bottom`     | Event fired when scroll to bottom |
-| `ondragstart`| Event fired when the drag is started |
-| `ondragend`  | Event fired when the drag is completed |
+| `drag`       | Event fired when the drag is started |
+| `drop`       | Event fired when the drag is completed |
+| `add`        | Event fired when element is dropped into the list from another |
+| `remove`     | Event fired when element is removed from the list into another |
 
 ## Props
 
@@ -102,11 +115,9 @@ Root component:
 | `size`       | `Number`   | `-`         | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
 | `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable |
-| `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
+| `handle`     | `Function/String` | `-`  | Drag handle selector within list items |
+| `group`      | `Function/String` | `-`  | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false }` |
 | `keepOffset` | `Boolean`  | `false`     | When scrolling up to load data, keep the same offset as the previous scroll |
-| `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container, **for browsers that do not support HTML5 drag events** |
-| `scrollStep` | `Number`   | `5`         | The distance to scroll each frame when autoscrolling |
-| `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
 
 
 **Uncommonly used**
@@ -114,7 +125,10 @@ Root component:
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
-| `delay`      | `Number`   | `10`        | Delay time of debounce function |
+| `delay`      | `Number`   | `0`        | Delay time of debounce function |
+| `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
+| `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
+| `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
 | `itemTag`    | `String`   | `div`       | Label type for list item element |

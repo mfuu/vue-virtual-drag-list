@@ -36,8 +36,10 @@ export const DynamicList = Vue.component('dynamic-list', {
           dataKey: 'index',
           keeps: 20,
           size: 90,
+          itemClass: 'dynamic-item',
           disabled: this.disabled,
-          draggable: '.drag',
+          draggable: '.dynamic-item',
+          handle: '.drag',
         },
         on: {
           top: this.handleTop,
@@ -47,9 +49,7 @@ export const DynamicList = Vue.component('dynamic-list', {
         style: { height: '100%' },
         scopedSlots: {
           item: props => {
-            return h('div', {
-              class: 'dynamic-item',
-            }, 
+            return h('div', {}, 
             [
               this.disabled ? null : h('span', {
                 class: 'drag',
