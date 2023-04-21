@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.6.17
+ * vue-virtual-drag-list v2.7.0
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -598,6 +598,11 @@
     };
     return debounced;
   }
+  function getDataKey(item, dataKey) {
+    return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
+      return (o || {})[k];
+    }, item);
+  }
 
   var observer = {
     inject: ['virtualList'],
@@ -662,6 +667,207 @@
       }, this.$slots["default"]);
     }
   });
+
+  var Range = /*#__PURE__*/_createClass(function Range() {
+    _classCallCheck(this, Range);
+    this.start = 0;
+    this.end = 0;
+    this.front = 0;
+    this.behind = 0;
+  });
+  var CalcSize = /*#__PURE__*/_createClass(function CalcSize() {
+    _classCallCheck(this, CalcSize);
+    this.average = undefined;
+    this.total = undefined;
+    this.fixed = undefined;
+    this.header = undefined;
+    this.footer = undefined;
+  });
+  var CACLTYPE = {
+    INIT: 'INIT',
+    FIXED: 'FIXED',
+    DYNAMIC: 'DYNAMIC'
+  };
+  var DIRECTION = {
+    FRONT: 'FRONT',
+    BEHIND: 'BEHIND'
+  };
+  function Virtual(options, callback) {
+    this.options = options;
+    this.callback = callback;
+    this.sizes = new Map(); // store item size
+    this.isHorizontal = options.isHorizontal;
+    this.calcIndex = 0; // record last index
+    this.calcType = CACLTYPE.INIT;
+    this.calcSize = new CalcSize();
+    this.direction = '';
+    this.offset = 0;
+    this.range = new Range();
+    if (options) this.checkIfUpdate(0, options.keeps - 1);
+  }
+  Virtual.prototype = {
+    constructor: Virtual,
+    // --------------------------- update ------------------------------
+    updateUniqueKeys: function updateUniqueKeys(value) {
+      this.options.uniqueKeys = value;
+    },
+    // Deletes data that is not in the current list
+    updateSizes: function updateSizes(uniqueKeys) {
+      var _this = this;
+      this.sizes.forEach(function (v, k) {
+        if (!uniqueKeys.includes(k)) _this.sizes["delete"](k);
+      });
+    },
+    updateRange: function updateRange() {
+      var _this2 = this;
+      // check if need to update until loaded enough list item
+      var start = Math.max(this.range.start, 0);
+      var length = Math.min(this.options.keeps, this.options.uniqueKeys.length);
+      if (this.sizes.size >= length - 1) {
+        this.handleUpdate(start, this.getEndByStart(start));
+      } else {
+        if (window.requestAnimationFrame) {
+          window.requestAnimationFrame(function () {
+            return _this2.updateRange();
+          });
+        } else {
+          setTimeout(function () {
+            return _this2.updateRange();
+          }, 3);
+        }
+      }
+    },
+    // --------------------------- scroll ------------------------------
+    handleScroll: function handleScroll(offset) {
+      this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
+      this.offset = offset;
+      var scrolls = this.getScrollItems(offset);
+      if (this.isFront()) {
+        this.handleScrollFront(scrolls);
+      } else if (this.isBehind()) {
+        this.handleScrollBehind(scrolls);
+      }
+    },
+    isFront: function isFront() {
+      return this.direction === DIRECTION.FRONT;
+    },
+    isBehind: function isBehind() {
+      return this.direction === DIRECTION.BEHIND;
+    },
+    isFixed: function isFixed() {
+      return this.calcType === CACLTYPE.FIXED;
+    },
+    getScrollItems: function getScrollItems(offset) {
+      var _this$calcSize = this.calcSize,
+        fixed = _this$calcSize.fixed,
+        header = _this$calcSize.header;
+      if (header) offset -= header;
+      if (offset <= 0) return 0;
+      if (this.isFixed()) return Math.floor(offset / fixed);
+      var low = 0,
+        high = this.options.uniqueKeys.length;
+      var middle = 0,
+        middleOffset = 0;
+      while (low <= high) {
+        middle = low + Math.floor((high - low) / 2);
+        middleOffset = this.getOffsetByIndex(middle);
+        if (middleOffset === offset) return middle;else if (middleOffset < offset) low = middle + 1;else if (middleOffset > offset) high = middle - 1;
+      }
+      return low > 0 ? --low : 0;
+    },
+    handleScrollFront: function handleScrollFront(scrolls) {
+      if (scrolls > this.range.start) return;
+      var start = Math.max(scrolls - Math.round(this.options.keeps / 3), 0);
+      this.checkIfUpdate(start, this.getEndByStart(start));
+    },
+    handleScrollBehind: function handleScrollBehind(scrolls) {
+      if (scrolls < this.range.start + Math.round(this.options.keeps / 3)) return;
+      this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
+    },
+    checkIfUpdate: function checkIfUpdate(start, end) {
+      var _this$options = this.options,
+        uniqueKeys = _this$options.uniqueKeys,
+        keeps = _this$options.keeps;
+      if (uniqueKeys.length <= keeps) {
+        start = 0;
+        end = uniqueKeys.length - 1;
+      } else if (end - start < keeps - 1) {
+        start = end - keeps + 1;
+      }
+      if (this.range.start !== start) this.handleUpdate(start, end);
+    },
+    handleUpdate: function handleUpdate(start, end) {
+      this.range.start = start;
+      this.range.end = end;
+      this.range.front = this.getFrontOffset();
+      this.range.behind = this.getBehindOffset();
+      this.callback(_objectSpread2({}, this.range));
+    },
+    getFrontOffset: function getFrontOffset() {
+      if (this.isFixed()) {
+        return this.calcSize.fixed * this.range.start;
+      } else {
+        return this.getOffsetByIndex(this.range.start);
+      }
+    },
+    getBehindOffset: function getBehindOffset() {
+      var last = this.getLastIndex();
+      if (this.isFixed()) {
+        return (last - this.range.end) * this.calcSize.fixed;
+      }
+      if (this.calcIndex === last) {
+        return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.range.end);
+      }
+      return (last - this.range.end) * this.getItemSize();
+    },
+    getOffsetByIndex: function getOffsetByIndex(index) {
+      if (!index) return 0;
+      var offset = 0;
+      for (var i = 0; i < index; i++) {
+        var size = this.sizes.get(this.options.uniqueKeys[i]);
+        offset = offset + (typeof size === 'number' ? size : this.getItemSize());
+      }
+      this.calcIndex = Math.max(this.calcIndex, index - 1);
+      this.calcIndex = Math.min(this.calcIndex, this.getLastIndex());
+      return offset;
+    },
+    getEndByStart: function getEndByStart(start) {
+      return Math.min(start + this.options.keeps - 1, this.getLastIndex());
+    },
+    getLastIndex: function getLastIndex() {
+      var _this$options2 = this.options,
+        uniqueKeys = _this$options2.uniqueKeys,
+        keeps = _this$options2.keeps;
+      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
+    },
+    // --------------------------- size change ------------------------------
+    getItemSize: function getItemSize() {
+      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
+    },
+    handleItemSizeChange: function handleItemSizeChange(id, size) {
+      this.sizes.set(id, size);
+      if (this.calcType === CACLTYPE.INIT) {
+        this.calcType = CACLTYPE.FIXED;
+        this.calcSize.fixed = size;
+      } else if (this.isFixed() && this.calcSize.fixed !== size) {
+        this.calcType = CACLTYPE.DYNAMIC;
+        this.calcSize.fixed = undefined;
+      }
+      // In the case of non-fixed heights, the average height and the total height are calculated
+      if (this.calcType !== CACLTYPE.FIXED) {
+        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
+          return t + i;
+        }, 0);
+        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
+      }
+    },
+    handleHeaderSizeChange: function handleHeaderSizeChange(size) {
+      this.calcSize.header = size;
+    },
+    handleFooterSizeChange: function handleFooterSizeChange(size) {
+      this.calcSize.footer = size;
+    }
+  };
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -2000,6 +2206,10 @@
   });
 
   var storeKey = 'virtualSortableState';
+  var defaultStore = {
+    from: {},
+    to: {}
+  };
   function Storage() {}
   Storage.prototype = {
     constructor: Storage,
@@ -2007,20 +2217,32 @@
       localStorage.removeItem(storeKey);
     },
     /**
-     * @returns drag states: { from, to }
+     * Obtaining Synchronization Data
+     * @returns states: { from, to }
+     */
+    getStore: function getStore() {
+      try {
+        var result = JSON.parse(localStorage.getItem(storeKey));
+        return result || defaultStore;
+      } catch (e) {
+        return defaultStore;
+      }
+    },
+    /**
+     * @returns states: { from, to }
      */
     getValue: function getValue() {
       return new Promise(function (resolve, reject) {
         try {
           var result = JSON.parse(localStorage.getItem(storeKey));
-          resolve(result);
+          resolve(result || defaultStore);
         } catch (e) {
-          reject({});
+          reject(defaultStore);
         }
       });
     },
     /**
-     * @param {*} value { from, to }
+     * @param {Object} value { from, to }
      */
     setValue: function setValue(value) {
       return new Promise(function (resolve, reject) {
@@ -2030,41 +2252,38 @@
           localStorage.setItem(storeKey, result);
           resolve(result);
         } catch (e) {
-          reject({});
+          reject(defaultStore);
         }
       });
     }
   };
+  var Store = new Storage();
 
   var attributes = ['group', 'handle', 'disabled', 'draggable', 'ghostClass', 'ghostStyle', 'chosenClass', 'animation', 'autoScroll', 'scrollThreshold'];
-  var storage = new Storage();
   var dragEl = null;
   function Sortable(context, callback) {
     this.context = context;
     this.callback = callback;
     this.initialList = _toConsumableArray(context.list);
     this.dynamicList = _toConsumableArray(context.list);
-    this.drag = null;
-    this.rangeIsChanged = false;
+    this.sortable = null;
+    this.rangeChanged = false;
     this._init();
   }
   Sortable.prototype = {
     constructor: Sortable,
     destroy: function destroy() {
-      this.drag && this.drag.destroy();
-      this.drag = null;
-    },
-    getState: function getState() {
-      return storage.getValue();
+      this.sortable && this.sortable.destroy();
+      this.sortable = null;
     },
     setValue: function setValue(key, value) {
       if (key === 'list') {
-        this.initialList = value;
+        this.initialList = _toConsumableArray(value);
         // When the list data changes when dragging, need to execute onDrag function
         if (dragEl) this._onDrag(dragEl, false);
       } else {
         this.context[key] = value;
-        this.drag.set(key, value);
+        this.sortable.options[key] = value;
       }
     },
     _init: function _init() {
@@ -2073,30 +2292,33 @@
         res[key] = _this.context[key];
         return res;
       }, {});
-      this.drag = new sortable(this.context.$refs.group, _objectSpread2(_objectSpread2({}, props), {}, {
-        initialList: this.initialList,
+      this.sortable = new sortable(this.context.$refs.group, _objectSpread2(_objectSpread2({}, props), {}, {
+        fallbackOnBody: true,
+        list: this.dynamicList,
         onDrag: function onDrag(_ref) {
           var from = _ref.from;
           return _this._onDrag(from.node);
         },
-        onDrop: function onDrop(_ref2) {
-          var changed = _ref2.changed;
-          return _this._onDrop(changed);
-        },
-        onChange: function onChange(_ref3) {
-          var from = _ref3.from,
-            to = _ref3.to;
-          return _this._onChange(from, to);
-        },
-        onAdd: function onAdd(_ref4) {
-          var from = _ref4.from,
-            to = _ref4.to;
+        onAdd: function onAdd(_ref2) {
+          var from = _ref2.from,
+            to = _ref2.to;
           return _this._onAdd(from, to);
         },
-        onRemove: function onRemove(_ref5) {
-          var from = _ref5.from,
-            to = _ref5.to;
+        onRemove: function onRemove(_ref3) {
+          var from = _ref3.from,
+            to = _ref3.to;
           return _this._onRemove(from, to);
+        },
+        onChange: function onChange(_ref4) {
+          var from = _ref4.from,
+            to = _ref4.to;
+          return _this._onChange(from, to);
+        },
+        onDrop: function onDrop(_ref5) {
+          var from = _ref5.from,
+            to = _ref5.to,
+            changed = _ref5.changed;
+          return _this._onDrop(from, to, changed);
         }
       }));
     },
@@ -2104,42 +2326,41 @@
       var _arguments = arguments,
         _this2 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-        var callback, key, index, res;
+        var callback, fromList, fromState, store;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
               callback = _arguments.length > 1 && _arguments[1] !== undefined ? _arguments[1] : true;
               dragEl = node;
               _this2.dynamicList = _toConsumableArray(_this2.initialList);
-              key = node.dataset.key;
-              index = _this2._getIndex(_this2.initialList, key);
-              if (index > -1) {
-                storage.setValue({
-                  from: {
-                    list: _toConsumableArray(_this2.initialList),
-                    item: _this2.initialList[index],
-                    index: index,
-                    key: key
-                  }
-                });
-              }
+              fromList = _toConsumableArray(_this2.initialList);
+              fromState = _this2._getFromTo({
+                node: node
+              }, fromList);
+              _context.next = 7;
+              return Store.setValue({
+                from: _objectSpread2({
+                  list: fromList
+                }, fromState)
+              });
+            case 7:
               if (!callback) {
-                _context.next = 14;
+                _context.next = 15;
                 break;
               }
-              _this2.rangeIsChanged = false;
-              _context.next = 10;
-              return storage.getValue();
-            case 10:
-              res = _context.sent;
+              _this2.rangeChanged = false;
+              _context.next = 11;
+              return Store.getValue();
+            case 11:
+              store = _context.sent;
               _this2.context.$emit('drag', _objectSpread2({
-                list: _this2.list
-              }, res));
-              _context.next = 15;
+                list: fromList
+              }, store));
+              _context.next = 16;
               break;
-            case 14:
-              _this2.rangeIsChanged = true;
             case 15:
+              _this2.rangeChanged = true;
+            case 16:
             case "end":
               return _context.stop();
           }
@@ -2149,45 +2370,28 @@
     _onAdd: function _onAdd(from, to) {
       var _this3 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-        var state, oldKey, newKey, newIndex, oldIndex, newItem, oldItem, res;
+        var store, list, index, params;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               _context2.next = 2;
-              return storage.getValue();
+              return Store.getValue();
             case 2:
-              state = _context2.sent;
-              oldKey = from.node.dataset.key;
-              newKey = to.node.dataset.key;
-              newIndex = _this3._getIndex(_this3.dynamicList, newKey);
-              oldIndex = _this3._getIndex(state.from.list, oldKey);
-              newItem = _this3.dynamicList[newIndex];
-              oldItem = state.from.list[oldIndex];
-              _this3.dynamicList.splice(newIndex, 0, oldItem);
-              _context2.next = 12;
-              return storage.setValue({
-                from: {
-                  list: _toConsumableArray(state.from.list),
-                  item: oldItem,
-                  index: oldIndex,
-                  key: oldKey
-                },
-                to: {
-                  list: _toConsumableArray(_this3.dynamicList),
-                  item: newItem,
-                  index: newIndex,
-                  key: newKey
-                }
+              store = _context2.sent;
+              list = _toConsumableArray(_this3.dynamicList);
+              index = _this3._getIndex(list, to.node.dataset.key);
+              params = _objectSpread2(_objectSpread2({}, store.from), {}, {
+                index: index
               });
-            case 12:
-              _context2.next = 14;
-              return storage.getValue();
-            case 14:
-              res = _context2.sent;
-              _this3.context.$emit('add', _objectSpread2({
-                list: _this3.dynamicList
-              }, res));
-            case 16:
+              if (from.node === to.node) {
+                // insert to end of list
+                params.index = _this3.dynamicList.length;
+                _this3.dynamicList.push(store.from.item);
+              } else {
+                _this3.dynamicList.splice(index, 0, store.from.item);
+              }
+              _this3.context.$emit('add', _objectSpread2({}, params));
+            case 8:
             case "end":
               return _context2.stop();
           }
@@ -2197,45 +2401,15 @@
     _onRemove: function _onRemove(from, to) {
       var _this4 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-        var state, toList, oldKey, newKey, oldIndex, newIndex, oldItem, newItem, res;
+        var list, state;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
-              _context3.next = 2;
-              return storage.getValue();
-            case 2:
-              state = _context3.sent;
-              toList = to.sortable.options.initialList;
-              oldKey = from.node.dataset.key;
-              newKey = to.node.dataset.key;
-              oldIndex = _this4._getIndex(_this4.dynamicList, oldKey);
-              newIndex = _this4._getIndex(toList, newKey);
-              oldItem = _this4.dynamicList[oldIndex];
-              newItem = toList[newIndex];
-              _context3.next = 12;
-              return storage.setValue({
-                from: {
-                  list: _toConsumableArray(state.from.list),
-                  item: oldItem,
-                  index: oldIndex,
-                  key: oldKey
-                },
-                to: {
-                  list: _toConsumableArray(_this4.dynamicList),
-                  item: newItem,
-                  index: newIndex,
-                  key: newKey
-                }
-              });
-            case 12:
-              _context3.next = 14;
-              return storage.getValue();
-            case 14:
-              res = _context3.sent;
-              _this4.context.$emit('remove', _objectSpread2({
-                list: _this4.dynamicList
-              }, res));
-            case 16:
+              list = _toConsumableArray(_this4.dynamicList);
+              state = _this4._getFromTo(from, list);
+              _this4.dynamicList.splice(state.index, 1);
+              _this4.context.$emit('remove', _objectSpread2({}, state));
+            case 4:
             case "end":
               return _context3.stop();
           }
@@ -2245,310 +2419,87 @@
     _onChange: function _onChange(from, to) {
       var _this5 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-        var state, oldKey, newKey, oldIndex, oldItem, newIndex;
+        var fromList, toList, fromState, toState;
         return _regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
-              _context4.next = 2;
-              return storage.getValue();
-            case 2:
-              state = _context4.sent;
-              oldKey = state.from.key;
-              newKey = to.node.dataset.key;
-              oldIndex = -1;
-              oldItem = null;
-              newIndex = -1;
-              _this5.dynamicList.forEach(function (item, index) {
-                var key = _this5.context._getDataKey(item);
-                if (key == oldKey) {
-                  oldIndex = index;
-                  oldItem = item;
-                }
-                if (key == newKey) {
-                  newIndex = index;
-                }
-              });
-              _this5.dynamicList.splice(oldIndex, 1);
-              _this5.dynamicList.splice(newIndex, 0, oldItem);
-            case 12:
+              fromList = _toConsumableArray(_this5.dynamicList);
+              toList = _toConsumableArray(_this5.dynamicList);
+              fromState = _this5._getFromTo(from, fromList);
+              toState = _this5._getFromTo(to, toList);
+              _this5.dynamicList.splice(fromState.index, 1);
+              _this5.dynamicList.splice(toState.index, 0, fromState.item);
+            case 6:
             case "end":
               return _context4.stop();
           }
         }, _callee4);
       }))();
     },
-    _onDrop: function _onDrop(changed) {
+    _onDrop: function _onDrop(from, to, changed) {
       var _this6 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-        var state, _getDataKey, res, params;
-        return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-          while (1) switch (_context6.prev = _context6.next) {
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+        var list, index, item, key, store, params;
+        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) switch (_context5.prev = _context5.next) {
             case 0:
-              dragEl && dragEl.remove();
-              _context6.next = 3;
-              return storage.getValue();
-            case 3:
-              state = _context6.sent;
-              _getDataKey = _this6.context._getDataKey;
-              _this6.dynamicList.forEach( /*#__PURE__*/function () {
-                var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(item, index) {
-                  return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-                    while (1) switch (_context5.prev = _context5.next) {
-                      case 0:
-                        if (!(_getDataKey(item) == state.from.key)) {
-                          _context5.next = 3;
-                          break;
-                        }
-                        _context5.next = 3;
-                        return storage.setValue({
-                          to: {
-                            list: _toConsumableArray(_this6.dynamicList),
-                            item: _this6.dynamicList[index],
-                            key: _getDataKey(item),
-                            index: index
-                          }
-                        });
-                      case 3:
-                      case "end":
-                        return _context5.stop();
-                    }
-                  }, _callee5);
-                }));
-                return function (_x, _x2) {
-                  return _ref6.apply(this, arguments);
-                };
-              }());
-              _context6.next = 8;
-              return storage.getValue();
-            case 8:
-              res = _context6.sent;
+              if (_this6.rangeChanged || from.sortable !== to.sortable) {
+                dragEl && dragEl.remove();
+              }
+              list = _toConsumableArray(_this6.dynamicList);
+              index = _this6._getIndex(list, from.node.dataset.key);
+              item = _this6.initialList[index];
+              key = getDataKey(item, _this6.context.dataKey);
+              _context5.next = 7;
+              return Store.setValue({
+                to: {
+                  list: _toConsumableArray(_this6.initialList),
+                  index: index,
+                  item: item,
+                  key: key
+                }
+              });
+            case 7:
+              _context5.next = 9;
+              return Store.getValue();
+            case 9:
+              store = _context5.sent;
               params = _objectSpread2(_objectSpread2({
-                list: _this6.dynamicList
-              }, res), {}, {
+                list: list
+              }, store), {}, {
                 changed: changed
               });
               _this6.context.$emit('drop', params);
               _this6.callback && _this6.callback(params);
-              _this6.initialList = _toConsumableArray(_this6.dynamicList);
+              _this6.initialList = _toConsumableArray(list);
               _this6._clear();
-            case 14:
+            case 15:
             case "end":
-              return _context6.stop();
+              return _context5.stop();
           }
-        }, _callee6);
+        }, _callee5);
       }))();
+    },
+    _getFromTo: function _getFromTo(fromTo, list) {
+      var key = fromTo.node.dataset.key;
+      var index = this._getIndex(list, key);
+      var item = list[index];
+      return {
+        key: key,
+        item: item,
+        index: index
+      };
     },
     _getIndex: function _getIndex(list, key) {
       var _this7 = this;
       return list.findIndex(function (item) {
-        return _this7.context._getDataKey(item) == key;
+        return getDataKey(item, _this7.context.dataKey) == key;
       });
     },
     _clear: function _clear() {
       dragEl = null;
-      storage.clear();
-      this.rangeIsChanged = false;
-    }
-  };
-
-  var Range = /*#__PURE__*/_createClass(function Range() {
-    _classCallCheck(this, Range);
-    this.start = 0;
-    this.end = 0;
-    this.front = 0;
-    this.behind = 0;
-  });
-  var CalcSize = /*#__PURE__*/_createClass(function CalcSize() {
-    _classCallCheck(this, CalcSize);
-    this.average = undefined;
-    this.total = undefined;
-    this.fixed = undefined;
-    this.header = undefined;
-    this.footer = undefined;
-  });
-  var CACLTYPE = {
-    INIT: 'INIT',
-    FIXED: 'FIXED',
-    DYNAMIC: 'DYNAMIC'
-  };
-  var DIRECTION = {
-    FRONT: 'FRONT',
-    BEHIND: 'BEHIND'
-  };
-  function Virtual(options, callback) {
-    this.options = options;
-    this.callback = callback;
-    this.sizes = new Map(); // store item size
-    this.isHorizontal = options.isHorizontal;
-    this.calcIndex = 0; // record last index
-    this.calcType = CACLTYPE.INIT;
-    this.calcSize = new CalcSize();
-    this.direction = '';
-    this.offset = 0;
-    this.range = new Range();
-    if (options) this.checkIfUpdate(0, options.keeps - 1);
-  }
-  Virtual.prototype = {
-    constructor: Virtual,
-    // --------------------------- update ------------------------------
-    updateUniqueKeys: function updateUniqueKeys(value) {
-      this.options.uniqueKeys = value;
-    },
-    // Deletes data that is not in the current list
-    updateSizes: function updateSizes(uniqueKeys) {
-      var _this = this;
-      this.sizes.forEach(function (v, k) {
-        if (!uniqueKeys.includes(k)) _this.sizes["delete"](k);
-      });
-    },
-    updateRange: function updateRange() {
-      var _this2 = this;
-      // check if need to update until loaded enough list item
-      var start = Math.max(this.range.start, 0);
-      var length = Math.min(this.options.keeps, this.options.uniqueKeys.length);
-      if (this.sizes.size >= length - 1) {
-        this.handleUpdate(start, this.getEndByStart(start));
-      } else {
-        if (window.requestAnimationFrame) {
-          window.requestAnimationFrame(function () {
-            return _this2.updateRange();
-          });
-        } else {
-          setTimeout(function () {
-            return _this2.updateRange();
-          }, 3);
-        }
-      }
-    },
-    // --------------------------- scroll ------------------------------
-    handleScroll: function handleScroll(offset) {
-      this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
-      this.offset = offset;
-      var scrolls = this.getScrollItems(offset);
-      if (this.isFront()) {
-        this.handleScrollFront(scrolls);
-      } else if (this.isBehind()) {
-        this.handleScrollBehind(scrolls);
-      }
-    },
-    isFront: function isFront() {
-      return this.direction === DIRECTION.FRONT;
-    },
-    isBehind: function isBehind() {
-      return this.direction === DIRECTION.BEHIND;
-    },
-    isFixed: function isFixed() {
-      return this.calcType === CACLTYPE.FIXED;
-    },
-    getScrollItems: function getScrollItems(offset) {
-      var _this$calcSize = this.calcSize,
-        fixed = _this$calcSize.fixed,
-        header = _this$calcSize.header;
-      if (header) offset -= header;
-      if (offset <= 0) return 0;
-      if (this.isFixed()) return Math.floor(offset / fixed);
-      var low = 0,
-        high = this.options.uniqueKeys.length;
-      var middle = 0,
-        middleOffset = 0;
-      while (low <= high) {
-        middle = low + Math.floor((high - low) / 2);
-        middleOffset = this.getOffsetByIndex(middle);
-        if (middleOffset === offset) return middle;else if (middleOffset < offset) low = middle + 1;else if (middleOffset > offset) high = middle - 1;
-      }
-      return low > 0 ? --low : 0;
-    },
-    handleScrollFront: function handleScrollFront(scrolls) {
-      if (scrolls > this.range.start) return;
-      var start = Math.max(scrolls - Math.round(this.options.keeps / 3), 0);
-      this.checkIfUpdate(start, this.getEndByStart(start));
-    },
-    handleScrollBehind: function handleScrollBehind(scrolls) {
-      if (scrolls < this.range.start + Math.round(this.options.keeps / 3)) return;
-      this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
-    },
-    checkIfUpdate: function checkIfUpdate(start, end) {
-      var _this$options = this.options,
-        uniqueKeys = _this$options.uniqueKeys,
-        keeps = _this$options.keeps;
-      if (uniqueKeys.length <= keeps) {
-        start = 0;
-        end = uniqueKeys.length - 1;
-      } else if (end - start < keeps - 1) {
-        start = end - keeps + 1;
-      }
-      if (this.range.start !== start) this.handleUpdate(start, end);
-    },
-    handleUpdate: function handleUpdate(start, end) {
-      this.range.start = start;
-      this.range.end = end;
-      this.range.front = this.getFrontOffset();
-      this.range.behind = this.getBehindOffset();
-      this.callback(_objectSpread2({}, this.range));
-    },
-    getFrontOffset: function getFrontOffset() {
-      if (this.isFixed()) {
-        return this.calcSize.fixed * this.range.start;
-      } else {
-        return this.getOffsetByIndex(this.range.start);
-      }
-    },
-    getBehindOffset: function getBehindOffset() {
-      var last = this.getLastIndex();
-      if (this.isFixed()) {
-        return (last - this.range.end) * this.calcSize.fixed;
-      }
-      if (this.calcIndex === last) {
-        return this.getOffsetByIndex(last) - this.getOffsetByIndex(this.range.end);
-      }
-      return (last - this.range.end) * this.getItemSize();
-    },
-    getOffsetByIndex: function getOffsetByIndex(index) {
-      if (!index) return 0;
-      var offset = 0;
-      for (var i = 0; i < index; i++) {
-        var size = this.sizes.get(this.options.uniqueKeys[i]);
-        offset = offset + (typeof size === 'number' ? size : this.getItemSize());
-      }
-      this.calcIndex = Math.max(this.calcIndex, index - 1);
-      this.calcIndex = Math.min(this.calcIndex, this.getLastIndex());
-      return offset;
-    },
-    getEndByStart: function getEndByStart(start) {
-      return Math.min(start + this.options.keeps - 1, this.getLastIndex());
-    },
-    getLastIndex: function getLastIndex() {
-      var _this$options2 = this.options,
-        uniqueKeys = _this$options2.uniqueKeys,
-        keeps = _this$options2.keeps;
-      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
-    },
-    // --------------------------- size change ------------------------------
-    getItemSize: function getItemSize() {
-      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
-    },
-    handleItemSizeChange: function handleItemSizeChange(id, size) {
-      this.sizes.set(id, size);
-      if (this.calcType === CACLTYPE.INIT) {
-        this.calcType = CACLTYPE.FIXED;
-        this.calcSize.fixed = size;
-      } else if (this.isFixed() && this.calcSize.fixed !== size) {
-        this.calcType = CACLTYPE.DYNAMIC;
-        this.calcSize.fixed = undefined;
-      }
-      // In the case of non-fixed heights, the average height and the total height are calculated
-      if (this.calcType !== CACLTYPE.FIXED) {
-        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
-          return t + i;
-        }, 0);
-        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
-      }
-    },
-    handleHeaderSizeChange: function handleHeaderSizeChange(size) {
-      this.calcSize.header = size;
-    },
-    handleFooterSizeChange: function handleFooterSizeChange(size) {
-      this.calcSize.footer = size;
+      Store.clear();
+      this.rangeChanged = false;
     }
   };
 
@@ -2561,10 +2512,6 @@
         virtual: null,
         sortable: null,
         lastItem: null,
-        state: {
-          from: {},
-          to: {}
-        },
         range: new Range()
       };
     },
@@ -2687,12 +2634,6 @@
         var root = this.$refs.root;
         root[this.scrollDirectionKey] = offset;
       },
-      /**
-       * callback function after drop
-       */
-      handleDragEnd: function handleDragEnd(list, _old, _new, changed) {
-        this.$emit('ondragend', list, _old, _new, changed);
-      },
       init: function init(list) {
         var _this4 = this;
         this.list = _toConsumableArray(list);
@@ -2730,15 +2671,15 @@
           uniqueKeys: this.uniqueKeys,
           isHorizontal: this.isHorizontal
         }, function (range) {
-          if (_this5.state.to.key === undefined) {
-            _this5.range = range;
-          }
+          _this5.range = range;
+          if (!_this5.sortable) return;
+          var state = Store.getStore();
           var _this5$range = _this5.range,
             start = _this5$range.start,
             end = _this5$range.end;
-          var index = _this5.state.from.index;
+          var index = state.from.index;
           if (index > -1 && !(index >= start && index <= end)) {
-            if (_this5.sortable) _this5.sortable.rangeIsChanged = true;
+            _this5.sortable.rangeChanged = true;
           }
         });
         this.virtual.updateSizes(this.uniqueKeys);
@@ -2747,22 +2688,26 @@
       // sortable init
       _initSortable: function _initSortable() {
         var _this6 = this;
-        this.sortable = new Sortable(this, function (state) {
-          _this6.state = state;
+        this.sortable = new Sortable(this, function (_ref) {
+          var list = _ref.list,
+            changed = _ref.changed;
           // on drop
-          if (state.changed) {
-            // recalculate the range once when scrolling down
-            if (_this6.sortable.rangeIsChanged && _this6.virtual.direction && _this6.range.start > 0) {
-              var index = state.list.indexOf(_this6.list[_this6.range.start]);
-              if (index > -1) {
-                _this6.range.start = index;
-                _this6.range.end = index + _this6.keeps - 1;
-              }
+          if (!changed) return;
+          // recalculate the range once when scrolling down
+          if (_this6.sortable.rangeChanged && _this6.virtual.direction && _this6.range.start > 0) {
+            var index = list.indexOf(_this6.list[_this6.range.start]);
+            if (index > -1) {
+              _this6.range.start = index;
+              _this6.range.end = index + _this6.keeps - 1;
             }
-            _this6.list = _toConsumableArray(state.list);
+          }
+          // fix error with vue: Failed to execute 'insertBefore' on 'Node'
+          _this6.list = [];
+          _this6.$nextTick(function () {
+            _this6.list = _toConsumableArray(list);
             _this6._updateUniqueKeys();
             _this6.virtual.updateUniqueKeys(_this6.uniqueKeys);
-          }
+          });
         });
       },
       _destroySortable: function _destroySortable() {
@@ -2771,20 +2716,13 @@
       },
       // --------------------------- handle scroll ------------------------------
       _handleScroll: function _handleScroll() {
-        // The scroll event is triggered when the mouseup event occurs
-        // which is handled here to prevent the page from scrolling due to range changes
-        if (this.state.to.key !== undefined) {
-          this.state = {
-            from: {},
-            to: {}
-          };
-          return;
-        }
         var root = this.$refs.root;
         var offset = this.getOffset();
         var clientSize = Math.ceil(root[this.clientSizeKey]);
         var scrollSize = Math.ceil(root[this.scrollSizeKey]);
-        if (!scrollSize || offset < 0 || offset + clientSize > scrollSize + 1) return;
+        if (!scrollSize || offset < 0 || offset + clientSize > scrollSize + 1) {
+          return;
+        }
         this.virtual.handleScroll(offset);
         if (this.virtual.isFront()) {
           if (!!this.list.length && offset <= 0) this.handleToTop(this);
@@ -2813,26 +2751,23 @@
       _updateUniqueKeys: function _updateUniqueKeys() {
         var _this7 = this;
         this.uniqueKeys = this.list.map(function (item) {
-          return _this7._getDataKey(item);
+          return getDataKey(item, _this7.dataKey);
         });
-      },
-      _getDataKey: function _getDataKey(obj) {
-        var dataKey = this.dataKey;
-        return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
-          return (o || {})[k];
-        }, obj);
       },
       _getItemIndex: function _getItemIndex(item) {
         var _this8 = this;
         return this.list.findIndex(function (el) {
-          return _this8._getDataKey(item) == _this8._getDataKey(el);
+          return getDataKey(item, _this8.dataKey) == getDataKey(el, _this8.dataKey);
         });
       },
       _getItemStyle: function _getItemStyle(itemKey) {
-        var key = this.state.from.key;
-        if (this.sortable && this.sortable.rangeIsChanged && itemKey == key) return {
-          display: 'none'
-        };
+        var state = Store.getStore();
+        var fromKey = state.from.key;
+        if (this.sortable && this.sortable.rangeChanged && itemKey == fromKey) {
+          return {
+            display: 'none'
+          };
+        }
         return {};
       }
     },
@@ -2886,7 +2821,7 @@
         style: wrapStyle
       }, this.list.slice(start, end + 1).map(function (record) {
         var index = _this9._getItemIndex(record);
-        var dataKey = _this9._getDataKey(record);
+        var dataKey = getDataKey(record, _this9.dataKey);
         var props = {
           isHorizontal: isHorizontal,
           dataKey: dataKey,

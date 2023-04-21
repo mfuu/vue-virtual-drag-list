@@ -11,7 +11,7 @@ For Vue 3 support, see [here](https://github.com/mfuu/vue3-virtual-drag-list)
 ## Simple usage
 
 ```bash
-npm i vue-virtual-draglist -D
+npm i vue-virtual-draglist
 ```
 
 Root component:
@@ -32,8 +32,8 @@ Root component:
       style="height: 500px"
       @top="handleToTop"
       @bottom="handleToBottom"
-      @drag="ondragstart"
-      @drop="ondragend"
+      @drag="onDrag"
+      @drop="onDrop"
       @add="onAdd"
       @remove="onRemove"
     >
@@ -69,16 +69,16 @@ Root component:
       handleToBottom() {
         // code here
       },
-      ondragstart(list, from, node) {
+      onDrag({ list, from }) {
         // code here
       },
-      ondragend(list, from, to, changed) {
+      onDrop({ list, from, to, changed }) {
         // code here
       },
-      onAdd() {
+      onAdd({ item, key, index }) {
         // code here
       },
-      onRemove() {
+      onRemove({ item, key, index }) {
         // code here
       }
     }
@@ -128,7 +128,7 @@ Root component:
 | `delay`      | `Number`   | `0`        | Delay time of debounce function |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
-| `scrollThreshold` | `Number` | `15`     | Threshold to trigger autoscroll |
+| `scrollThreshold` | `Number` | `25`     | Threshold to trigger autoscroll |
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
 | `itemTag`    | `String`   | `div`       | Label type for list item element |
@@ -156,11 +156,6 @@ Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessi
 | `scrollToBottom()` | Scroll to bottom of list |
 | `scrollToIndex(index)`  | Scroll to the specified index position |
 | `scrollToOffset(offset)` | Scroll to the specified offset |
-
-
-## Links
-
-* [https://github.com/tangbc/vue-virtual-scroll-list/](https://github.com/tangbc/vue-virtual-scroll-list/)
 
 
 ## License
