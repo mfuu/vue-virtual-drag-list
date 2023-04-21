@@ -1,5 +1,6 @@
 import SortableDnd from 'sortable-dnd';
 import { Store } from './Storage';
+import { getDataKey } from '../utils';
 
 const attributes = [
   'group',
@@ -127,7 +128,7 @@ Sortable.prototype = {
     const list = [...this.dynamicList];
     const index = this._getIndex(list, from.node.dataset.key);
     const item = this.initialList[index];
-    const key = this.context._getDataKey(item);
+    const key = getDataKey(item, this.context.dataKey);
 
     await Store.setValue({
       to: { list: [...this.initialList], index, item, key },
@@ -152,7 +153,9 @@ Sortable.prototype = {
   },
 
   _getIndex(list, key) {
-    return list.findIndex((item) => this.context._getDataKey(item) == key);
+    return list.findIndex(
+      (item) => getDataKey(item, this.context.dataKey) == key
+    );
   },
 
   _clear() {

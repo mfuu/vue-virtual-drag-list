@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { VirtualProps } from './props';
-import { debounce } from './utils';
+import { debounce, getDataKey } from './utils';
 import { Slots, Items } from './Plugins/Slots';
 import Virtual, { Range } from './Plugins/Virtual';
 import Sortable from './Plugins/Sortable';
@@ -259,19 +259,11 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     // --------------------------- methods ------------------------------
     _updateUniqueKeys() {
-      this.uniqueKeys = this.list.map((item) => this._getDataKey(item));
-    },
-    _getDataKey(obj) {
-      const { dataKey } = this;
-      return (
-        !Array.isArray(dataKey)
-          ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.')
-          : dataKey
-      ).reduce((o, k) => (o || {})[k], obj);
+      this.uniqueKeys = this.list.map((item) => getDataKey(item, this.dataKey));
     },
     _getItemIndex(item) {
       return this.list.findIndex(
-        (el) => this._getDataKey(item) == this._getDataKey(el)
+        (el) => getDataKey(item, this.dataKey) == getDataKey(el, this.dataKey)
       );
     },
     _getItemStyle(itemKey) {
@@ -341,7 +333,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           },
           this.list.slice(start, end + 1).map((record) => {
             const index = this._getItemIndex(record);
-            const dataKey = this._getDataKey(record);
+            const dataKey = getDataKey(record, this.dataKey);
             const props = {
               isHorizontal,
               dataKey,

@@ -48,7 +48,10 @@ export function throttle(fn, delay) {
   };
 }
 
-export default {
-  debounce,
-  throttle,
-};
+export function getDataKey(item, dataKey) {
+  return (
+    !Array.isArray(dataKey)
+      ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.')
+      : dataKey
+  ).reduce((o, k) => (o || {})[k], item);
+}
