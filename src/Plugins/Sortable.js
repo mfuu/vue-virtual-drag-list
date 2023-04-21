@@ -56,7 +56,8 @@ Sortable.prototype = {
 
     this.sortable = new SortableDnd(this.context.$refs.group, {
       ...props,
-      initialList: [...this.initialList],
+      fallbackOnBody: true,
+      list: this.dynamicList,
       onDrag: ({ from }) => this._onDrag(from.node),
       onAdd: ({ from, to }) => this._onAdd(from, to),
       onRemove: ({ from, to }) => this._onRemove(from, to),
@@ -84,38 +85,31 @@ Sortable.prototype = {
   },
 
   async _onAdd(from, to) {
-    const state = await Store.getValue();
-    const fromList = [...state.from.list];
-    const toList = [...this.dynamicList];
-    const fromState = this._getFromTo(from, fromList);
-    const toState = this._getFromTo(to, toList);
-
-    await Store.setValue({
-      from: { list: fromList, ...fromState },
-      to: { list: toList, ...toState },
-    });
-
-    this.dynamicList.splice(toState.index, 0, fromState.item);
-
     const store = await Store.getValue();
-    this.context.$emit('add', { list: this.dynamicList, ...store });
+    const list = [...this.dynamicList];
+    const state = this._getFromTo(to, list);
+
+    const params = { ...state }
+
+    if (from.node === to.node) {
+      // insert to end of list
+      params.item = store.from.item;
+      params.index = this.dynamicList.length;
+      this.dynamicList.push(store.from.item);
+    } else {
+      this.dynamicList.splice(state.index, 0, store.from.item);
+    }
+
+    this.context.$emit('add', { ...params });
   },
 
   async _onRemove(from, to) {
-    const fromList = [...this.initialList];
-    const toList = [...to.sortable.options.initialList];
-    const fromState = this._getFromTo(from, fromList);
-    const toState = this._getFromTo(to, toList);
+    const list = [...this.dynamicList];
+    const state = this._getFromTo(from, list);
 
-    await Store.setValue({
-      from: { list: fromList, ...fromState },
-      to: { list: toList, ...toState },
-    });
+    this.dynamicList.splice(state.index, 1);
 
-    this.dynamicList.splice(fromState.index, 1);
-
-    const store = await Store.getValue();
-    this.context.$emit('remove', { list: this.dynamicList, ...store });
+    this.context.$emit('remove', { ...state });
   },
 
   async _onChange(from, to) {
@@ -123,8 +117,6 @@ Sortable.prototype = {
     const toList = [...this.dynamicList];
     const fromState = this._getFromTo(from, fromList);
     const toState = this._getFromTo(to, toList);
-
-    await Store.setValue({ to: { list: toList, ...toState } });
 
     this.dynamicList.splice(fromState.index, 1);
     this.dynamicList.splice(toState.index, 0, fromState.item);
@@ -135,8 +127,8 @@ Sortable.prototype = {
       dragEl && dragEl.remove();
     }
 
-    const toList = [...this.dynamicList];
-    const index = this._getIndex(toList, from.node.dataset.key);
+    const list = [...this.dynamicList];
+    const index = this._getIndex(list, from.node.dataset.key);
     const item = this.initialList[index];
     const key = this.context._getDataKey(item);
 
@@ -145,12 +137,12 @@ Sortable.prototype = {
     });
 
     const store = await Store.getValue();
-    const params = { list: [...toList], ...store, changed };
+    const params = { list: list, ...store, changed };
 
     this.context.$emit('drop', params);
     this.callback && this.callback(params);
 
-    this.initialList = [...toList];
+    this.initialList = [...list];
     this._clear();
   },
 

@@ -15,7 +15,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       virtual: null,
       sortable: null,
       lastItem: null,
-      isDrop: false,
       range: new Range(),
     };
   },
@@ -191,7 +190,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.sortable = new Sortable(this, ({ list, changed }) => {
         // on drop
         if (!changed) return;
-        this.isDrop = true;
         // recalculate the range once when scrolling down
         if (
           this.sortable.rangeChanged &&
@@ -204,8 +202,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             this.range.end = index + this.keeps - 1;
           }
         }
+        // fix error with vue: Failed to execute 'insertBefore' on 'Node'
+        this.list = [];
         this.$nextTick(() => {
-          this.list = list;
+          this.list = [...list];
           this._updateUniqueKeys();
           this.virtual.updateUniqueKeys(this.uniqueKeys);
         });
@@ -219,10 +219,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     // --------------------------- handle scroll ------------------------------
     _handleScroll() {
-      if (this.isDrop) {
-        this.isDrop = false;
-        return;
-      }
       const { root } = this.$refs;
       const offset = this.getOffset();
       const clientSize = Math.ceil(root[this.clientSizeKey]);
