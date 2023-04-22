@@ -53,11 +53,7 @@ export const VerticalList = Vue.component('vertical-list', {
             style: { height: '100%' },
             scopedSlots: {
               item: (props) => {
-                return h(
-                  'div',
-                  {
-                    class: 'vertical-item',
-                  },
+                return h('div', {},
                   [
                     this.disabled
                       ? null
