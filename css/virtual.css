@@ -50,8 +50,24 @@ button:hover {
   background-color: #ecf5ff;
 }
 
-button:not(:last-child) {
-  margin-bottom: 10px;
+.tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0 100px;
+}
+
+.tabs span {
+  padding: 20px;
+  cursor: pointer;
+}
+
+.tabs span:hover {
+  color: #1984ff;
+}
+
+.tabs .active {
+  color: #1984ff;
 }
 
 .content {
@@ -121,6 +137,7 @@ button:not(:last-child) {
 
 .oprate {
   text-align: center;
+  margin-bottom: 50px;
 }
 
 .horizontal-list {
