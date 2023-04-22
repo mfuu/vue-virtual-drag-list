@@ -20,15 +20,18 @@
         >{{ item.label }}</button>
       </div>
 
+      <div class="codebox">
+        <a href="https://codesandbox.io/s/morning-morning-h2cgur" target="_blank">
+          open in codesandbox
+        </a>
+      </div>
       <template v-if="activeTab == 1">
-        <h1>Infinity</h1>
         <div class="content">
           <infinity-list :get-page-data="getPageData"></infinity-list>
         </div>
       </template>
 
       <template v-if="activeTab == 2">
-        <h1>VERTICAL</h1>
         <div class="content">
           <vertical-list ref="vertical" :disabled="verticalDisable" :data-source="dataSource"></vertical-list>
           <div class="btns">
@@ -43,7 +46,6 @@
       </template>
       
       <template v-if="activeTab == 4">
-        <h1>HORIZONTAL</h1>
         <div class="horizontal">
           <div class="oprate">
             <button @click="horizontalreset">reset</button>
@@ -58,7 +60,6 @@
       </template>
 
       <template v-if="activeTab == 3">
-        <h1>DYNAMIC</h1>
         <div class="content">
           <dynamic-list ref="dynamic" :disabled="dynamicDisable" :data-source="dataSource"></dynamic-list>
           <div class="btns">
@@ -73,7 +74,6 @@
       </template>
       
       <template v-if="activeTab == 5">
-        <h1>GroupList</h1>
         <div class="group">
           <group-list ref="group" :data-source="dataSource"></group-list>
           <group-list ref="group" :data-source="dataSource1"></group-list>

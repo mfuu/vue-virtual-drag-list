@@ -50,6 +50,12 @@ button:hover {
   background-color: #ecf5ff;
 }
 
+.codebox {
+  text-align: center;
+  margin: 25px;
+  font-size: 20px;
+}
+
 .tabs {
   display: flex;
   justify-content: center;
