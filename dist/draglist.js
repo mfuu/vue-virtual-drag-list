@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.7.0
+ * vue-virtual-drag-list v2.7.1
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -692,6 +692,7 @@
     FRONT: 'FRONT',
     BEHIND: 'BEHIND'
   };
+  var LEADING_BUFFER = 2;
   function Virtual(options, callback) {
     this.options = options;
     this.callback = callback;
@@ -721,9 +722,14 @@
     updateRange: function updateRange() {
       var _this2 = this;
       // check if need to update until loaded enough list item
-      var start = Math.max(this.range.start, 0);
+      var start = this.range.start;
+      if (this.isFront()) {
+        start -= LEADING_BUFFER;
+      } else if (this.isBehind()) {
+        start += LEADING_BUFFER;
+      }
       var length = Math.min(this.options.keeps, this.options.uniqueKeys.length);
-      if (this.sizes.size >= length - 1) {
+      if (this.sizes.size >= length - LEADING_BUFFER) {
         this.handleUpdate(start, this.getEndByStart(start));
       } else {
         if (window.requestAnimationFrame) {
