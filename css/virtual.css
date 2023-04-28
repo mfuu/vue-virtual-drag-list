@@ -153,15 +153,14 @@ button:hover {
 
 .horizontal-item {
   position: relative;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
   height: 100px;
   width: 100px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0px 0px 1px 0px #3d6c69;
 }
 
 .horizontal-item p {
