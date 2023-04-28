@@ -120,11 +120,10 @@ button:hover {
 .vertical-item {
   position: relative;
   height: 65px;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
   overflow: hidden;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
 .vertical-item p {
@@ -180,10 +179,9 @@ button:hover {
 
 .dynamic-item {
   position: relative;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
 .dynamic-item p {
@@ -202,11 +200,10 @@ button:hover {
 .infinity-item {
   position: relative;
   height: 65px;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
   overflow: hidden;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
 .infinity-item p {
@@ -234,11 +231,10 @@ button:hover {
 .group-item {
   position: relative;
   height: 65px;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
   overflow: hidden;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
 /* loading */
