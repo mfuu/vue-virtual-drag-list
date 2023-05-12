@@ -1,9 +1,3 @@
-/**
- * @param {Function} func callback function
- * @param {Number} delay debounce time
- * @param {Boolean} immediate whether to execute immediately
- * @returns function
- */
 export function debounce(func, delay = 50, immediate = false) {
   let timer = null;
   let result;
@@ -29,11 +23,6 @@ export function debounce(func, delay = 50, immediate = false) {
   return debounced;
 }
 
-/**
- * @param {Function} fn callback function
- * @param {Number} delay throttle time
- * @returns
- */
 export function throttle(fn, delay) {
   let timer = null;
   return function () {

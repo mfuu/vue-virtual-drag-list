@@ -1,10 +1,10 @@
 import Vue from 'vue';
 import { VirtualProps } from './props';
 import { debounce, getDataKey } from './utils';
-import { Slots, Items } from './Plugins/Slots';
 import Virtual, { Range } from './Plugins/Virtual';
 import Sortable from './Plugins/Sortable';
 import { Store } from './Plugins/Storage';
+import { Slots, Items } from './slots';
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
   props: VirtualProps,
@@ -217,7 +217,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.sortable = null;
     },
 
-    // --------------------------- handle scroll ------------------------------
     _handleScroll() {
       const { root } = this.$refs;
       const offset = this.getOffset();
@@ -246,7 +245,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       _this.$emit('bottom');
     }),
 
-    // --------------------------- handle size change ------------------------------
     _onItemResized(id, size) {
       this.virtual.handleItemSizeChange(id, size);
     },
@@ -257,7 +255,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.virtual.handleFooterSizeChange(size);
     },
 
-    // --------------------------- methods ------------------------------
     _updateUniqueKeys() {
       this.uniqueKeys = this.list.map((item) => getDataKey(item, this.dataKey));
     },
@@ -275,7 +272,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       return {};
     },
   },
-  // --------------------------- render ------------------------------
+
   render(h) {
     const { header, footer } = this.$slots;
     const { start, end, front, behind } = this.range;
@@ -307,7 +304,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         },
       },
       [
-        // header-slot
         header
           ? h(
               Slots,
@@ -322,7 +318,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             )
           : null,
 
-        // list content
         h(
           wrapTag,
           {
@@ -365,7 +360,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           })
         ),
 
-        // footer-slot
         footer
           ? h(
               Slots,
@@ -380,7 +374,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             )
           : null,
 
-        // last element
         h('div', {
           ref: 'bottomItem',
           style: {

@@ -51,7 +51,6 @@ function Virtual(options, callback) {
 Virtual.prototype = {
   constructor: Virtual,
 
-  // --------------------------- update ------------------------------
   updateUniqueKeys(value) {
     this.options.uniqueKeys = value;
   },
@@ -83,7 +82,6 @@ Virtual.prototype = {
     }
   },
 
-  // --------------------------- scroll ------------------------------
   handleScroll(offset) {
     this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
     this.offset = offset;
@@ -203,7 +201,6 @@ Virtual.prototype = {
     return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
   },
 
-  // --------------------------- size change ------------------------------
   getItemSize() {
     return this.isFixed()
       ? this.calcSize.fixed

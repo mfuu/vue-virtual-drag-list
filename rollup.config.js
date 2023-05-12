@@ -1,10 +1,11 @@
-import babel from 'rollup-plugin-babel'
-import { uglify } from 'rollup-plugin-uglify'
-import resolve from 'rollup-plugin-node-resolve'
-import commonJs from 'rollup-plugin-commonjs'
-const packageJson = require('./package.json')
-const version = packageJson.version
-const homepage = packageJson.homepage
+import babel from 'rollup-plugin-babel';
+import resolve from 'rollup-plugin-node-resolve';
+import commonJs from 'rollup-plugin-commonjs';
+import { uglify } from 'rollup-plugin-uglify';
+
+const packageJson = require('./package.json');
+const version = packageJson.version;
+const homepage = packageJson.homepage;
 
 const banner = `
 /*!
@@ -12,7 +13,7 @@ const banner = `
  * open source under the MIT license
  * ${homepage}
  */
-`
+`;
 
 export default {
   external: ['vue'],
@@ -20,30 +21,25 @@ export default {
   output: [
     {
       format: 'umd',
-      file: 'dist/draglist.js',
+      file: 'dist/virtual-drag-list.js',
       name: 'VirtualDragList',
       sourcemap: false,
       globals: {
-        vue: 'Vue'
+        vue: 'Vue',
       },
-      banner: banner.replace(/\n/, '')
+      banner: banner.replace(/\n/, ''),
     },
     {
       format: 'umd',
-      file: 'dist/draglist.min.js',
+      file: 'dist/virtual-drag-list.min.js',
       name: 'VirtualDragList',
       sourcemap: false,
       globals: {
-        vue: 'Vue'
+        vue: 'Vue',
       },
       banner: banner.replace(/\n/, ''),
-      plugins: [uglify()]
-    }
+      plugins: [uglify()],
+    },
   ],
-  plugins: [
-    babel(),
-    resolve(),
-    commonJs()
-  ]
-}
-
+  plugins: [babel(), resolve(), commonJs()],
+};

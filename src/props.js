@@ -1,9 +1,7 @@
 export const VirtualProps = {
   dataSource: {
     type: Array,
-    default: () => {
-      return [];
-    },
+    default: () => [],
   },
   dataKey: {
     type: String,
@@ -43,7 +41,7 @@ export const VirtualProps = {
   },
   scrollThreshold: {
     type: Number,
-    default: 15,
+    default: 25,
   },
   keepOffset: {
     type: Boolean,
@@ -93,9 +91,7 @@ export const VirtualProps = {
   },
   ghostStyle: {
     type: Object,
-    default: () => {
-      return {};
-    },
+    default: () => ({}),
   },
   chosenClass: {
     type: String,

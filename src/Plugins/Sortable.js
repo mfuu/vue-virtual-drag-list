@@ -45,7 +45,7 @@ Sortable.prototype = {
       if (dragEl) this._onDrag(dragEl, false);
     } else {
       this.context[key] = value;
-      this.sortable.options[key] = value;
+      this.sortable.option(key, value);
     }
   },
 
@@ -97,7 +97,7 @@ Sortable.prototype = {
     } else {
       this.dynamicList.splice(index, 0, store.from.item);
     }
-
+    delete params.list;
     this.context.$emit('add', { ...params });
   },
 

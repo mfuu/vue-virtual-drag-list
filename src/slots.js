@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { SlotsProps } from '../props';
+import { SlotsProps } from './props';
 
 const observer = {
   inject: ['virtualList'],
