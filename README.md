@@ -1,6 +1,6 @@
 # vue-virtual-draglist
 
-[![npm](https://img.shields.io/npm/v/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist)  [![npm](https://img.shields.io/npm/dt/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist)  [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/)  [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist)  [![npm](https://img.shields.io/npm/dm/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist)  [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/)  [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 A virtual scrolling list component that can be sorted by dragging
 
@@ -101,7 +101,7 @@ Root component:
 | **Prop** | **Type**  | **Description** |
 |------------------|-------------|------------------|
 | `data-key`       | String      | The unique identifier of each piece of data, in the form of `'a.b.c'` |
-| `data-source`    | Array       | data list  |
+| `data-source`    | Array       | The data that needs to be rendered  |
 
 ### Optional props
 
