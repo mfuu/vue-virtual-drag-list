@@ -126,7 +126,10 @@ Root component:
 | `delay`      | `Number`   | `0`        | Delay time of debounce function |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
-| `scrollThreshold` | `Number` | `25`     | Threshold to trigger autoscroll |
+| `scrollThreshold` | `Number` | `55`     | Threshold to trigger autoscroll |
+| `pressDelay` | `Number`   | `0`         | Time in milliseconds to define when the sorting should start |
+| `pressDelayOnTouchOnly` | `Boolean`   | `false`         | Only delay on press if user is using touch |
+| `fallbackOnBody` | `Boolean` | `false`  | Appends the ghost element into the document's body |
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
 | `itemTag`    | `String`   | `div`       | Label type for list item element |
