@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.7.2
+ * vue-virtual-drag-list v2.7.3
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -485,9 +485,25 @@
     },
     scrollThreshold: {
       type: Number,
-      "default": 25
+      "default": 55
     },
     keepOffset: {
+      type: Boolean,
+      "default": false
+    },
+    disabled: {
+      type: Boolean,
+      "default": false
+    },
+    fallbackOnBody: {
+      type: Boolean,
+      "default": false
+    },
+    pressDelay: {
+      type: Number,
+      "default": 0
+    },
+    pressDelayOnTouchOnly: {
       type: Boolean,
       "default": false
     },
@@ -498,13 +514,6 @@
     wrapTag: {
       type: String,
       "default": 'div'
-    },
-    wrapClass: {
-      type: String,
-      "default": ''
-    },
-    wrapStyle: {
-      type: Object
     },
     headerTag: {
       type: String,
@@ -518,16 +527,19 @@
       type: String,
       "default": 'div'
     },
+    wrapClass: {
+      type: String,
+      "default": ''
+    },
+    wrapStyle: {
+      type: Object
+    },
     itemStyle: {
       type: Object
     },
     itemClass: {
       type: String,
       "default": ''
-    },
-    disabled: {
-      type: Boolean,
-      "default": false
     },
     ghostClass: {
       type: String,
@@ -625,7 +637,7 @@
     this.options = options;
     this.callback = callback;
     this.sizes = new Map(); // store item size
-    this.isHorizontal = options.isHorizontal;
+
     this.calcIndex = 0; // record last index
     this.calcType = CACLTYPE.INIT;
     this.calcSize = new CalcSize();
@@ -648,6 +660,8 @@
     },
     updateRange: function updateRange() {
       var _this2 = this;
+      var n = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+      if (n > 10) return;
       // check if need to update until loaded enough list item
       var start = this.range.start;
       if (this.isFront()) {
@@ -661,11 +675,11 @@
       } else {
         if (window.requestAnimationFrame) {
           window.requestAnimationFrame(function () {
-            return _this2.updateRange();
+            return _this2.updateRange(n++);
           });
         } else {
           setTimeout(function () {
-            return _this2.updateRange();
+            return _this2.updateRange(n++);
           }, 3);
         }
       }
@@ -720,7 +734,7 @@
       var _this$options = this.options,
         uniqueKeys = _this$options.uniqueKeys,
         keeps = _this$options.keeps;
-      if (uniqueKeys.length <= keeps) {
+      if (uniqueKeys.length && uniqueKeys.length <= keeps) {
         start = 0;
         end = uniqueKeys.length - 1;
       } else if (end - start < keeps - 1) {
@@ -775,8 +789,8 @@
     getItemSize: function getItemSize() {
       return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
     },
-    handleItemSizeChange: function handleItemSizeChange(id, size) {
-      this.sizes.set(id, size);
+    handleItemSizeChange: function handleItemSizeChange(key, size) {
+      this.sizes.set(key, size);
       if (this.calcType === CACLTYPE.INIT) {
         this.calcType = CACLTYPE.FIXED;
         this.calcSize.fixed = size;
@@ -792,11 +806,8 @@
         this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
       }
     },
-    handleHeaderSizeChange: function handleHeaderSizeChange(size) {
-      this.calcSize.header = size;
-    },
-    handleFooterSizeChange: function handleFooterSizeChange(size) {
-      this.calcSize.footer = size;
+    handleSlotSizeChange: function handleSlotSizeChange(key, size) {
+      this.calcSize[key] = size;
     }
   };
 
@@ -1530,7 +1541,7 @@
   };
   var Store = new Storage();
 
-  var attributes = ['group', 'handle', 'disabled', 'draggable', 'ghostClass', 'ghostStyle', 'chosenClass', 'animation', 'autoScroll', 'scrollThreshold'];
+  var attributes = ['group', 'handle', 'disabled', 'draggable', 'ghostClass', 'ghostStyle', 'chosenClass', 'animation', 'autoScroll', 'scrollThreshold', 'fallbackOnBody', 'pressDelay', 'pressDelayOnTouchOnly'];
   var dragEl = null;
   function Sortable(context, callback) {
     this.context = context;
@@ -1560,11 +1571,13 @@
     _init: function _init() {
       var _this = this;
       var props = attributes.reduce(function (res, key) {
-        res[key] = _this.context[key];
+        var name = key;
+        if (key === 'pressDelay') name = 'delay';
+        if (key === 'pressDelayOnTouchOnly') name = 'delayOnTouchOnly';
+        res[name] = _this.context[key];
         return res;
       }, {});
       this.sortable = new sortableDnd_min(this.context.$refs.group, _objectSpread2(_objectSpread2({}, props), {}, {
-        fallbackOnBody: true,
         list: this.dynamicList,
         onDrag: function onDrag(_ref) {
           var from = _ref.from;
@@ -1878,8 +1891,7 @@
         handler: function handler(val) {
           this.init(val);
         },
-        deep: true,
-        immediate: true
+        deep: true
       },
       disabled: {
         handler: function handler(val) {
@@ -1889,6 +1901,8 @@
       }
     },
     created: function created() {
+      this._initVirtual();
+      this.init(this.dataSource);
       this.range.end = this.keeps - 1;
     },
     beforeDestroy: function beforeDestroy() {
@@ -1940,7 +1954,7 @@
             var offset = _this2.getOffset();
             var clientSize = Math.ceil(root[_this2.clientSizeKey]);
             var scrollSize = Math.ceil(root[_this2.scrollSizeKey]);
-            if (offset + clientSize < scrollSize) _this2.scrollToBottom();
+            if (offset + clientSize + 1 < scrollSize) _this2.scrollToBottom();
           }, 5);
         }
       },
@@ -1974,14 +1988,12 @@
         var _this4 = this;
         this.list = _toConsumableArray(list);
         this._updateUniqueKeys();
-        // virtual init
-        if (!this.virtual) {
-          this._initVirtual();
-        } else {
-          this.virtual.updateUniqueKeys(this.uniqueKeys);
-          this.virtual.updateSizes(this.uniqueKeys);
-          this.virtual.updateRange();
-        }
+        this.virtual.updateUniqueKeys(this.uniqueKeys);
+        this.virtual.updateSizes(this.uniqueKeys);
+        this.$nextTick(function () {
+          return _this4.virtual.updateRange();
+        });
+
         // sortable init
         if (!this.sortable) {
           this.$nextTick(function () {
@@ -2004,8 +2016,7 @@
         this.virtual = new Virtual({
           size: this.size,
           keeps: this.keeps,
-          uniqueKeys: this.uniqueKeys,
-          isHorizontal: this.isHorizontal
+          uniqueKeys: this.uniqueKeys
         }, function (range) {
           _this5.range = range;
           if (!_this5.sortable) return;
@@ -2072,14 +2083,11 @@
       handleToBottom: debounce(function (_this) {
         _this.$emit('bottom');
       }),
-      _onItemResized: function _onItemResized(id, size) {
-        this.virtual.handleItemSizeChange(id, size);
+      _onItemResized: function _onItemResized(key, size) {
+        this.virtual.handleItemSizeChange(key, size);
       },
-      _onHeaderResized: function _onHeaderResized(id, size) {
-        this.virtual.handleHeaderSizeChange(size);
-      },
-      _onFooterResized: function _onFooterResized(id, size) {
-        this.virtual.handleFooterSizeChange(size);
+      _onSlotResized: function _onSlotResized(key, size) {
+        this.virtual.handleSlotSizeChange(key, size);
       },
       _updateUniqueKeys: function _updateUniqueKeys() {
         var _this7 = this;
@@ -2138,7 +2146,7 @@
         props: {
           tag: headerTag,
           dataKey: 'header',
-          event: '_onHeaderResized'
+          event: '_onSlotResized'
         }
       }, header) : null, h(wrapTag, {
         ref: 'group',
@@ -2179,7 +2187,7 @@
         props: {
           tag: footerTag,
           dataKey: 'footer',
-          event: '_onFooterResized'
+          event: '_onSlotResized'
         }
       }, footer) : null, h('div', {
         ref: 'bottomItem',
