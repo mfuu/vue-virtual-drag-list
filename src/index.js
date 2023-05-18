@@ -46,7 +46,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         this.init(val);
       },
       deep: true,
-      immediate: true,
     },
     disabled: {
       handler(val) {
@@ -56,6 +55,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
   },
   created() {
+    this._initVirtual();
+    this.init(this.dataSource);
     this.range.end = this.keeps - 1;
   },
   beforeDestroy() {
@@ -104,7 +105,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           const offset = this.getOffset();
           const clientSize = Math.ceil(root[this.clientSizeKey]);
           const scrollSize = Math.ceil(root[this.scrollSizeKey]);
-          if (offset + clientSize < scrollSize) this.scrollToBottom();
+          if (offset + clientSize + 1 < scrollSize) this.scrollToBottom();
         }, 5);
       }
     },
@@ -138,14 +139,11 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     init(list) {
       this.list = [...list];
       this._updateUniqueKeys();
-      // virtual init
-      if (!this.virtual) {
-        this._initVirtual();
-      } else {
-        this.virtual.updateUniqueKeys(this.uniqueKeys);
-        this.virtual.updateSizes(this.uniqueKeys);
-        this.virtual.updateRange();
-      }
+
+      this.virtual.updateUniqueKeys(this.uniqueKeys);
+      this.virtual.updateSizes(this.uniqueKeys);
+      this.$nextTick(() => this.virtual.updateRange());
+
       // sortable init
       if (!this.sortable) {
         this.$nextTick(() => this._initSortable());
@@ -168,7 +166,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           size: this.size,
           keeps: this.keeps,
           uniqueKeys: this.uniqueKeys,
-          isHorizontal: this.isHorizontal,
         },
         (range) => {
           this.range = range;
@@ -245,14 +242,12 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       _this.$emit('bottom');
     }),
 
-    _onItemResized(id, size) {
-      this.virtual.handleItemSizeChange(id, size);
+    _onItemResized(key, size) {
+      this.virtual.handleItemSizeChange(key, size);
     },
-    _onHeaderResized(id, size) {
-      this.virtual.handleHeaderSizeChange(size);
-    },
-    _onFooterResized(id, size) {
-      this.virtual.handleFooterSizeChange(size);
+
+    _onSlotResized(key, size) {
+      this.virtual.handleSlotSizeChange(key, size);
     },
 
     _updateUniqueKeys() {
@@ -311,7 +306,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
                 props: {
                   tag: headerTag,
                   dataKey: 'header',
-                  event: '_onHeaderResized',
+                  event: '_onSlotResized',
                 },
               },
               header
@@ -367,7 +362,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
                 props: {
                   tag: footerTag,
                   dataKey: 'footer',
-                  event: '_onFooterResized',
+                  event: '_onSlotResized',
                 },
               },
               footer

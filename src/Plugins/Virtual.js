@@ -35,7 +35,6 @@ function Virtual(options, callback) {
   this.callback = callback;
 
   this.sizes = new Map(); // store item size
-  this.isHorizontal = options.isHorizontal;
 
   this.calcIndex = 0; // record last index
   this.calcType = CACLTYPE.INIT;
@@ -62,7 +61,8 @@ Virtual.prototype = {
     });
   },
 
-  updateRange() {
+  updateRange(n = 1) {
+    if (n > 10) return;
     // check if need to update until loaded enough list item
     let start = this.range.start;
     if (this.isFront()) {
@@ -75,9 +75,9 @@ Virtual.prototype = {
       this.handleUpdate(start, this.getEndByStart(start));
     } else {
       if (window.requestAnimationFrame) {
-        window.requestAnimationFrame(() => this.updateRange());
+        window.requestAnimationFrame(() => this.updateRange(n++));
       } else {
-        setTimeout(() => this.updateRange(), 3);
+        setTimeout(() => this.updateRange(n++), 3);
       }
     }
   },
@@ -142,7 +142,7 @@ Virtual.prototype = {
 
   checkIfUpdate(start, end) {
     const { uniqueKeys, keeps } = this.options;
-    if (uniqueKeys.length <= keeps) {
+    if (uniqueKeys.length && uniqueKeys.length <= keeps) {
       start = 0;
       end = uniqueKeys.length - 1;
     } else if (end - start < keeps - 1) {
@@ -207,8 +207,8 @@ Virtual.prototype = {
       : this.calcSize.average || this.options.size;
   },
 
-  handleItemSizeChange(id, size) {
-    this.sizes.set(id, size);
+  handleItemSizeChange(key, size) {
+    this.sizes.set(key, size);
 
     if (this.calcType === CACLTYPE.INIT) {
       this.calcType = CACLTYPE.FIXED;
@@ -224,12 +224,8 @@ Virtual.prototype = {
     }
   },
 
-  handleHeaderSizeChange(size) {
-    this.calcSize.header = size;
-  },
-
-  handleFooterSizeChange(size) {
-    this.calcSize.footer = size;
+  handleSlotSizeChange(key, size) {
+    this.calcSize[key] = size;
   },
 };
 

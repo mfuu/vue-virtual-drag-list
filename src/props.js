@@ -41,9 +41,25 @@ export const VirtualProps = {
   },
   scrollThreshold: {
     type: Number,
-    default: 25,
+    default: 55,
   },
   keepOffset: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  fallbackOnBody: {
+    type: Boolean,
+    default: false,
+  },
+  pressDelay: {
+    type: Number,
+    default: 0,
+  },
+  pressDelayOnTouchOnly: {
     type: Boolean,
     default: false,
   },
@@ -54,13 +70,6 @@ export const VirtualProps = {
   wrapTag: {
     type: String,
     default: 'div',
-  },
-  wrapClass: {
-    type: String,
-    default: '',
-  },
-  wrapStyle: {
-    type: Object,
   },
   headerTag: {
     type: String,
@@ -74,16 +83,19 @@ export const VirtualProps = {
     type: String,
     default: 'div',
   },
+  wrapClass: {
+    type: String,
+    default: '',
+  },
+  wrapStyle: {
+    type: Object,
+  },
   itemStyle: {
     type: Object,
   },
   itemClass: {
     type: String,
     default: '',
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
   },
   ghostClass: {
     type: String,
