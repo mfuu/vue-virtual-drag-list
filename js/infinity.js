@@ -9,7 +9,7 @@ export const InfinityList = Vue.component('infinity-list', {
     };
   },
   created() {
-    this.dataSource = getPageData(30, 0);
+    this.dataSource = getPageData(100, 0);
   },
   methods: {
     handleTop() {
