@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>vue-virtual-drag-list</title>
+    <link rel="stylesheet" href="./docs/css/virtual.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/mock.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/sentences.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/mfuu/vue-virtual-drag-list@main/dist/draglist.js"></script> -->
+    <script src="./dist/virtual-drag-list.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <virtual-drag-list :data-source="dataSource" :data-key="'id'" :item-class="'vertical-item'" style="height: 600px;">
+        <template #item="{ record, dataKey, index }">
+          <span class="drag"></span>
+          <p class="index">{{ dataKey }}</p>
+          <p>{{ record.desc }}</p>
+        </template>
+      </virtual-drag-list>
+
+      <div class="tabs">
+        <button
+          v-for="item in tabList"
+          :key="item.value"
+          :class="{ active: activeTab == item.value }"
+          @click="activeTab = item.value"
+        >{{ item.label }}</button>
+      </div>
+
+      <div class="codebox">
+        Vue2.x: <a href="https://codesandbox.io/s/vue-virtual-draglist-h2cgur" target="_blank">
+          open in codesandbox
+        </a>    
+        Vue3.x: <a href="https://codesandbox.io/s/vue3-virtual-draglist-6l3pw0" target="_blank">
+          open in codesandbox
+        </a>
+      </div>
+      <template v-if="activeTab == 1">
+        <div class="content">
+          <infinity-list :get-page-data="getPageData"></infinity-list>
+        </div>
+      </template>
+
+      <template v-if="activeTab == 2">
+        <div class="content">
+          <vertical-list ref="vertical" :disabled="verticalDisable" :data-source="dataSource"></vertical-list>
+          <div class="btns">
+            <button @click="verticalReset">reset</button>
+            <button @click="verticalDisable = !verticalDisable">disable drag: {{ verticalDisable }}</button>
+            <button @click="verticalToTop">top</button>
+            <button @click="verticalToBottom">bottom</button>
+            <button @click="verticalToIndex">toIndex200</button>
+            <button @click="verticalToOffset">toOffset5000</button>
+          </div>
+        </div>
+      </template>
+      
+      <template v-if="activeTab == 4">
+        <div class="horizontal">
+          <div class="oprate">
+            <button @click="horizontalreset">reset</button>
+            <button @click="horizontalDisable = !horizontalDisable">disable drag: {{ horizontalDisable }}</button>
+            <button @click="horizontaltoTop">top</button>
+            <button @click="horizontaltoBottom">bottom</button>
+            <button @click="horizontaltoIndex">toIndex200</button>
+            <button @click="horizontaltoOffset">toOffset5000</button>
+          </div>
+          <horizontal-list ref="horizontal" :disabled="horizontalDisable" :data-source="dataSource"></horizontal-list>
+        </div>
+      </template>
+
+      <template v-if="activeTab == 3">
+        <div class="content">
+          <dynamic-list ref="dynamic" :disabled="dynamicDisable" :data-source="dataSource"></dynamic-list>
+          <div class="btns">
+            <button @click="dynamicReset">reset</button>
+            <button @click="dynamicDisable = !dynamicDisable">disable drag: {{ dynamicDisable }}</button>
+            <button @click="dynamictoTop">top</button>
+            <button @click="dynamictoBottom">bottom</button>
+            <button @click="dynamictoIndex">toIndex200</button>
+            <button @click="dynamictoOffset">toOffset5000</button>
+          </div>
+        </div>
+      </template>
+      
+      <template v-if="activeTab == 5">
+        <div class="group">
+          <group-list ref="group" :data-source="dataSource"></group-list>
+          <group-list ref="group" :data-source="dataSource1"></group-list>
+        </div>
+      </template>
+    </div>
+    <script type="module">
+      import { VerticalList } from './docs/js/vertical.js';
+      import { DynamicList } from './docs/js/dynamic.js';
+      import { HorizontalList } from './docs/js/horizontal.js';
+      import { InfinityList } from './docs/js/infinity.js';
+      import { GroupList } from './docs/js/group.js';
+      const tabs = [
+        { label: 'INFINITY', value: 1 },
+        { label: 'VERTICAL', value: 2 },
+        { label: 'HORIZONTAL', value: 4 },
+        { label: 'DYNAMIC', value: 3 },
+        { label: 'GROUP', value: 5 },
+      ]
+      new Vue({
+        el: '#app',
+        components: {
+          InfinityList,
+          VerticalList,
+          DynamicList,
+          HorizontalList,
+          GroupList,
+          VirtualDragList
+        },
+        data() {
+          return {
+            tabList: tabs,
+            getPageData: getPageData,
+            verticalDisable: false,
+            dynamicDisable: false,
+            horizontalDisable: false,
+            dataSource: getPageData(400, 0),
+            dataSource1: getPageData(400, 1000),
+            activeTab: 1
+          }
+        },
+        methods: {
+          verticalReset() {
+            this.$refs.vertical.$refs.list.reset();
+          },
+          verticalToTop() {
+            this.$refs.vertical.$refs.list.scrollToTop();
+          },
+          verticalToBottom() {
+            this.$refs.vertical.$refs.list.scrollToBottom();
+          },
+          verticalToIndex() {
+            this.$refs.vertical.$refs.list.scrollToIndex(200);
+          },
+          verticalToOffset() {
+            this.$refs.vertical.$refs.list.scrollToOffset(5000);
+          },
+
+          dynamicReset() {
+            this.$refs.dynamic.$refs.list.reset();
+          },
+          dynamictoTop() {
+            this.$refs.dynamic.$refs.list.scrollToTop();
+          },
+          dynamictoBottom() {
+            this.$refs.dynamic.$refs.list.scrollToBottom();
+          },
+          dynamictoIndex() {
+            this.$refs.dynamic.$refs.list.scrollToIndex(200);
+          },
+          dynamictoOffset() {
+            this.$refs.dynamic.$refs.list.scrollToOffset(5000);
+          },
+
+          horizontalreset() {
+            this.$refs.horizontal.$refs.list.reset();
+          },
+          horizontaltoTop() {
+            this.$refs.horizontal.$refs.list.scrollToTop();
+          },
+          horizontaltoBottom() {
+            this.$refs.horizontal.$refs.list.scrollToBottom();
+          },
+          horizontaltoIndex() {
+            this.$refs.horizontal.$refs.list.scrollToIndex(200);
+          },
+          horizontaltoOffset() {
+            this.$refs.horizontal.$refs.list.scrollToOffset(5000);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
