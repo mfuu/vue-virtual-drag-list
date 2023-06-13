@@ -33,30 +33,27 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     scrollDirectionKey() {
       return this.isHorizontal ? 'scrollLeft' : 'scrollTop';
     },
-    offsetSizeKey() {
+    bottomOffsetKey() {
       return this.isHorizontal ? 'offsetLeft' : 'offsetTop';
     },
-    clientSizeKey() {
+    rootSizeKey() {
       return this.isHorizontal ? 'clientWidth' : 'clientHeight';
+    },
+    itemSizeKey() {
+      return this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
     },
   },
   watch: {
-    dataSource: {
-      handler(val) {
-        this.init(val);
-      },
-      deep: true,
+    'dataSource.length'() {
+      this.init();
     },
-    disabled: {
-      handler(val) {
-        if (this.sortable) this.sortable.setValue('disabled', val);
-      },
-      immediate: true,
+    disabled() {
+      if (this.sortable) this.sortable.setValue('disabled', val);
     },
   },
   created() {
     this._initVirtual();
-    this.init(this.dataSource);
+    this.init();
     this.range.end = this.keeps - 1;
   },
   beforeDestroy() {
@@ -68,47 +65,49 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
      */
     reset() {
       this.scrollToTop();
-      this.init(this.dataSource);
+      this.init();
     },
+
     /**
-     * git item size by data-key
-     * @param {String | Number} key data-key
+     * Git item size by data-key
+     * @param {any} key data-key
      */
     getSize(key) {
       return this.virtual.sizes.get(key);
     },
+
     /**
      * Get the current scroll height
      */
     getOffset() {
-      const { root } = this.$refs;
-      return root ? Math.ceil(root[this.scrollDirectionKey]) : 0;
+      const { rootRef } = this.$refs;
+      return rootRef ? Math.ceil(rootRef[this.scrollDirectionKey]) : 0;
     },
+
     /**
      * Scroll to top of list
      */
     scrollToTop() {
-      const { root } = this.$refs;
-      root[this.scrollDirectionKey] = 0;
+      const { rootRef } = this.$refs;
+      rootRef[this.scrollDirectionKey] = 0;
     },
+
     /**
      * Scroll to bottom of list
      */
     scrollToBottom() {
-      const { bottomItem, root } = this.$refs;
-      if (bottomItem) {
-        const bottom = bottomItem[this.offsetSizeKey];
+      const { bottomRef } = this.$refs;
+      if (bottomRef) {
+        const bottom = bottomRef[this.bottomOffsetKey];
         this.scrollToOffset(bottom);
 
-        // The first scroll height may change, if the bottom is not reached, execute the scroll method again
+        // if the bottom is not reached, execute the scroll method again
         setTimeout(() => {
-          const offset = this.getOffset();
-          const clientSize = Math.ceil(root[this.clientSizeKey]);
-          const scrollSize = Math.ceil(root[this.scrollSizeKey]);
-          if (offset + clientSize + 1 < scrollSize) this.scrollToBottom();
+          if (!this._scrolledToBottom()) this.scrollToBottom();
         }, 5);
       }
     },
+
     /**
      * Scroll to the specified index position
      * @param {Number} index
@@ -127,31 +126,30 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         }, 5);
       }
     },
+
     /**
      * Scroll to the specified offset
      * @param {Number} offset
      */
     scrollToOffset(offset) {
-      const { root } = this.$refs;
-      root[this.scrollDirectionKey] = offset;
+      const { rootRef } = this.$refs;
+      rootRef[this.scrollDirectionKey] = offset;
     },
 
-    init(list) {
-      this.list = [...list];
+    init() {
+      this.list = [...this.dataSource];
       this._updateUniqueKeys();
 
-      this.virtual.updateUniqueKeys(this.uniqueKeys);
-      this.virtual.updateSizes(this.uniqueKeys);
-      this.$nextTick(() => this.virtual.updateRange());
+      // this.$nextTick(() => this.virtual.updateRange());
+      this.virtual.updateRange();
 
-      // sortable init
       if (!this.sortable) {
         this.$nextTick(() => this._initSortable());
       } else {
-        this.sortable.setValue('list', [...list]);
+        this.sortable.setValue('list', [...this.list]);
       }
 
-      // if auto scroll to the last offset
+      // auto scroll to the last offset
       if (this.lastItem && this.keepOffset) {
         const index = this._getItemIndex(this.lastItem);
         this.scrollToIndex(index);
@@ -166,6 +164,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           size: this.size,
           keeps: this.keeps,
           uniqueKeys: this.uniqueKeys,
+          buffer: Math.round(this.keeps / 3),
         },
         (range) => {
           this.range = range;
@@ -178,34 +177,33 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           }
         }
       );
-      this.virtual.updateSizes(this.uniqueKeys);
-      this.virtual.updateRange();
     },
 
     // sortable init
     _initSortable() {
       this.sortable = new Sortable(this, ({ list, changed }) => {
-        // on drop
         if (!changed) return;
-        // recalculate the range once when scrolling down
-        if (
-          this.sortable.rangeChanged &&
-          this.virtual.direction &&
-          this.range.start > 0
-        ) {
+
+        if (this.range.start > 0) {
           const index = list.indexOf(this.list[this.range.start]);
           if (index > -1) {
             this.range.start = index;
             this.range.end = index + this.keeps - 1;
           }
         }
-        // fix error with vue: Failed to execute 'insertBefore' on 'Node'
+        if (list.length > this.list.length && this.range.end === this.list.length - 1) {
+          if (this._scrolledToBottom()) {
+            this.range.end++;
+            this.range.start = Math.max(0, this.range.end - this.keeps + 1);
+          }
+        }
+        this.virtual.handleUpdate(this.range.start, this.range.end);
+
         this.list = [];
         this.$nextTick(() => {
           this.list = [...list];
           this._updateUniqueKeys();
-          this.virtual.updateUniqueKeys(this.uniqueKeys);
-        });
+        })
       });
     },
 
@@ -215,10 +213,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
 
     _handleScroll() {
-      const { root } = this.$refs;
+      const { rootRef } = this.$refs;
       const offset = this.getOffset();
-      const clientSize = Math.ceil(root[this.clientSizeKey]);
-      const scrollSize = Math.ceil(root[this.scrollSizeKey]);
+      const clientSize = Math.ceil(rootRef[this.rootSizeKey]);
+      const scrollSize = Math.ceil(rootRef[this.scrollSizeKey]);
 
       if (!scrollSize || offset < 0 || offset + clientSize > scrollSize + 1) {
         return;
@@ -227,19 +225,27 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.virtual.handleScroll(offset);
 
       if (this.virtual.isFront()) {
-        if (!!this.list.length && offset <= 0) this.handleToTop(this);
+        if (!!this.list.length && offset <= 0) this._handleToTop(this);
       } else if (this.virtual.isBehind()) {
-        if (clientSize + offset >= scrollSize) this.handleToBottom(this);
+        if (clientSize + offset >= scrollSize) this._handleToBottom(this);
       }
     },
 
-    handleToTop: debounce((_this) => {
-      _this.$emit('top');
-      _this.lastItem = _this.list[0];
+    _scrolledToBottom() {
+      const { rootRef } = this.$refs;
+      const offset = this.getOffset();
+      const clientSize = Math.ceil(rootRef[this.rootSizeKey]);
+      const scrollSize = Math.ceil(rootRef[this.scrollSizeKey]);
+      return offset + clientSize + 1 >= scrollSize;
+    },
+
+    _handleToTop: debounce((ctx) => {
+      ctx.$emit('top');
+      ctx.lastItem = ctx.list[0];
     }),
 
-    handleToBottom: debounce((_this) => {
-      _this.$emit('bottom');
+    _handleToBottom: debounce((ctx) => {
+      ctx.$emit('bottom');
     }),
 
     _onItemResized(key, size) {
@@ -252,12 +258,15 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     _updateUniqueKeys() {
       this.uniqueKeys = this.list.map((item) => getDataKey(item, this.dataKey));
+      this.virtual.updateOptions('uniqueKeys', this.uniqueKeys);
     },
+
     _getItemIndex(item) {
       return this.list.findIndex(
         (el) => getDataKey(item, this.dataKey) == getDataKey(el, this.dataKey)
       );
     },
+
     _getItemStyle(itemKey) {
       const state = Store.getStore();
       const fromKey = state.from.key;
@@ -266,111 +275,95 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       }
       return {};
     },
+
+    _renderSlots(h, key, TagName) {
+      const { itemSizeKey } = this;
+      const slot = this.$slots[key];
+      return slot
+        ? h(
+            Slots,
+            {
+              props: {
+                tag: TagName,
+                dataKey: key,
+                sizeKey: itemSizeKey,
+                event: '_onSlotResized',
+              },
+            },
+            slot
+          )
+        : null;
+    },
+
+    _renderItems(h) {
+      const renders = [];
+      const { start, end } = this.range;
+      const { itemTag, itemClass, itemSizeKey } = this;
+
+      for (let index = start; index <= end; index++) {
+        const record = this.list[index];
+        if (record) {
+          const dataKey = getDataKey(record, this.dataKey);
+          const itemStyle = { ...this.itemStyle, ...this._getItemStyle(dataKey) };
+          renders.push(
+            this.$scopedSlots.item
+              ? h(
+                  Items,
+                  {
+                    key: dataKey,
+                    props: {
+                      dataKey,
+                      tag: itemTag,
+                      sizeKey: itemSizeKey,
+                      event: '_onItemResized',
+                    },
+                    style: itemStyle,
+                    class: itemClass,
+                  },
+                  this.$scopedSlots.item({ record, index, dataKey })
+                )
+              : null
+          );
+        }
+      }
+      return renders;
+    },
   },
 
   render(h) {
-    const { header, footer } = this.$slots;
-    const { start, end, front, behind } = this.range;
-    const {
-      isHorizontal,
-      headerTag,
-      footerTag,
-      itemTag,
-      rootTag,
-      wrapTag,
-      itemStyle,
-      itemClass,
-      wrapClass,
-    } = this;
-    const wrapStyle = {
-      ...this.wrapStyle,
-      padding: isHorizontal
-        ? `0px ${behind}px 0px ${front}px`
-        : `${front}px 0px ${behind}px`,
+    const { front, behind } = this.range;
+    const { isHorizontal, headerTag, footerTag, rootTag, wrapTag, wrapClass } = this;
+    const paddingStyle = {
+      padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`,
     };
+    const wrapperStyle = { ...this.wrapStyle, ...paddingStyle };
 
     return h(
       rootTag,
       {
-        ref: 'root',
+        ref: 'rootRef',
         style: { overflow: isHorizontal ? 'auto hidden' : 'hidden auto' },
         on: {
           '&scroll': debounce(this._handleScroll, this.delay),
         },
       },
       [
-        header
-          ? h(
-              Slots,
-              {
-                props: {
-                  tag: headerTag,
-                  dataKey: 'header',
-                  event: '_onSlotResized',
-                },
-              },
-              header
-            )
-          : null,
+        this._renderSlots(h, 'header', headerTag),
 
         h(
           wrapTag,
           {
-            ref: 'group',
-            attrs: { role: 'group' },
+            ref: 'groupRef',
             class: wrapClass,
-            style: wrapStyle,
+            style: wrapperStyle,
           },
-          this.list.slice(start, end + 1).map((record) => {
-            const index = this._getItemIndex(record);
-            const dataKey = getDataKey(record, this.dataKey);
-            const props = {
-              isHorizontal,
-              dataKey,
-              tag: itemTag,
-              event: '_onItemResized',
-            };
-
-            return this.$scopedSlots.item
-              ? h(
-                  Items,
-                  {
-                    key: dataKey,
-                    props: props,
-                    style: { ...itemStyle, ...this._getItemStyle(dataKey) },
-                    class: itemClass,
-                  },
-                  this.$scopedSlots.item({ record, index, dataKey })
-                )
-              : h(
-                  itemTag,
-                  {
-                    key: dataKey,
-                    attrs: { 'data-key': dataKey },
-                    style: { ...itemStyle, height: `${this.size}px` },
-                    class: itemClass,
-                  },
-                  dataKey
-                );
-          })
+          this._renderItems(h)
         ),
 
-        footer
-          ? h(
-              Slots,
-              {
-                props: {
-                  tag: footerTag,
-                  dataKey: 'footer',
-                  event: '_onSlotResized',
-                },
-              },
-              footer
-            )
-          : null,
+        this._renderSlots(h, 'footer', footerTag),
 
         h('div', {
-          ref: 'bottomItem',
+          ref: 'bottomRef',
           style: {
             width: isHorizontal ? '0px' : '100%',
             height: isHorizontal ? '100%' : '0px',

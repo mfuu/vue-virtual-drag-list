@@ -61,8 +61,9 @@ Sortable.prototype = {
       return res;
     }, {});
 
-    this.sortable = new SortableDnd(this.context.$refs.group, {
+    this.sortable = new SortableDnd(this.context.$refs.groupRef, {
       ...props,
+      swapOnDrop: false,
       list: this.dynamicList,
       onDrag: ({ from }) => this._onDrag(from.node),
       onAdd: ({ from, to }) => this._onAdd(from, to),
@@ -158,9 +159,7 @@ Sortable.prototype = {
   },
 
   _getIndex(list, key) {
-    return list.findIndex(
-      (item) => getDataKey(item, this.context.dataKey) == key
-    );
+    return list.findIndex((item) => getDataKey(item, this.context.dataKey) == key);
   },
 
   _clear() {

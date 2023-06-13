@@ -30,8 +30,7 @@ const observer = {
       this.virtualList[this.event](this.dataKey, this.getCurrentSize());
     },
     getCurrentSize() {
-      const sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
-      return this.$el ? this.$el[sizeKey] : 0;
+      return this.$el ? this.$el[this.sizeKey] : 0;
     },
   },
 };
