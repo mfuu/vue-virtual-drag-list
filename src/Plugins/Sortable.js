@@ -20,12 +20,12 @@ const attributes = [
 
 let dragEl = null;
 
-function Sortable(context, callback) {
-  this.context = context;
+function Sortable(ctx, callback) {
+  this.ctx = ctx;
   this.callback = callback;
 
-  this.initialList = [...context.list];
-  this.dynamicList = [...context.list];
+  this.initialList = [...ctx.list];
+  this.dynamicList = [...ctx.list];
 
   this.sortable = null;
   this.rangeChanged = false;
@@ -47,7 +47,7 @@ Sortable.prototype = {
       // When the list data changes when dragging, need to execute onDrag function
       if (dragEl) this._onDrag(dragEl, false);
     } else {
-      this.context[key] = value;
+      this.ctx[key] = value;
       this.sortable.option(key, value);
     }
   },
@@ -57,11 +57,11 @@ Sortable.prototype = {
       let name = key;
       if (key === 'pressDelay') name = 'delay';
       if (key === 'pressDelayOnTouchOnly') name = 'delayOnTouchOnly';
-      res[name] = this.context[key];
+      res[name] = this.ctx[key];
       return res;
     }, {});
 
-    this.sortable = new SortableDnd(this.context.$refs.groupRef, {
+    this.sortable = new SortableDnd(this.ctx.$refs.groupRef, {
       ...props,
       swapOnDrop: false,
       list: this.dynamicList,
@@ -85,7 +85,7 @@ Sortable.prototype = {
     if (callback) {
       this.rangeChanged = false;
       const store = await Store.getValue();
-      this.context.$emit('drag', { list: fromList, ...store });
+      this.ctx.$emit('drag', { list: fromList, ...store });
     } else {
       this.rangeChanged = true;
     }
@@ -104,7 +104,7 @@ Sortable.prototype = {
       this.dynamicList.splice(index, 0, store.from.item);
     }
     delete params.list;
-    this.context.$emit('add', { ...params });
+    this.ctx.$emit('add', { ...params });
   },
 
   async _onRemove(from, to) {
@@ -113,7 +113,7 @@ Sortable.prototype = {
 
     this.dynamicList.splice(state.index, 1);
 
-    this.context.$emit('remove', { ...state });
+    this.ctx.$emit('remove', { ...state });
   },
 
   async _onChange(from, to) {
@@ -127,14 +127,10 @@ Sortable.prototype = {
   },
 
   async _onDrop(from, to, changed) {
-    if (this.rangeChanged || from.sortable !== to.sortable) {
-      dragEl && dragEl.remove();
-    }
-
     const list = [...this.dynamicList];
     const index = this._getIndex(list, from.node.dataset.key);
     const item = this.initialList[index];
-    const key = getDataKey(item, this.context.dataKey);
+    const key = getDataKey(item, this.ctx.dataKey);
 
     await Store.setValue({
       to: { list: [...this.initialList], index, item, key },
@@ -143,7 +139,7 @@ Sortable.prototype = {
     const store = await Store.getValue();
     const params = { list: list, ...store, changed };
 
-    this.context.$emit('drop', params);
+    this.ctx.$emit('drop', params);
     this.callback && this.callback(params);
 
     this.initialList = [...list];
@@ -159,7 +155,12 @@ Sortable.prototype = {
   },
 
   _getIndex(list, key) {
-    return list.findIndex((item) => getDataKey(item, this.context.dataKey) == key);
+    for (let i = 0; i < list.length; i++) {
+      if (getDataKey(list[i], this.ctx.dataKey) == key) {
+        return i;
+      }
+    }
+    return -1;
   },
 
   _clear() {

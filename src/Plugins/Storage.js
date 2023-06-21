@@ -16,7 +16,7 @@ Storage.prototype = {
    */
   getStore() {
     try {
-      const result = JSON.parse(localStorage.getItem(storeKey));
+      const result = window[storeKey];
       return result || defaultStore;
     } catch (e) {
       return defaultStore;
@@ -29,7 +29,7 @@ Storage.prototype = {
   getValue() {
     return new Promise((resolve, reject) => {
       try {
-        const result = JSON.parse(localStorage.getItem(storeKey));
+        const result = window[storeKey];
         resolve(result || defaultStore);
       } catch (e) {
         reject(defaultStore);
@@ -43,9 +43,9 @@ Storage.prototype = {
   setValue(value) {
     return new Promise((resolve, reject) => {
       try {
-        const store = JSON.parse(localStorage.getItem(storeKey));
-        const result = JSON.stringify({ ...store, ...value });
-        localStorage.setItem(storeKey, result);
+        const store = window[storeKey];
+        const result = { ...store, ...value };
+        window[storeKey] = result;
         resolve(result);
       } catch (e) {
         reject(defaultStore);
