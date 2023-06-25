@@ -18,6 +18,10 @@ export const VirtualProps = {
   size: {
     type: Number,
   },
+  pageMode: {
+    type: Boolean,
+    default: false,
+  },
   draggable: {
     type: [Function, String],
   },

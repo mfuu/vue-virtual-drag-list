@@ -22,10 +22,11 @@ Root component:
       :handle="'I'" // use tagName 
       :handle="'.handle'" // use class
       :handle="'#handle'" // use id
+      :data-source="list" // or replace with `v-model`
     -->
     <virtual-drag-list
+      v-model="list"
       :data-key="'id'"
-      :data-source="list"
       :handle="'.handle'"
       style="height: 500px"
       @top="handleToTop"
@@ -115,6 +116,7 @@ Root component:
 | `group`      | `Function/String` | `-`  | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false }` |
 | `keepOffset` | `Boolean`  | `false`     | When scrolling up to load data, keep the same offset as the previous scroll |
 | `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
+| `pageMode`   | `Boolean`  | `false`     | Let virtual list using global document to scroll through the list |
 
 
 **Uncommonly used**
@@ -123,7 +125,7 @@ Root component:
 |  --------    | --------   | ----------- | --------------- |
 | `draggable`  | `Function/String` | `-`  | Specifies which items inside the element should be draggable. If does not set a value, the default list element can be dragged |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
-| `delay`      | `Number`   | `0`        | Delay time of debounce function |
+| `delay`      | `Number`   | `0`         | Delay time of debounce function |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
 | `scrollThreshold` | `Number` | `55`     | Threshold to trigger autoscroll |
@@ -150,9 +152,10 @@ Use <code><a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessi
 
 | **Method**         | **Description** |
 | ------------------ | --------------- |
-| `reset()`          | Reset to initial |
 | `getSize(key)`     | Get the size of the current item by unique key value |
 | `getOffset()`      | Get the current scroll height |
+| `getClientSize()`  | Get wrapper element client viewport size (width or height) |
+| `getScrollSize()`  | Get all scroll size (scrollHeight or scrollWidth) |
 | `scrollToTop()`    | Scroll to top of list |
 | `scrollToBottom()` | Scroll to bottom of list |
 | `scrollToIndex(index)`  | Scroll to the specified index position |

@@ -7,7 +7,7 @@ Storage.prototype = {
   constructor: Storage,
 
   clear() {
-    localStorage.removeItem(storeKey);
+    window[storeKey] = undefined;
   },
 
   /**
@@ -16,7 +16,7 @@ Storage.prototype = {
    */
   getStore() {
     try {
-      const result = window[storeKey];
+      const result = JSON.parse(window[storeKey]);
       return result || defaultStore;
     } catch (e) {
       return defaultStore;
@@ -29,7 +29,7 @@ Storage.prototype = {
   getValue() {
     return new Promise((resolve, reject) => {
       try {
-        const result = window[storeKey];
+        const result = JSON.parse(window[storeKey]);
         resolve(result || defaultStore);
       } catch (e) {
         reject(defaultStore);
@@ -43,9 +43,9 @@ Storage.prototype = {
   setValue(value) {
     return new Promise((resolve, reject) => {
       try {
-        const store = window[storeKey];
+        const store = JSON.parse(window[storeKey] || '{}');
         const result = { ...store, ...value };
-        window[storeKey] = result;
+        window[storeKey] = JSON.stringify(result);
         resolve(result);
       } catch (e) {
         reject(defaultStore);

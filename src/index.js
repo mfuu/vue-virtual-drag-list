@@ -7,7 +7,13 @@ import { Store } from './Plugins/Storage';
 import { Slots, Items } from './slots';
 
 const VirtualDragList = Vue.component('virtual-drag-list', {
+  model: {
+    prop: 'dataSource',
+    event: 'updateDataSource',
+  },
+
   props: VirtualProps,
+
   data() {
     return {
       list: [],
@@ -18,11 +24,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       range: new Range(),
     };
   },
+
   provide() {
     return {
       virtualList: this,
     };
   },
+
   computed: {
     isHorizontal() {
       return this.direction !== 'vertical';
@@ -36,29 +44,59 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     bottomOffsetKey() {
       return this.isHorizontal ? 'offsetLeft' : 'offsetTop';
     },
-    rootSizeKey() {
+    clientSizeKey() {
       return this.isHorizontal ? 'clientWidth' : 'clientHeight';
     },
     itemSizeKey() {
       return this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
     },
   },
+
   watch: {
     'dataSource.length'() {
       this.init();
     },
     disabled() {
-      if (this.sortable) this.sortable.setValue('disabled', val);
+      this.sortable && this.sortable.setValue('disabled', val);
     },
   },
+
+  activated() {
+    // set back offset when awake from keep-alive
+    this.scrollToOffset(this.virtual.offset);
+
+    if (this.pageMode) {
+      this._addPageModeScrollListener();
+    }
+  },
+
+  deactivated() {
+    if (this.pageMode) {
+      this._removePageModeScrollListener();
+    }
+  },
+
   created() {
+    this._debounceScroll = debounce(this._handleScroll, this.delay);
+    this.range.end = this.keeps - 1;
     this._initVirtual();
     this.init();
-    this.range.end = this.keeps - 1;
   },
+
+  mounted() {
+    if (this.pageMode) {
+      this._updatePageModeFront();
+      this._addPageModeScrollListener();
+    }
+  },
+
   beforeDestroy() {
     this._destroySortable();
+    if (this.pageMode) {
+      this._removePageModeScrollListener();
+    }
   },
+
   methods: {
     /**
      * reset component
@@ -80,31 +118,38 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
      * Get the current scroll height
      */
     getOffset() {
-      const { rootRef } = this.$refs;
-      return rootRef ? Math.ceil(rootRef[this.scrollDirectionKey]) : 0;
+      if (this.pageMode) {
+        return (
+          document.documentElement[this.scrollDirectionKey] ||
+          document.body[this.scrollDirectionKey]
+        );
+      } else {
+        const { rootRef } = this.$refs;
+        return rootRef ? Math.ceil(rootRef[this.scrollDirectionKey]) : 0;
+      }
     },
 
     /**
-     * Scroll to top of list
+     * Get client viewport size
      */
-    scrollToTop() {
-      const { rootRef } = this.$refs;
-      rootRef[this.scrollDirectionKey] = 0;
+    getClientSize() {
+      if (this.pageMode) {
+        return document.documentElement[this.clientSizeKey] || document.body[this.clientSizeKey];
+      } else {
+        const { rootRef } = this.$refs;
+        return rootRef ? Math.ceil(rootRef[this.clientSizeKey]) : 0;
+      }
     },
 
     /**
-     * Scroll to bottom of list
+     * Get all scroll size
      */
-    scrollToBottom() {
-      const { bottomRef } = this.$refs;
-      if (bottomRef) {
-        const bottom = bottomRef[this.bottomOffsetKey];
-        this.scrollToOffset(bottom);
-
-        // if the bottom is not reached, execute the scroll method again
-        setTimeout(() => {
-          if (!this._scrolledToBottom()) this.scrollToBottom();
-        }, 5);
+    getScrollSize() {
+      if (this.pageMode) {
+        return document.documentElement[this.scrollSizeKey] || document.body[this.scrollSizeKey];
+      } else {
+        const { rootRef } = this.$refs;
+        return rootRef ? Math.ceil(rootRef[this.scrollSizeKey]) : 0;
       }
     },
 
@@ -126,8 +171,36 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
      * @param {Number} offset
      */
     scrollToOffset(offset) {
-      const { rootRef } = this.$refs;
-      rootRef[this.scrollDirectionKey] = offset;
+      if (this.pageMode) {
+        document.body[this.scrollDirectionKey] = offset;
+        document.documentElement[this.scrollDirectionKey] = offset;
+      } else {
+        const { rootRef } = this.$refs;
+        rootRef[this.scrollDirectionKey] = offset;
+      }
+    },
+
+    /**
+     * Scroll to top of list
+     */
+    scrollToTop() {
+      this.scrollToOffset(0);
+    },
+
+    /**
+     * Scroll to bottom of list
+     */
+    scrollToBottom() {
+      const { bottomRef } = this.$refs;
+      if (bottomRef) {
+        const bottom = bottomRef[this.bottomOffsetKey];
+        this.scrollToOffset(bottom);
+
+        // if the bottom is not reached, execute the scroll method again
+        setTimeout(() => {
+          if (!this._scrolledToBottom()) this.scrollToBottom();
+        }, 5);
+      }
     },
 
     init() {
@@ -182,15 +255,17 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
         this.list = [...list];
         this._updateUniqueKeys();
+        this.$emit('updateDataSource', [...list]);
       });
     },
 
     _updateRangeOnDrop(list) {
+      let range = { ...this.range };
       if (this.range.start > 0) {
         const index = list.indexOf(this.list[this.range.start]);
         if (index > -1) {
-          this.range.start = index;
-          this.range.end = index + this.keeps - 1;
+          range.start = index;
+          range.end = index + this.keeps - 1;
         }
       }
       if (
@@ -198,10 +273,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         this.range.end === this.list.length - 1 &&
         this._scrolledToBottom()
       ) {
-        this.range.end++;
-        this.range.start = Math.max(0, this.range.end - this.keeps + 1);
+        range.end++;
+        range.start = Math.max(0, range.end - this.keeps + 1);
       }
-      this.virtual.handleUpdate(this.range.start, this.range.end);
+      this.virtual.handleUpdate(range.start, range.end);
     },
 
     _destroySortable() {
@@ -209,40 +284,47 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.sortable = null;
     },
 
-    _handleScroll() {
-      const { rootRef } = this.$refs;
-      const offset = this.getOffset();
-      const clientSize = Math.ceil(rootRef[this.rootSizeKey]);
-      const scrollSize = Math.ceil(rootRef[this.scrollSizeKey]);
+    _addPageModeScrollListener() {
+      document.addEventListener('scroll', this._debounceScroll, { passive: false });
+    },
 
-      if (!scrollSize || offset < 0 || offset + clientSize > scrollSize + 1) {
+    _removePageModeScrollListener() {
+      document.removeEventListener('scroll', this._debounceScroll);
+    },
+
+    _handleScroll() {
+      const offset = this.getOffset();
+      const clientSize = this.getClientSize();
+      const scrollSize = this.getScrollSize();
+
+      // iOS scroll-spring-back behavior will make direction mistake
+      if (offset < 0 || offset + clientSize > scrollSize + 1 || !scrollSize) {
         return;
       }
 
       this.virtual.handleScroll(offset);
 
-      if (this.virtual.isFront()) {
-        if (!!this.list.length && offset <= 0) this._handleToTop(this);
-      } else if (this.virtual.isBehind()) {
-        if (clientSize + offset >= scrollSize) this._handleToBottom(this);
+      if (this.virtual.isFront() && !!this.list.length && offset <= 0) {
+        this._handleToTop();
+      } else if (this.virtual.isBehind() && clientSize + offset >= scrollSize) {
+        this._handleToBottom();
       }
     },
 
     _scrolledToBottom() {
-      const { rootRef } = this.$refs;
       const offset = this.getOffset();
-      const clientSize = Math.ceil(rootRef[this.rootSizeKey]);
-      const scrollSize = Math.ceil(rootRef[this.scrollSizeKey]);
+      const clientSize = this.getClientSize();
+      const scrollSize = this.getScrollSize();
       return offset + clientSize + 1 >= scrollSize;
     },
 
-    _handleToTop: debounce((ctx) => {
-      ctx.$emit('top');
-      ctx.lastLength = ctx.list.length;
+    _handleToTop: debounce(function () {
+      this.$emit('top');
+      this.lastLength = this.list.length;
     }),
 
-    _handleToBottom: debounce((ctx) => {
-      ctx.$emit('bottom');
+    _handleToBottom: debounce(function () {
+      this.$emit('bottom');
     }),
 
     _onItemResized(key, size) {
@@ -251,6 +333,20 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     _onSlotResized(key, size) {
       this.virtual.handleSlotSizeChange(key, size);
+    },
+
+    // when using page mode we need update slot header size manually
+    // taking root offset relative to the browser as slot header size
+    _updatePageModeFront() {
+      const { rootRef } = this.$refs;
+      if (rootRef) {
+        const rect = rootRef.getBoundingClientRect();
+        const { defaultView } = rootRef.ownerDocument;
+        const offsetFront = this.isHorizontal
+          ? rect.left + defaultView.pageXOffset
+          : rect.top + defaultView.pageYOffset;
+        this.virtual.handleSlotSizeChange('header', offsetFront);
+      }
     },
 
     _updateUniqueKeys() {
@@ -323,15 +419,15 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
   render(h) {
     const { front, behind } = this.range;
-    const { isHorizontal, headerTag, footerTag, rootTag, wrapTag, wrapClass } = this;
+    const { pageMode, isHorizontal, headerTag, footerTag, rootTag, wrapTag, wrapClass } = this;
     const wrapperStyle = { ...this.wrapStyle, padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` };
 
     return h(
       rootTag,
       {
         ref: 'rootRef',
-        style: { overflow: isHorizontal ? 'auto hidden' : 'hidden auto' },
-        on: { '&scroll': debounce(this._handleScroll, this.delay) },
+        style: !pageMode && { overflow: isHorizontal ? 'auto hidden' : 'hidden auto' },
+        on: { '&scroll': !pageMode && this._debounceScroll },
       },
       [
         this._renderSlots(h, 'header', headerTag),
