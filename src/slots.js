@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { SlotsProps } from './props';
 
-const observer = {
+const Observer = {
   inject: ['virtualList'],
   data() {
     return {
@@ -30,14 +30,13 @@ const observer = {
       this.virtualList[this.event](this.dataKey, this.getCurrentSize());
     },
     getCurrentSize() {
-      const sizeKey = this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
-      return this.$el ? this.$el[sizeKey] : 0;
+      return this.$el ? this.$el[this.sizeKey] : 0;
     },
   },
 };
 
 export const Items = Vue.component('virtual-draglist-items', {
-  mixins: [observer],
+  mixins: [Observer],
   props: SlotsProps,
   render(h) {
     const { tag, dataKey } = this;
@@ -55,7 +54,7 @@ export const Items = Vue.component('virtual-draglist-items', {
 });
 
 export const Slots = Vue.component('virtual-draglist-slots', {
-  mixins: [observer],
+  mixins: [Observer],
   props: SlotsProps,
   render(h) {
     const { tag, dataKey } = this;

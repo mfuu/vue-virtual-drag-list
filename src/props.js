@@ -18,6 +18,10 @@ export const VirtualProps = {
   size: {
     type: Number,
   },
+  pageMode: {
+    type: Boolean,
+    default: false,
+  },
   draggable: {
     type: [Function, String],
   },
@@ -122,7 +126,7 @@ export const SlotsProps = {
   dataKey: {
     type: [String, Number],
   },
-  isHorizontal: {
-    type: Boolean,
+  sizeKey: {
+    type: String,
   },
 };
