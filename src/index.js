@@ -22,6 +22,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       sortable: null,
       lastLength: null,
       range: new Range(),
+      timer: null,
     };
   },
 
@@ -206,7 +207,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     init() {
       this.list = [...this.dataSource];
       this._updateUniqueKeys();
-      this.virtual.updateRange();
+
+      if (this.virtual.sizes.size) {
+        this.virtual.updateRange();
+      } else {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.virtual.updateRange(), 17);
+      }
 
       if (!this.sortable) {
         this.$nextTick(() => this._initSortable());
@@ -420,7 +427,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   render(h) {
     const { front, behind } = this.range;
     const { pageMode, isHorizontal, headerTag, footerTag, rootTag, wrapTag, wrapClass } = this;
-    const wrapperStyle = { ...this.wrapStyle, padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` };
+    const wrapperStyle = {
+      ...this.wrapStyle,
+      padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`,
+    };
 
     return h(
       rootTag,
