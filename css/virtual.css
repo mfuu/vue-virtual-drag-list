@@ -1,15 +1,18 @@
-html, body {
+html,
+body {
   height: 100%;
   width: 100%;
   padding: 0;
   margin: 0;
   color: rgba(0, 0, 0, 0.65);
   font-size: 14px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   font-variant: tabular-nums;
   line-height: 1.5;
   background-color: #fff;
-  font-feature-settings: 'tnum';
+  font-feature-settings: "tnum";
 }
 
 h1 {
@@ -19,6 +22,19 @@ h1 {
 p {
   margin: 0;
   padding: 0;
+}
+
+input {
+  width: 55px;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+}
+
+input:hover,
+input:active,
+input:focus-visible {
+  border: 1px solid #1984ff;
+  outline-width: 0;
 }
 
 button {
@@ -34,7 +50,7 @@ button {
   box-sizing: border-box;
   outline: none;
   margin: 0;
-  transition: .1s;
+  transition: 0.1s;
   font-weight: 500;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -50,51 +66,96 @@ button:hover {
   background-color: #ecf5ff;
 }
 
+.mr-10 {
+  margin-right: 10px;
+}
+
+.tabs {
+  text-align: center;
+}
+
+.tabs-item {
+  position: relative;
+  font-weight: 600;
+  font-size: larger;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  background-color: transparent;
+  outline: 0px;
+  border: 0px;
+  margin: 0px;
+  border-radius: 0px;
+  cursor: pointer;
+  vertical-align: middle;
+  max-width: 360px;
+  min-width: 90px;
+  min-height: 48px;
+  padding: 12px 16px;
+  overflow: hidden;
+  white-space: normal;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.tabs-item:not(:last-child) {
+  margin-right: 20px;
+}
+
+.active-tab {
+  color: #409eff;
+  border-color: #c6e2ff;
+  font-weight: 600;
+}
+
+.active-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  height: 2px;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  background-color: rgb(25, 118, 210);
+}
+
+.content {
+  padding: 24px;
+}
+
+.chosen {
+  color: transparent;
+  background-color: transparent;
+  border: 1px dashed #1984ff;
+}
+
 .codebox {
   text-align: center;
   margin: 25px;
   font-size: 20px;
 }
 
-.tabs {
+.flex {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 0 100px;
 }
 
-.tabs span {
-  padding: 20px;
-  cursor: pointer;
-}
-
-.tabs span:hover {
-  color: #1984ff;
-}
-
-.tabs .active {
-  color: #1984ff;
-}
-
-.content {
-  display: flex;
+.justify-content-center {
   justify-content: center;
 }
 
-.index {
-  color: #1984ff;
+.desc {
+  white-space: pre-line;
 }
 
-.drag {
+.pd16 {
+  padding: 16px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.handle {
   cursor: grab;
-  position: absolute;
-  right: 16px;
-  top: 16px;
-  padding-left: 12px;
-}
-.drag::before {
-  content: '\2723';
-  font-size: 16px;
 }
 
 .loading {
@@ -109,131 +170,32 @@ button:hover {
   flex-direction: column;
 }
 
-/* vertical */
-.vertical-list {
-  width: 800px;
-  height: 600px;
+.virtual-list {
+  width: 400px;
+  max-width: 1200px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
 
-.vertical-item {
+.list-item {
   position: relative;
-  height: 65px;
-  padding: 16px;
   border-radius: 5px;
-  overflow: hidden;
   box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
-.vertical-item p {
-  height: 40px;
+.line-clamp-2 {
   -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-}
-
-/* horizontal */
-.horizontal {
-  padding-bottom: 100px;
 }
 
 .oprate {
-  text-align: center;
-  margin-bottom: 50px;
-}
-
-.horizontal-list {
-  width: 1000px;
-  margin: 0 auto;
-  border: 1px solid #ccc;
-}
-
-.horizontal-item {
-  position: relative;
-  padding: 16px;
-  border-radius: 5px;
-  height: 100px;
-  width: 100px;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0px 0px 1px 0px #3d6c69;
-}
-
-.horizontal-item p {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* dynamic */
-.dynamic-list {
-  width: 800px;
-  height: 600px;
-  margin: 0 10px;
-  border: 1px solid #ccc;
-}
-
-.dynamic-item {
-  position: relative;
-  padding: 16px;
-  border-radius: 5px;
-  box-shadow: 0px 2px 10px -5px #57bbb4;
-}
-
-.dynamic-item p {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* infinity */
-.infinity-list {
-  width: 800px;
-  height: 600px;
-  margin: 0 10px;
-  border: 1px solid #ccc;
-}
-
-.infinity-item {
-  position: relative;
-  height: 65px;
-  padding: 16px;
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow: 0px 2px 10px -5px #57bbb4;
-}
-
-.infinity-item p {
-  height: 40px;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-}
-
-/* group */
-.group {
-  display: flex;
-  justify-content: space-between;
-  padding-bottom: 100px;
-}
-
-.group-list {
-  width: 49%;
-  height: 600px;
-  border: 1px solid #ccc;
-}
-
-.group-item {
-  position: relative;
-  height: 65px;
-  padding: 16px;
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow: 0px 2px 10px -5px #57bbb4;
+  text-align: center;
+  margin-bottom: 50px;
 }
 
 /* loading */
@@ -250,7 +212,7 @@ button:hover {
   height: 100%;
   width: 6px;
   display: inline-block;
-  
+
   -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
   animation: sk-stretchdelay 1.2s infinite ease-in-out;
 }
@@ -261,8 +223,8 @@ button:hover {
 }
 
 .spinner .rect3 {
-  -webkit-animation-delay: -1.0s;
-  animation-delay: -1.0s;
+  -webkit-animation-delay: -1s;
+  animation-delay: -1s;
 }
 
 .spinner .rect4 {
@@ -276,16 +238,25 @@ button:hover {
 }
 
 @-webkit-keyframes sk-stretchdelay {
-  0%, 40%, 100% { -webkit-transform: scaleY(0.4) }  
-  20% { -webkit-transform: scaleY(1.0) }
+  0%,
+  40%,
+  100% {
+    -webkit-transform: scaleY(0.4);
+  }
+  20% {
+    -webkit-transform: scaleY(1);
+  }
 }
 
 @keyframes sk-stretchdelay {
-  0%, 40%, 100% { 
+  0%,
+  40%,
+  100% {
     transform: scaleY(0.4);
     -webkit-transform: scaleY(0.4);
-  }  20% { 
-    transform: scaleY(1.0);
-    -webkit-transform: scaleY(1.0);
+  }
+  20% {
+    transform: scaleY(1);
+    -webkit-transform: scaleY(1);
   }
 }
