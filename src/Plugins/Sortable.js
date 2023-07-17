@@ -139,8 +139,8 @@ Sortable.prototype = {
     const store = await Store.getValue();
     const params = { list: list, ...store, changed };
 
-    this.ctx.$emit('drop', params);
     this.callback && this.callback(params);
+    this.ctx.$emit('drop', params);
 
     this.initialList = [...list];
     this._clear();
