@@ -97,6 +97,12 @@ export const VirtualProps = {
   itemStyle: {
     type: Object,
   },
+  headerStyle: {
+    type: Object,
+  },
+  footerStyle: {
+    type: Object,
+  },
   itemClass: {
     type: String,
     default: '',

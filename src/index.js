@@ -373,6 +373,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     _renderSlots(h, key, TagName) {
       const { itemSizeKey } = this;
       const slot = this.$slots[key];
+      const headerStyle = { ...this.headerStyle };
+      const footerStyle = { ...this.footerStyle };
       return slot
         ? h(
             Slots,
@@ -383,6 +385,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
                 sizeKey: itemSizeKey,
                 event: '_onSlotResized',
               },
+              style: slot === 'header' ? headerStyle : slot === 'footer' ? footerStyle : undefined,
             },
             slot
           )

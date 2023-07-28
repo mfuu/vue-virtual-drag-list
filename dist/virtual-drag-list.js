@@ -541,6 +541,12 @@
     itemStyle: {
       type: Object
     },
+    headerStyle: {
+      type: Object
+    },
+    footerStyle: {
+      type: Object
+    },
     itemClass: {
       type: String,
       "default": ''
@@ -1765,8 +1771,8 @@
               }, store), {}, {
                 changed: changed
               });
-              _this6.ctx.$emit('drop', params);
               _this6.callback && _this6.callback(params);
+              _this6.ctx.$emit('drop', params);
               _this6.initialList = _toConsumableArray(list);
               _this6._clear();
             case 14:
@@ -1910,7 +1916,7 @@
       'dataSource.length': function dataSourceLength() {
         this.init();
       },
-      disabled: function disabled() {
+      disabled: function disabled(val) {
         this.sortable && this.sortable.setValue('disabled', val);
       }
     },
@@ -2195,13 +2201,16 @@
       _renderSlots: function _renderSlots(h, key, TagName) {
         var itemSizeKey = this.itemSizeKey;
         var slot = this.$slots[key];
+        var headerStyle = _objectSpread2({}, this.headerStyle);
+        var footerStyle = _objectSpread2({}, this.footerStyle);
         return slot ? h(Slots, {
           props: {
             tag: TagName,
             dataKey: key,
             sizeKey: itemSizeKey,
             event: '_onSlotResized'
-          }
+          },
+          style: slot === 'header' ? headerStyle : slot === 'footer' ? footerStyle : undefined
         }, slot) : null;
       },
       _renderItems: function _renderItems(h) {
