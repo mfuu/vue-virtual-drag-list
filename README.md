@@ -136,7 +136,9 @@ Root component:
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
 | `itemTag`    | `String`   | `div`       | Label type for list item element |
 | `headerTag`  | `String`   | `div`       | Label type for header slot element |
+| `headerStyle`| `Object`   | `{}`        | Header slot element style |
 | `footerTag`  | `String`   | `div`       | Label type for footer slot element |
+| `footerStyle`| `Object`   | `{}`        | Footer slot element style |
 | `wrapClass`  | `String`   | `''`        | List wrapper element class |
 | `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
 | `itemClass`  | `String`   | `''`        | List item element class |
