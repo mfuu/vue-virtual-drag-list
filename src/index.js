@@ -54,12 +54,18 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   },
 
   watch: {
-    'dataSource.length'() {
+    dataSource() {
       this.init();
     },
     disabled(val) {
       this.sortable && this.sortable.setValue('disabled', val);
     },
+    group(val) {
+      this.sortable && this.sortable.setValue('group', val);
+    },
+    wrapClass(val) {
+      this.sortable && this.sortable.setValue('wrapClass', val);
+    }
   },
 
   activated() {
