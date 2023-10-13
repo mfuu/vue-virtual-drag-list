@@ -58,7 +58,7 @@
     "rollup-plugin-uglify": "^6.0.4",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "vue": "^2.6.14",
-    "vue-loader": "^15.9.8",
+    "vue-loader": "^17.2.2",
     "vue-template-compiler": "^2.6.14"
   }
 }

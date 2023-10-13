@@ -26,6 +26,7 @@ const CACLTYPE = {
 const DIRECTION = {
   FRONT: 'FRONT',
   BEHIND: 'BEHIND',
+  STATIONARY: 'STATIONARY',
 };
 
 const LEADING_BUFFER = 2;
@@ -112,7 +113,12 @@ Virtual.prototype = {
   },
 
   handleScroll(offset) {
-    this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
+    if (offset === this.offset) {
+      this.direction = DIRECTION.STATIONARY;
+    } else {
+      this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
+    }
+
     this.offset = offset;
 
     if (this.isFront()) {
