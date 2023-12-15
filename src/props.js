@@ -7,6 +7,9 @@ export const VirtualProps = {
     type: String,
     required: true,
   },
+  scroller: {
+    type: [Window, Document, HTMLElement],
+  },
   direction: {
     type: String,
     default: 'vertical',
@@ -18,10 +21,6 @@ export const VirtualProps = {
   size: {
     type: Number,
   },
-  pageMode: {
-    type: Boolean,
-    default: false,
-  },
   draggable: {
     type: [Function, String],
   },
@@ -31,7 +30,7 @@ export const VirtualProps = {
   group: {
     type: [String, Object],
   },
-  delay: {
+  debounceTime: {
     type: Number,
     default: 0,
   },
@@ -59,11 +58,11 @@ export const VirtualProps = {
     type: Boolean,
     default: false,
   },
-  pressDelay: {
+  delay: {
     type: Number,
     default: 0,
   },
-  pressDelayOnTouchOnly: {
+  delayOnTouchOnly: {
     type: Boolean,
     default: false,
   },
