@@ -58,24 +58,16 @@ Sortable.prototype = {
   },
 
   _onDrag(params) {
-    const key = params.from.node.dataset.key;
+    const key = params.node.dataset.key;
     const index = this._getIndex(this.list, key);
     const item = this.list[index];
 
     // store the drag item
     this.store = {
-      from: {
-        item,
-        key,
-        index,
-        list: this.list,
-      },
-      to: {
-        item,
-        key,
-        index,
-        list: this.list,
-      },
+      item,
+      key,
+      from: { index, list: this.list },
+      to: { index, list: this.list },
     };
     this.sortable.option('store', this.store);
 
@@ -84,33 +76,29 @@ Sortable.prototype = {
   },
 
   _onRemove(params) {
-    const key = params.from.node.dataset.key;
+    const key = params.node.dataset.key;
     const index = this._getIndex(this.list, key);
     const item = this.list[index];
 
-    if (params.pullMode !== 'clone') {
-      this.list.splice(index, 1);
-    }
-
-    // store the removed item
-    Object.assign(this.store, { remove: { item, key } });
-    this.sortable.option('store', this.store);
+    this.list.splice(index, 1);
 
     this.ctx.$emit('remove', { item, index, key });
   },
 
   _onAdd(params) {
-    const tokey = params.to.node.dataset.key;
+    const { from, target } = params;
+    const tokey = target.dataset.key;
     const index = this._getIndex(this.list, tokey);
-    const item = params.from.store.remove.item;
-    const key = params.from.store.remove.key;
+
+    const fromStore = Dnd.get(from).option('store');
+    const key = fromStore.key;
+    const item = fromStore.item;
+
     this.list.splice(index, 0, item);
 
     Object.assign(this.store, {
       to: {
-        item,
         index,
-        key,
         list: this.list,
       },
     });
@@ -120,32 +108,41 @@ Sortable.prototype = {
   },
 
   _onChange(params) {
-    const { from, to } = params;
-    const fromKey = from.node.dataset.key;
-    const fromIndex = this._getIndex(this.list, from.node.dataset.key);
+    const { node, target } = params;
+    const fromIndex = this._getIndex(this.list, node.dataset.key);
     const fromItem = this.list[fromIndex];
-    const toIndex = this._getIndex(this.list, to.node.dataset.key);
+    const toIndex = this._getIndex(this.list, target.dataset.key);
+
     this.list.splice(fromIndex, 1);
     this.list.splice(toIndex, 0, fromItem);
 
     Object.assign(this.store, {
       to: {
-        item: fromItem,
         index: toIndex,
-        key: fromKey,
         list: this.list,
       },
     });
   },
 
   _onDrop(params) {
-    Dnd.clone?.remove();
+    const fromStore = Dnd.get(params.from).option('store');
+    const toStore = Dnd.get(params.to).option('store');
+    const from = fromStore.from;
+    const to = toStore.to;
 
-    const from = params.from.store.from;
-    const to = params.to.store.to;
     this.onDrop({ list: this.list });
 
-    this.ctx.$emit('drop', { list: this.list, from, to });
+    this.ctx.$emit('drop', {
+      list: this.list,
+      item: fromStore.item,
+      key: fromStore.key,
+      from,
+      to,
+    });
+
+    if (params.from !== params.to && params.pullMode === 'clone') {
+      params.clone?.remove();
+    }
   },
 
   _getIndex(list, key) {
