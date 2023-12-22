@@ -82,7 +82,7 @@
 
       <template v-if="activeTab == 3">
         <div class="content">
-          <virtual-list key="pagemode" :page-mode="true"></virtual-list>
+          <virtual-list key="pagemode" :scroller="document"></virtual-list>
         </div>
       </template>
     </div>
@@ -103,6 +103,7 @@
           return {
             tabList: tabs,
             activeTab: 0,
+            document: document
           };
         },
       });
