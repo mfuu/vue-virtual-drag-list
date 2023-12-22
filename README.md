@@ -28,7 +28,6 @@ Root component:
       v-model="list"
       :data-key="'id'"
       :handle="'.handle'"
-      style="height: 500px"
       @top="handleToTop"
       @bottom="handleToBottom"
       @drag="onDrag"
