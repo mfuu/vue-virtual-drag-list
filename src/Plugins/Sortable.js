@@ -1,36 +1,45 @@
-import SortableDnd from 'sortable-dnd';
-import { Store } from './Storage';
+import Dnd from 'sortable-dnd';
 import { getDataKey } from '../utils';
 
-const attributes = [
+export const attributes = [
+  'delay',
   'group',
   'handle',
   'disabled',
   'draggable',
+  'animation',
+  'autoScroll',
   'ghostClass',
   'ghostStyle',
   'chosenClass',
-  'animation',
-  'autoScroll',
-  'scrollThreshold',
   'fallbackOnBody',
-  'pressDelay',
-  'pressDelayOnTouchOnly',
+  'scrollThreshold',
+  'delayOnTouchOnly',
 ];
 
-let dragEl = null;
-
-function Sortable(ctx, callback) {
+function Sortable(ctx, onDrag, onDrop) {
   this.ctx = ctx;
-  this.callback = callback;
+  this.onDrag = onDrag;
+  this.onDrop = onDrop;
 
-  this.initialList = [...ctx.list];
-  this.dynamicList = [...ctx.list];
+  this.list = [...ctx.list];
+  this.store = {};
 
-  this.sortable = null;
-  this.rangeChanged = false;
+  const props = attributes.reduce((res, key) => {
+    res[key] = this.ctx[key];
+    return res;
+  }, {});
 
-  this._init();
+  this.sortable = new Dnd(this.ctx.$refs.groupRef, {
+    ...props,
+    swapOnDrop: false,
+    onDrag: (params) => this._onDrag(params),
+    onAdd: (params) => this._onAdd(params),
+    onRemove: (params) => this._onRemove(params),
+    onChange: (params) => this._onChange(params),
+    onUnchoose: (params) => this._onUnchoose(params),
+    onDrop: (params) => this._onDrop(params),
+  });
 }
 
 Sortable.prototype = {
@@ -38,120 +47,148 @@ Sortable.prototype = {
 
   destroy() {
     this.sortable && this.sortable.destroy();
-    this.sortable = null;
+    this.sortable = this.store = null;
   },
 
   setValue(key, value) {
     if (key === 'list') {
-      this.initialList = [...value];
-      // When the list data changes when dragging, need to execute onDrag function
-      if (dragEl) this._onDrag(dragEl, false);
+      this.list = [...value];
     } else {
-      this.ctx[key] = value;
       this.sortable.option(key, value);
     }
   },
 
-  _init() {
-    const props = attributes.reduce((res, key) => {
-      let name = key;
-      if (key === 'pressDelay') name = 'delay';
-      if (key === 'pressDelayOnTouchOnly') name = 'delayOnTouchOnly';
-      res[name] = this.ctx[key];
-      return res;
-    }, {});
+  _onDrag(params) {
+    const key = params.node.dataset.key;
+    const index = this._getIndex(this.list, key);
+    const item = this.list[index];
 
-    this.sortable = new SortableDnd(this.ctx.$refs.groupRef, {
-      ...props,
-      swapOnDrop: false,
-      list: this.dynamicList,
-      onDrag: ({ from }) => this._onDrag(from.node),
-      onAdd: ({ from, to }) => this._onAdd(from, to),
-      onRemove: ({ from, to }) => this._onRemove(from, to),
-      onChange: ({ from, to }) => this._onChange(from, to),
-      onDrop: ({ from, to, changed }) => this._onDrop(from, to, changed),
+    // store the drag item
+    this.store = {
+      item,
+      key,
+      origin: { index, list: this.list },
+      from: { index, list: this.list },
+      to: { index, list: this.list },
+    };
+    this.sortable.option('store', this.store);
+
+    this.onDrag({ list: this.list });
+    this.ctx.$emit('drag', { item, index, key });
+  },
+
+  _onRemove(params) {
+    const key = params.node.dataset.key;
+    const index = this._getIndex(this.list, key);
+    const item = this.list[index];
+
+    this.list.splice(index, 1);
+
+    Object.assign(this.store, {
+      key,
+      item,
+    });
+    this.sortable.option('store', this.store);
+
+    this.ctx.$emit('remove', { item, index, key });
+  },
+
+  _onAdd(params) {
+    const { from, target, relative } = params;
+    const { key, item } = Dnd.get(from).option('store');
+
+    let index = this._getIndex(this.list, target.dataset.key);
+
+    if (relative === -1) {
+      index += 1;
+    }
+
+    this.list.splice(index, 0, item);
+
+    Object.assign(this.store, {
+      to: {
+        index,
+        list: this.list,
+      },
+    });
+    this.sortable.option('store', this.store);
+
+    this.ctx.$emit('add', { item, index, key });
+  },
+
+  _onChange(params) {
+    const store = Dnd.get(params.from).option('store');
+
+    if (params.revertDrag) {
+      this.list = [...this.ctx.list];
+      Object.assign(this.store, {
+        from: store.origin,
+      });
+      return;
+    }
+
+    const { node, target, relative, backToOrigin } = params;
+
+    const fromIndex = this._getIndex(this.list, node.dataset.key);
+    const fromItem = this.list[fromIndex];
+
+    let toIndex = this._getIndex(this.list, target.dataset.key);
+
+    if (backToOrigin) {
+      if (relative === 1 && store.from.index < toIndex) {
+        toIndex -= 1;
+      }
+      if (relative === -1 && store.from.index > toIndex) {
+        toIndex += 1;
+      }
+    }
+
+    this.list.splice(fromIndex, 1);
+    this.list.splice(toIndex, 0, fromItem);
+
+    Object.assign(this.store, {
+      from: {
+        index: toIndex,
+        list: this.list,
+      },
+      to: {
+        index: toIndex,
+        list: this.list,
+      },
     });
   },
 
-  async _onDrag(node, callback = true) {
-    dragEl = node;
-    this.dynamicList = [...this.initialList];
+  _onUnchoose(params) {
+    const { from, to } = this._getStore(params);
 
-    const fromList = [...this.initialList];
-    const fromState = this._getFromTo({ node }, fromList);
-
-    await Store.setValue({ from: { list: fromList, ...fromState } });
-
-    if (callback) {
-      this.rangeChanged = false;
-      const store = await Store.getValue();
-      this.ctx.$emit('drag', { list: fromList, ...store });
-    } else {
-      this.rangeChanged = true;
+    if (params.from === params.to && from.origin.index === to.to.index) {
+      this.sortable.option('swapOnDrop', true);
     }
   },
 
-  async _onAdd(from, to) {
-    const store = await Store.getValue();
-    const list = [...this.dynamicList];
-    const index = this._getIndex(list, to.node.dataset.key);
-    const params = { ...store.from, index };
-    if (from.node === to.node) {
-      // insert to end of list
-      params.index = this.dynamicList.length;
-      this.dynamicList.push(store.from.item);
-    } else {
-      this.dynamicList.splice(index, 0, store.from.item);
-    }
-    delete params.list;
-    this.ctx.$emit('add', { ...params });
-  },
+  _onDrop(params) {
+    const { from, to } = this._getStore(params);
+    const changed = params.from !== params.to || from.origin.index !== to.to.index;
 
-  async _onRemove(from, to) {
-    const list = [...this.dynamicList];
-    const state = this._getFromTo(from, list);
+    this.onDrop({ list: this.list });
 
-    this.dynamicList.splice(state.index, 1);
-
-    this.ctx.$emit('remove', { ...state });
-  },
-
-  async _onChange(from, to) {
-    const fromList = [...this.dynamicList];
-    const toList = [...this.dynamicList];
-    const fromState = this._getFromTo(from, fromList);
-    const toState = this._getFromTo(to, toList);
-
-    this.dynamicList.splice(fromState.index, 1);
-    this.dynamicList.splice(toState.index, 0, fromState.item);
-  },
-
-  async _onDrop(from, to, changed) {
-    const list = [...this.dynamicList];
-    const index = this._getIndex(list, from.node.dataset.key);
-    const item = this.initialList[index];
-    const key = getDataKey(item, this.ctx.dataKey);
-
-    await Store.setValue({
-      to: { list: [...this.initialList], index, item, key },
+    this.ctx.$emit('drop', {
+      changed,
+      list: this.list,
+      item: from.item,
+      key: from.key,
+      from: from.origin,
+      to: to.to,
     });
 
-    const store = await Store.getValue();
-    const params = { list: list, ...store, changed };
+    if (params.from !== params.to && params.pullMode === 'clone') {
+      params.clone?.remove();
+    }
+    if (params.from === params.to && from.origin.index !== to.to.index) {
+      Dnd.dragged?.remove();
+    }
 
-    this.callback && this.callback(params);
-    this.ctx.$emit('drop', params);
-
-    this.initialList = [...list];
-    this._clear();
-  },
-
-  _getFromTo(fromTo, list) {
-    const key = fromTo.node.dataset.key;
-    const index = this._getIndex(list, key);
-    const item = list[index];
-
-    return { key, item, index };
+    this.sortable.option('swapOnDrop', false);
   },
 
   _getIndex(list, key) {
@@ -163,10 +200,11 @@ Sortable.prototype = {
     return -1;
   },
 
-  _clear() {
-    dragEl = null;
-    Store.clear();
-    this.rangeChanged = false;
+  _getStore(params) {
+    return {
+      from: Dnd.get(params.from).option('store'),
+      to: Dnd.get(params.to).option('store'),
+    };
   },
 };
 
