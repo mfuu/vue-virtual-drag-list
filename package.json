@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/mfuu/vue-virtual-drag-list#readme",
   "dependencies": {
-    "sortable-dnd": "0.5.4"
+    "sortable-dnd": "0.6.2"
   },
   "devDependencies": {
     "@babel/core": "^7.8.7",
