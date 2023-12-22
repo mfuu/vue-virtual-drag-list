@@ -1,7 +1,7 @@
 import Dnd from 'sortable-dnd';
 import { getDataKey } from '../utils';
 
-const attributes = [
+export const attributes = [
   'delay',
   'group',
   'handle',
@@ -37,6 +37,7 @@ function Sortable(ctx, onDrag, onDrop) {
     onAdd: (params) => this._onAdd(params),
     onRemove: (params) => this._onRemove(params),
     onChange: (params) => this._onChange(params),
+    onUnchoose: (params) => this._onUnchoose(params),
     onDrop: (params) => this._onDrop(params),
   });
 }
@@ -66,6 +67,7 @@ Sortable.prototype = {
     this.store = {
       item,
       key,
+      origin: { index, list: this.list },
       from: { index, list: this.list },
       to: { index, list: this.list },
     };
@@ -82,17 +84,24 @@ Sortable.prototype = {
 
     this.list.splice(index, 1);
 
+    Object.assign(this.store, {
+      key,
+      item,
+    });
+    this.sortable.option('store', this.store);
+
     this.ctx.$emit('remove', { item, index, key });
   },
 
   _onAdd(params) {
-    const { from, target } = params;
-    const tokey = target.dataset.key;
-    const index = this._getIndex(this.list, tokey);
+    const { from, target, relative } = params;
+    const { key, item } = Dnd.get(from).option('store');
 
-    const fromStore = Dnd.get(from).option('store');
-    const key = fromStore.key;
-    const item = fromStore.item;
+    let index = this._getIndex(this.list, target.dataset.key);
+
+    if (relative === -1) {
+      index += 1;
+    }
 
     this.list.splice(index, 0, item);
 
@@ -108,15 +117,40 @@ Sortable.prototype = {
   },
 
   _onChange(params) {
-    const { node, target } = params;
+    const store = Dnd.get(params.from).option('store');
+
+    if (params.revertDrag) {
+      this.list = [...this.ctx.list];
+      Object.assign(this.store, {
+        from: store.origin,
+      });
+      return;
+    }
+
+    const { node, target, relative, backToOrigin } = params;
+
     const fromIndex = this._getIndex(this.list, node.dataset.key);
     const fromItem = this.list[fromIndex];
-    const toIndex = this._getIndex(this.list, target.dataset.key);
+
+    let toIndex = this._getIndex(this.list, target.dataset.key);
+
+    if (backToOrigin) {
+      if (relative === 1 && store.from.index < toIndex) {
+        toIndex -= 1;
+      }
+      if (relative === -1 && store.from.index > toIndex) {
+        toIndex += 1;
+      }
+    }
 
     this.list.splice(fromIndex, 1);
     this.list.splice(toIndex, 0, fromItem);
 
     Object.assign(this.store, {
+      from: {
+        index: toIndex,
+        list: this.list,
+      },
       to: {
         index: toIndex,
         list: this.list,
@@ -124,25 +158,35 @@ Sortable.prototype = {
     });
   },
 
+  _onUnchoose(params) {
+    const { from, to } = this._getStore(params);
+
+    if (params.from === params.to && from.origin.index === to.to.index) {
+      this.sortable.option('swapOnDrop', true);
+    }
+  },
+
   _onDrop(params) {
-    const fromStore = Dnd.get(params.from).option('store');
-    const toStore = Dnd.get(params.to).option('store');
-    const from = fromStore.from;
-    const to = toStore.to;
+    const { from, to } = this._getStore(params);
 
     this.onDrop({ list: this.list });
 
     this.ctx.$emit('drop', {
       list: this.list,
-      item: fromStore.item,
-      key: fromStore.key,
-      from,
-      to,
+      item: from.item,
+      key: from.key,
+      from: from.origin,
+      to: to.to,
     });
 
     if (params.from !== params.to && params.pullMode === 'clone') {
       params.clone?.remove();
     }
+    if (params.from === params.to && from.origin.index !== to.to.index) {
+      Dnd.dragged?.remove();
+    }
+
+    this.sortable.option('swapOnDrop', false);
   },
 
   _getIndex(list, key) {
@@ -152,6 +196,13 @@ Sortable.prototype = {
       }
     }
     return -1;
+  },
+
+  _getStore(params) {
+    return {
+      from: Dnd.get(params.from).option('store'),
+      to: Dnd.get(params.to).option('store'),
+    };
   },
 };
 

@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Dnd from 'sortable-dnd';
-import Virtual from './Plugins/Virtual';
-import Sortable from './Plugins/Sortable';
+import Virtual, { attributes as VirtualAttrs } from './Plugins/Virtual';
+import Sortable, { attributes as SortableAttrs } from './Plugins/Sortable';
 import { VirtualProps, SlotsProps } from './props';
 import { debounce, getDataKey } from './utils';
 
@@ -109,6 +109,18 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     itemSizeKey() {
       return this.isHorizontal ? 'offsetWidth' : 'offsetHeight';
     },
+    virtualAttributes() {
+      return VirtualAttrs.reduce((res, key) => {
+        res[key] = this[key];
+        return res;
+      }, {});
+    },
+    sortableAttributes() {
+      return SortableAttrs.reduce((res, key) => {
+        res[key] = this[key];
+        return res;
+      }, {});
+    },
   },
 
   watch: {
@@ -118,8 +130,27 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       },
       deep: true,
     },
-    disabled(val) {
-      this.sortable && this.sortable.setValue('disabled', val);
+    virtualAttributes: {
+      handler(newVal, oldVal) {
+        if (!this.virtual) return;
+        for (let key in newVal) {
+          if (newVal[key] != oldVal[key]) {
+            this.virtual.updateOptions(key, newVal[key]);
+          }
+        }
+      },
+      deep: true,
+    },
+    sortableAttributes: {
+      handler(newVal, oldVal) {
+        if (!this.sortable) return;
+        for (let key in newVal) {
+          if (newVal[key] != oldVal[key]) {
+            this.sortable.setValue(key, newVal[key]);
+          }
+        }
+      },
+      deep: true,
     },
   },
 
@@ -166,21 +197,32 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
      * Get the current scroll height
      */
     getOffset() {
-      this.virtual.getOffset();
+      return this.virtual.getOffset();
     },
 
     /**
      * Get client viewport size
      */
     getClientSize() {
-      this.virtual.getClientSize();
+      return this.virtual.getClientSize();
     },
 
     /**
      * Get all scroll size
      */
     getScrollSize() {
-      this.virtual.getScrollSize();
+      return this.virtual.getScrollSize();
+    },
+
+    /**
+     * Scroll to the specified data-key
+     * @param {Number|String} key
+     */
+    scrollToKey(key) {
+      const index = this.uniqueKeys.indexOf(key);
+      if (index > -1) {
+        this.virtual.scrollToIndex(index);
+      }
     },
 
     /**
@@ -238,6 +280,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         this.scrollToIndex(index);
         this.lastLength = null;
       }
+
+      this.$forceUpdate();
     },
 
     // virtual init
@@ -250,6 +294,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         direction: this.direction,
         uniqueKeys: this.uniqueKeys,
         debounceTime: this.debounceTime,
+        throttleTime: this.throttleTime,
         onScroll: (params) => {
           if (!!this.list.length && params.top) {
             this._handleToTop();
@@ -275,6 +320,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
             this.range.front += Dnd.clone[this.isHorizontal ? 'offsetWidth' : 'offsetHeight'];
             this.start = this.range.start;
           }
+
           this.$emit('updateDataSource', list);
         }
       );

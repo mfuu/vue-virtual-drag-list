@@ -37,6 +37,15 @@ const offsetType = {
   [DIRECTION.HORIZONTAL]: 'offsetLeft',
 };
 
+export const attributes = [
+  'size',
+  'keeps',
+  'scroller',
+  'direction',
+  'debounceTime',
+  'throttleTime',
+];
+
 function Virtual(options) {
   this.options = options;
 
