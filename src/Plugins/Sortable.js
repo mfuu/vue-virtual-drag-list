@@ -168,10 +168,12 @@ Sortable.prototype = {
 
   _onDrop(params) {
     const { from, to } = this._getStore(params);
+    const changed = params.from !== params.to || from.origin.index !== to.to.index;
 
     this.onDrop({ list: this.list });
 
     this.ctx.$emit('drop', {
+      changed,
       list: this.list,
       item: from.item,
       key: from.key,
