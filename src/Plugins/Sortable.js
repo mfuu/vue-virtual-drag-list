@@ -37,6 +37,7 @@ function Sortable(ctx, onDrag, onDrop) {
     onAdd: (params) => this._onAdd(params),
     onRemove: (params) => this._onRemove(params),
     onChange: (params) => this._onChange(params),
+    onChoose: (params) => this._onChoose(params),
     onUnchoose: (params) => this._onUnchoose(params),
     onDrop: (params) => this._onDrop(params),
   });
@@ -58,7 +59,7 @@ Sortable.prototype = {
     }
   },
 
-  _onDrag(params) {
+  _onChoose(params) {
     const key = params.node.dataset.key;
     const index = this._getIndex(this.list, key);
     const item = this.list[index];
@@ -71,10 +72,14 @@ Sortable.prototype = {
       from: { index, list: this.list },
       to: { index, list: this.list },
     };
-    this.sortable.option('store', this.store);
 
+    this.sortable.option('store', this.store);
+  },
+
+  _onDrag(params) {
+    const { item, key, origin } = this.store;
     this.onDrag({ list: this.list });
-    this.ctx.$emit('drag', { item, index, key });
+    this.ctx.$emit('drag', { item, key, index: origin.index });
   },
 
   _onRemove(params) {
