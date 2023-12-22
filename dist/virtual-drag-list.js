@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.8.0
+ * vue-virtual-drag-list v2.8.1
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -1105,6 +1105,9 @@
       onChange: function onChange(params) {
         return _this._onChange(params);
       },
+      onChoose: function onChoose(params) {
+        return _this._onChoose(params);
+      },
       onUnchoose: function onUnchoose(params) {
         return _this._onUnchoose(params);
       },
@@ -1126,7 +1129,7 @@
         this.sortable.option(key, value);
       }
     },
-    _onDrag: function _onDrag(params) {
+    _onChoose: function _onChoose(params) {
       var key = params.node.dataset.key;
       var index = this._getIndex(this.list, key);
       var item = this.list[index];
@@ -1149,13 +1152,19 @@
         }
       };
       this.sortable.option('store', this.store);
+    },
+    _onDrag: function _onDrag(params) {
+      var _this$store = this.store,
+        item = _this$store.item,
+        key = _this$store.key,
+        origin = _this$store.origin;
       this.onDrag({
         list: this.list
       });
       this.ctx.$emit('drag', {
         item: item,
-        index: index,
-        key: key
+        key: key,
+        index: origin.index
       });
     },
     _onRemove: function _onRemove(params) {
