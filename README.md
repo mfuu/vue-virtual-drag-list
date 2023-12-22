@@ -68,7 +68,7 @@ Root component:
       handleToBottom() {
         // code here
       },
-      onDrag({ list, from }) {
+      onDrag({ item, key, index }) {
         // code here
       },
       onDrop({ list, from, to, changed }) {
