@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.8.2
+ * vue-virtual-drag-list v2.8.3
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -1167,7 +1167,7 @@
       this.ctx.$emit('drag', {
         item: item,
         key: key,
-        index: origin.index
+        index: index
       });
     },
     _onRemove: function _onRemove(params) {
@@ -1264,7 +1264,7 @@
         from: from.origin,
         to: to.to
       });
-      if (params.from === params.to && this.reRendered) {
+      if (this.reRendered) {
         var _Dnd$dragged;
         (_Dnd$dragged = sortableDnd_min.dragged) === null || _Dnd$dragged === void 0 ? void 0 : _Dnd$dragged.remove();
       }
@@ -1272,7 +1272,6 @@
         var _Dnd$clone;
         (_Dnd$clone = sortableDnd_min.clone) === null || _Dnd$clone === void 0 ? void 0 : _Dnd$clone.remove();
       }
-      this.sortable.option('swapOnDrop', false);
       this.reRendered = false;
     },
     _getIndex: function _getIndex(list, key) {

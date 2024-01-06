@@ -74,7 +74,7 @@ Sortable.prototype = {
 
     this.sortable.option('store', this.store);
     this.onDrag({ list: this.list });
-    this.ctx.$emit('drag', { item, key, index: origin.index });
+    this.ctx.$emit('drag', { item, key, index });
   },
 
   _onRemove(params) {
@@ -173,14 +173,13 @@ Sortable.prototype = {
       to: to.to,
     });
 
-    if (params.from === params.to && this.reRendered) {
+    if (this.reRendered) {
       Dnd.dragged?.remove();
     }
     if (params.from !== params.to && params.pullMode === 'clone') {
       Dnd.clone?.remove();
     }
 
-    this.sortable.option('swapOnDrop', false);
     this.reRendered = false;
   },
 
