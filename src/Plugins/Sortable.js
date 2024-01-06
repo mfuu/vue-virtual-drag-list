@@ -24,6 +24,7 @@ function Sortable(ctx, onDrag, onDrop) {
 
   this.list = [...ctx.list];
   this.store = {};
+  this.reRendered = false;
 
   const props = attributes.reduce((res, key) => {
     res[key] = this.ctx[key];
@@ -32,13 +33,11 @@ function Sortable(ctx, onDrag, onDrop) {
 
   this.sortable = new Dnd(this.ctx.$refs.groupRef, {
     ...props,
-    swapOnDrop: false,
+    swapOnDrop: (params) => params.from === params.to,
     onDrag: (params) => this._onDrag(params),
     onAdd: (params) => this._onAdd(params),
     onRemove: (params) => this._onRemove(params),
     onChange: (params) => this._onChange(params),
-    onChoose: (params) => this._onChoose(params),
-    onUnchoose: (params) => this._onUnchoose(params),
     onDrop: (params) => this._onDrop(params),
   });
 }
@@ -59,7 +58,7 @@ Sortable.prototype = {
     }
   },
 
-  _onChoose(params) {
+  _onDrag(params) {
     const key = params.node.dataset.key;
     const index = this._getIndex(this.list, key);
     const item = this.list[index];
@@ -74,10 +73,6 @@ Sortable.prototype = {
     };
 
     this.sortable.option('store', this.store);
-  },
-
-  _onDrag(params) {
-    const { item, key, origin } = this.store;
     this.onDrag({ list: this.list });
     this.ctx.$emit('drag', { item, key, index: origin.index });
   },
@@ -163,14 +158,6 @@ Sortable.prototype = {
     });
   },
 
-  _onUnchoose(params) {
-    const { from, to } = this._getStore(params);
-
-    if (params.from === params.to && from.origin.index === to.to.index) {
-      this.sortable.option('swapOnDrop', true);
-    }
-  },
-
   _onDrop(params) {
     const { from, to } = this._getStore(params);
     const changed = params.from !== params.to || from.origin.index !== to.to.index;
@@ -186,14 +173,15 @@ Sortable.prototype = {
       to: to.to,
     });
 
-    if (params.from !== params.to && params.pullMode === 'clone') {
-      params.clone?.remove();
-    }
-    if (params.from === params.to && from.origin.index !== to.to.index) {
+    if (params.from === params.to && this.reRendered) {
       Dnd.dragged?.remove();
+    }
+    if (params.from !== params.to && params.pullMode === 'clone') {
+      Dnd.clone?.remove();
     }
 
     this.sortable.option('swapOnDrop', false);
+    this.reRendered = false;
   },
 
   _getIndex(list, key) {

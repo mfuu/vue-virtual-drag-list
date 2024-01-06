@@ -360,7 +360,7 @@ Virtual.prototype = {
     return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
   },
 
-  _getScrollElement: function (scroller) {
+  _getScrollElement(scroller) {
     if ((scroller instanceof Document && scroller.nodeType === 9) || scroller instanceof Window) {
       this.useWindowScroll = true;
       return document.scrollingElement || document.documentElement || document.body;
@@ -371,7 +371,7 @@ Virtual.prototype = {
     return scroller;
   },
 
-  _getScrollStartOffset: function () {
+  _getScrollStartOffset() {
     let offset = this.calcSize.header;
     if (this.useWindowScroll && this.options.wrapper) {
       let el = this.options.wrapper;

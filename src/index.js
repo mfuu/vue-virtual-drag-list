@@ -274,14 +274,14 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         this.sortable.setValue('list', this.list);
       }
 
-      // auto scroll to the last offset
+      // top loading: auto scroll to the last offset
       if (this.lastLength && this.keepOffset) {
-        const index = Math.abs(this.list.length - this.lastLength);
-        this.scrollToIndex(index);
+        const index = this.list.length - this.lastLength;
+        if (index > 0) {
+          this.scrollToIndex(index);
+        }
         this.lastLength = null;
       }
-
-      this.$forceUpdate();
     },
 
     // virtual init
@@ -296,6 +296,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         debounceTime: this.debounceTime,
         throttleTime: this.throttleTime,
         onScroll: (params) => {
+          this.lastLength = null;
           if (!!this.list.length && params.top) {
             this._handleToTop();
           } else if (params.bottom) {
@@ -303,6 +304,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           }
         },
         onUpdate: (range) => {
+          if (Dnd.dragged && range.start !== this.range.start) {
+            this.sortable.reRendered = true;
+          }
           this.range = range;
         },
       });
