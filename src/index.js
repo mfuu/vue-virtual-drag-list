@@ -261,9 +261,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.list = this.dataSource;
       this._updateUniqueKeys();
 
-      if (this.virtual.sizes.size) {
-        this._updateRange(oldList, this.list);
-      } else {
+      this._updateRange(oldList, this.list);
+      if (!this.virtual.sizes.size) {
         clearTimeout(this.timer);
         this.timer = setTimeout(() => this.virtual.updateRange(), 17);
       }
