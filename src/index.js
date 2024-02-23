@@ -332,20 +332,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
     _updateRange(oldList, newList) {
       let range = { ...this.range };
-      if (this.range.start > 0) {
-        const index = newList.indexOf(oldList[this.range.start]);
-        if (index > -1) {
-          range.start = index;
-          range.end = index + this.keeps - 1;
-        }
-      }
       if (
         newList.length > oldList.length &&
         this.range.end === oldList.length - 1 &&
         this._scrolledToBottom()
       ) {
         range.end++;
-        range.start = Math.max(0, range.end - this.keeps + 1);
+        range.start = Math.max(0, range.end - this.keeps);
       }
       this.virtual.updateRange(range);
     },
