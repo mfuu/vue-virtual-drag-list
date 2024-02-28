@@ -87,7 +87,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     return {
       list: [],
       start: 0,
-      timer: null,
       range: { start: 0, end: 0, front: 0, behind: 0 },
       virtual: null,
       sortable: null,
@@ -261,12 +260,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.list = this.dataSource;
       this._updateUniqueKeys();
 
-      if (this.virtual.sizes.size) {
-        this._updateRange(oldList, this.list);
-      } else {
-        clearTimeout(this.timer);
-        this.timer = setTimeout(() => this.virtual.updateRange(), 17);
-      }
+      this._updateRange(oldList, this.list);
 
       if (!this.sortable) {
         this.$nextTick(() => this._initSortable());
