@@ -99,7 +99,9 @@ Sortable.prototype = {
 
     let index = this._getIndex(this.list, target.dataset.key);
 
-    if (relative === -1) {
+    if (relative === 0) {
+      index = this.list.length;
+    } else if (relative === -1) {
       index += 1;
     }
 
