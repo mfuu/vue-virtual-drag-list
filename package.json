@@ -1,6 +1,6 @@
 {
   "name": "vue-virtual-draglist",
-  "version": "2.8.3",
+  "version": "2.8.4",
   "description": "A virtual scrolling list component that can be sorted by dragging",
   "main": "dist/virtual-drag-list.min.js",
   "files": [
@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "eslint --fix src --ext .js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup --config"
+    "build": "rollup --config",
+    "updateSubtree": "git subtree pull --prefix=src/core https://github.com/mfuu/virtual-dnd-list-core.git master --squash"
   },
   "repository": {
     "type": "git",

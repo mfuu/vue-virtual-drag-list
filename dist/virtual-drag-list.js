@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.8.3
+ * vue-virtual-drag-list v2.8.4
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -717,579 +717,6 @@
   });
   });
 
-  function debounce(func) {
-    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
-    var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    var timer = null;
-    var result;
-    var debounced = function debounced() {
-      var _this = this;
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      if (timer) clearTimeout(timer);
-      if (immediate) {
-        var callNow = !timer;
-        timer = setTimeout(function () {
-          timer = null;
-        }, delay);
-        if (callNow) result = func.apply(this, args);
-      } else {
-        timer = setTimeout(function () {
-          func.apply(_this, args);
-        }, delay);
-      }
-      return result;
-    };
-    debounced.cancel = function () {
-      clearTimeout(timer);
-      timer = null;
-    };
-    return debounced;
-  }
-  function throttle(fn, delay) {
-    var timer = null;
-    return function () {
-      var context = this,
-        args = arguments;
-      if (!timer) {
-        timer = setTimeout(function () {
-          timer = null;
-          fn.apply(context, args);
-        }, delay);
-      }
-    };
-  }
-  function getDataKey(item, dataKey) {
-    return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
-      return (o || {})[k];
-    }, item);
-  }
-
-  var _scrollType, _scrollSize, _offsetSize, _offsetType;
-  var CACLTYPE = {
-    INIT: 'INIT',
-    FIXED: 'FIXED',
-    DYNAMIC: 'DYNAMIC'
-  };
-  var SCROLL_DIRECTION = {
-    FRONT: 'FRONT',
-    BEHIND: 'BEHIND',
-    STATIONARY: 'STATIONARY'
-  };
-  var DIRECTION = {
-    HORIZONTAL: 'horizontal',
-    VERTICAL: 'vertical'
-  };
-  var scrollType = (_scrollType = {}, _defineProperty(_scrollType, DIRECTION.VERTICAL, 'scrollTop'), _defineProperty(_scrollType, DIRECTION.HORIZONTAL, 'scrollLeft'), _scrollType);
-  var scrollSize = (_scrollSize = {}, _defineProperty(_scrollSize, DIRECTION.VERTICAL, 'scrollHeight'), _defineProperty(_scrollSize, DIRECTION.HORIZONTAL, 'scrollWidth'), _scrollSize);
-  var offsetSize = (_offsetSize = {}, _defineProperty(_offsetSize, DIRECTION.VERTICAL, 'offsetHeight'), _defineProperty(_offsetSize, DIRECTION.HORIZONTAL, 'offsetWidth'), _offsetSize);
-  var offsetType = (_offsetType = {}, _defineProperty(_offsetType, DIRECTION.VERTICAL, 'offsetTop'), _defineProperty(_offsetType, DIRECTION.HORIZONTAL, 'offsetLeft'), _offsetType);
-  var attributes = ['size', 'keeps', 'scroller', 'direction', 'debounceTime', 'throttleTime'];
-  function Virtual(options) {
-    this.options = options;
-    var defaults = {
-      size: 0,
-      keeps: 0,
-      buffer: 0,
-      wrapper: null,
-      scroller: null,
-      direction: 'vertical',
-      uniqueKeys: [],
-      debounceTime: null,
-      throttleTime: null
-    };
-    for (var name in defaults) {
-      !(name in this.options) && (this.options[name] = defaults[name]);
-    }
-    this.sizes = new Map(); // store item size
-    this.range = {
-      start: 0,
-      end: 0,
-      front: 0,
-      behind: 0
-    };
-    this.offset = 0;
-    this.calcType = CACLTYPE.INIT;
-    this.calcSize = {
-      average: 0,
-      total: 0,
-      fixed: 0,
-      header: 0
-    };
-    this.direction = '';
-    this.useWindowScroll = null;
-    this._updateScrollElement();
-    this._updateOnScrollFunction();
-    this.addScrollEventListener();
-    this._checkIfUpdate(0, options.keeps - 1);
-  }
-  Virtual.prototype = {
-    constructor: Virtual,
-    // ========================================= Public Methods =========================================
-    isFront: function isFront() {
-      return this.direction === SCROLL_DIRECTION.FRONT;
-    },
-    isBehind: function isBehind() {
-      return this.direction === SCROLL_DIRECTION.BEHIND;
-    },
-    isFixed: function isFixed() {
-      return this.calcType === CACLTYPE.FIXED;
-    },
-    getSize: function getSize(key) {
-      return this.sizes.get(key) || this._getItemSize();
-    },
-    getOffset: function getOffset() {
-      return this.scrollEl[scrollType[this.options.direction]];
-    },
-    getScrollSize: function getScrollSize() {
-      return this.scrollEl[scrollSize[this.options.direction]];
-    },
-    getClientSize: function getClientSize() {
-      return this.scrollEl[offsetSize[this.options.direction]];
-    },
-    scrollToOffset: function scrollToOffset(offset) {
-      this.scrollEl[scrollType[this.options.direction]] = offset;
-    },
-    scrollToIndex: function scrollToIndex(index) {
-      if (index >= this.options.uniqueKeys.length - 1) {
-        this.scrollToBottom();
-      } else {
-        var indexOffset = this._getOffsetByIndex(index);
-        this.scrollToOffset(indexOffset);
-      }
-    },
-    scrollToBottom: function scrollToBottom() {
-      var _this = this;
-      var offset = this.getScrollSize();
-      this.scrollToOffset(offset);
-
-      // if the bottom is not reached, execute the scroll method again
-      setTimeout(function () {
-        var clientSize = _this.getClientSize();
-        var scrollSize = _this.getScrollSize();
-        var scrollOffset = _this.getOffset();
-        if (scrollOffset + clientSize + 1 < scrollSize) {
-          _this.scrollToBottom();
-        }
-      }, 5);
-    },
-    updateOptions: function updateOptions(key, value) {
-      var _this2 = this;
-      var oldValue = this.options[key];
-      this.options[key] = value;
-      if (key === 'uniqueKeys') {
-        this.sizes.forEach(function (v, k) {
-          if (!value.includes(k)) {
-            _this2.sizes["delete"](k);
-          }
-        });
-      } else if (key === 'scroller') {
-        oldValue === null || oldValue === void 0 ? void 0 : oldValue.removeEventListener('scroll', this._onScroll);
-        this._updateScrollElement();
-        this.addScrollEventListener();
-      }
-    },
-    updateRange: function updateRange(range) {
-      if (range) {
-        this._handleUpdate(range.start, range.end);
-        return;
-      }
-      var start = this.range.start;
-      start = Math.max(start, 0);
-      this._handleUpdate(start, this._getEndByStart(start));
-    },
-    handleItemSizeChange: function handleItemSizeChange(key, size) {
-      this.sizes.set(key, size);
-      if (this.calcType === CACLTYPE.INIT) {
-        this.calcType = CACLTYPE.FIXED;
-        this.calcSize.fixed = size;
-      } else if (this.isFixed() && this.calcSize.fixed !== size) {
-        this.calcType = CACLTYPE.DYNAMIC;
-        this.calcSize.fixed = undefined;
-      }
-      // In the case of non-fixed heights, the average height and the total height are calculated
-      if (this.calcType !== CACLTYPE.FIXED) {
-        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
-          return t + i;
-        }, 0);
-        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
-      }
-    },
-    handleSlotSizeChange: function handleSlotSizeChange(key, size) {
-      this.calcSize[key] = size;
-    },
-    addScrollEventListener: function addScrollEventListener() {
-      var _this$options$scrolle;
-      (_this$options$scrolle = this.options.scroller) === null || _this$options$scrolle === void 0 ? void 0 : _this$options$scrolle.addEventListener('scroll', this._onScroll, false);
-    },
-    removeScrollEventListener: function removeScrollEventListener() {
-      var _this$options$scrolle2;
-      (_this$options$scrolle2 = this.options.scroller) === null || _this$options$scrolle2 === void 0 ? void 0 : _this$options$scrolle2.removeEventListener('scroll', this._onScroll);
-    },
-    // ========================================= Properties =========================================
-    _updateOnScrollFunction: function _updateOnScrollFunction() {
-      var _this3 = this;
-      var _this$options = this.options,
-        debounceTime = _this$options.debounceTime,
-        throttleTime = _this$options.throttleTime;
-      if (debounceTime) {
-        this._onScroll = debounce(function () {
-          return _this3._handleScroll();
-        }, debounceTime);
-      } else if (throttleTime) {
-        this._onScroll = throttle(function () {
-          return _this3._handleScroll();
-        }, throttleTime);
-      } else {
-        this._onScroll = function () {
-          return _this3._handleScroll();
-        };
-      }
-      this._onScroll = this._onScroll.bind(this);
-    },
-    _updateScrollElement: function _updateScrollElement() {
-      this.scrollEl = this._getScrollElement(this.options.scroller);
-    },
-    _handleScroll: function _handleScroll() {
-      var offset = this.getOffset();
-      var clientSize = this.getClientSize();
-      var scrollSize = this.getScrollSize();
-      if (offset === this.offset) {
-        this.direction = SCROLL_DIRECTION.STATIONARY;
-      } else {
-        this.direction = offset < this.offset ? SCROLL_DIRECTION.FRONT : SCROLL_DIRECTION.BEHIND;
-      }
-      this.offset = offset;
-      var top = this.isFront() && offset <= 0;
-      var bottom = this.isBehind() && clientSize + offset >= scrollSize;
-      this.options.onScroll({
-        top: top,
-        bottom: bottom,
-        offset: offset,
-        direction: this.direction
-      });
-      if (this.isFront()) {
-        this._handleScrollFront();
-      } else if (this.isBehind()) {
-        this._handleScrollBehind();
-      }
-    },
-    _handleScrollFront: function _handleScrollFront() {
-      var scrolls = this._getScrollItems();
-      if (scrolls > this.range.start) {
-        return;
-      }
-      var start = Math.max(scrolls - this.options.buffer, 0);
-      this._checkIfUpdate(start, this._getEndByStart(start));
-    },
-    _handleScrollBehind: function _handleScrollBehind() {
-      var scrolls = this._getScrollItems();
-      if (scrolls < this.range.start + this.options.buffer) {
-        return;
-      }
-      this._checkIfUpdate(scrolls, this._getEndByStart(scrolls));
-    },
-    _getScrollItems: function _getScrollItems() {
-      var offset = this.offset - this._getScrollStartOffset();
-      if (offset <= 0) {
-        return 0;
-      }
-      if (this.isFixed()) {
-        return Math.floor(offset / this.calcSize.fixed);
-      }
-      var low = 0;
-      var high = this.options.uniqueKeys.length;
-      var middle = 0;
-      var middleOffset = 0;
-      while (low <= high) {
-        middle = low + Math.floor((high - low) / 2);
-        middleOffset = this._getOffsetByIndex(middle);
-        if (middleOffset === offset) {
-          return middle;
-        } else if (middleOffset < offset) {
-          low = middle + 1;
-        } else if (middleOffset > offset) {
-          high = middle - 1;
-        }
-      }
-      return low > 0 ? --low : 0;
-    },
-    _checkIfUpdate: function _checkIfUpdate(start, end) {
-      var keeps = this.options.keeps;
-      var total = this.options.uniqueKeys.length;
-      if (total <= keeps) {
-        start = 0;
-        end = this._getLastIndex();
-      } else if (end - start < keeps - 1) {
-        start = end - keeps + 1;
-      }
-      if (this.range.start !== start) {
-        this._handleUpdate(start, end);
-      }
-    },
-    _handleUpdate: function _handleUpdate(start, end) {
-      this.range.start = start;
-      this.range.end = end;
-      this.range.front = this._getFrontOffset();
-      this.range.behind = this._getBehindOffset();
-      this.options.onUpdate(_objectSpread2({}, this.range));
-    },
-    _getFrontOffset: function _getFrontOffset() {
-      if (this.isFixed()) {
-        return this.calcSize.fixed * this.range.start;
-      } else {
-        return this._getOffsetByIndex(this.range.start);
-      }
-    },
-    _getBehindOffset: function _getBehindOffset() {
-      var end = this.range.end;
-      var last = this._getLastIndex();
-      if (this.isFixed()) {
-        return (last - end) * this.calcSize.fixed;
-      }
-      return (last - end) * this._getItemSize();
-    },
-    _getOffsetByIndex: function _getOffsetByIndex(index) {
-      if (!index) return 0;
-      var offset = 0;
-      for (var i = 0; i < index; i++) {
-        var size = this.sizes.get(this.options.uniqueKeys[i]);
-        offset = offset + (typeof size === 'number' ? size : this._getItemSize());
-      }
-      return offset;
-    },
-    _getEndByStart: function _getEndByStart(start) {
-      return Math.min(start + this.options.keeps - 1, this._getLastIndex());
-    },
-    _getLastIndex: function _getLastIndex() {
-      var _this$options2 = this.options,
-        uniqueKeys = _this$options2.uniqueKeys,
-        keeps = _this$options2.keeps;
-      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
-    },
-    _getItemSize: function _getItemSize() {
-      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
-    },
-    _getScrollElement: function _getScrollElement(scroller) {
-      if (scroller instanceof Document && scroller.nodeType === 9 || scroller instanceof Window) {
-        this.useWindowScroll = true;
-        return document.scrollingElement || document.documentElement || document.body;
-      }
-      this.useWindowScroll = false;
-      return scroller;
-    },
-    _getScrollStartOffset: function _getScrollStartOffset() {
-      var offset = this.calcSize.header;
-      if (this.useWindowScroll && this.options.wrapper) {
-        var el = this.options.wrapper;
-        do {
-          offset += el[offsetType[this.options.direction]];
-        } while ((el = el.offsetParent) && el !== this.options.wrapper.ownerDocument);
-      }
-      return offset;
-    }
-  };
-
-  var attributes$1 = ['delay', 'group', 'handle', 'disabled', 'draggable', 'animation', 'autoScroll', 'ghostClass', 'ghostStyle', 'chosenClass', 'fallbackOnBody', 'scrollThreshold', 'delayOnTouchOnly'];
-  function Sortable(ctx, onDrag, onDrop) {
-    var _this = this;
-    this.ctx = ctx;
-    this.onDrag = onDrag;
-    this.onDrop = onDrop;
-    this.list = _toConsumableArray(ctx.list);
-    this.store = {};
-    this.reRendered = false;
-    var props = attributes$1.reduce(function (res, key) {
-      res[key] = _this.ctx[key];
-      return res;
-    }, {});
-    this.sortable = new sortableDnd_min(this.ctx.$refs.groupRef, _objectSpread2(_objectSpread2({}, props), {}, {
-      swapOnDrop: function swapOnDrop(params) {
-        return params.from === params.to;
-      },
-      onDrag: function onDrag(params) {
-        return _this._onDrag(params);
-      },
-      onAdd: function onAdd(params) {
-        return _this._onAdd(params);
-      },
-      onRemove: function onRemove(params) {
-        return _this._onRemove(params);
-      },
-      onChange: function onChange(params) {
-        return _this._onChange(params);
-      },
-      onDrop: function onDrop(params) {
-        return _this._onDrop(params);
-      }
-    }));
-  }
-  Sortable.prototype = {
-    constructor: Sortable,
-    destroy: function destroy() {
-      this.sortable && this.sortable.destroy();
-      this.sortable = this.store = null;
-    },
-    setValue: function setValue(key, value) {
-      if (key === 'list') {
-        this.list = _toConsumableArray(value);
-      } else {
-        this.sortable.option(key, value);
-      }
-    },
-    _onDrag: function _onDrag(params) {
-      var key = params.node.dataset.key;
-      var index = this._getIndex(this.list, key);
-      var item = this.list[index];
-
-      // store the drag item
-      this.store = {
-        item: item,
-        key: key,
-        origin: {
-          index: index,
-          list: this.list
-        },
-        from: {
-          index: index,
-          list: this.list
-        },
-        to: {
-          index: index,
-          list: this.list
-        }
-      };
-      this.sortable.option('store', this.store);
-      this.onDrag({
-        list: this.list
-      });
-      this.ctx.$emit('drag', {
-        item: item,
-        key: key,
-        index: index
-      });
-    },
-    _onRemove: function _onRemove(params) {
-      var key = params.node.dataset.key;
-      var index = this._getIndex(this.list, key);
-      var item = this.list[index];
-      this.list.splice(index, 1);
-      Object.assign(this.store, {
-        key: key,
-        item: item
-      });
-      this.sortable.option('store', this.store);
-      this.ctx.$emit('remove', {
-        item: item,
-        index: index,
-        key: key
-      });
-    },
-    _onAdd: function _onAdd(params) {
-      var from = params.from,
-        target = params.target,
-        relative = params.relative;
-      var _Dnd$get$option = sortableDnd_min.get(from).option('store'),
-        key = _Dnd$get$option.key,
-        item = _Dnd$get$option.item;
-      var index = this._getIndex(this.list, target.dataset.key);
-      if (relative === -1) {
-        index += 1;
-      }
-      this.list.splice(index, 0, item);
-      Object.assign(this.store, {
-        to: {
-          index: index,
-          list: this.list
-        }
-      });
-      this.sortable.option('store', this.store);
-      this.ctx.$emit('add', {
-        item: item,
-        index: index,
-        key: key
-      });
-    },
-    _onChange: function _onChange(params) {
-      var store = sortableDnd_min.get(params.from).option('store');
-      if (params.revertDrag) {
-        this.list = _toConsumableArray(this.ctx.list);
-        Object.assign(this.store, {
-          from: store.origin
-        });
-        return;
-      }
-      var node = params.node,
-        target = params.target,
-        relative = params.relative,
-        backToOrigin = params.backToOrigin;
-      var fromIndex = this._getIndex(this.list, node.dataset.key);
-      var fromItem = this.list[fromIndex];
-      var toIndex = this._getIndex(this.list, target.dataset.key);
-      if (backToOrigin) {
-        if (relative === 1 && store.from.index < toIndex) {
-          toIndex -= 1;
-        }
-        if (relative === -1 && store.from.index > toIndex) {
-          toIndex += 1;
-        }
-      }
-      this.list.splice(fromIndex, 1);
-      this.list.splice(toIndex, 0, fromItem);
-      Object.assign(this.store, {
-        from: {
-          index: toIndex,
-          list: this.list
-        },
-        to: {
-          index: toIndex,
-          list: this.list
-        }
-      });
-    },
-    _onDrop: function _onDrop(params) {
-      var _this$_getStore = this._getStore(params),
-        from = _this$_getStore.from,
-        to = _this$_getStore.to;
-      var changed = params.from !== params.to || from.origin.index !== to.to.index;
-      this.onDrop({
-        list: this.list
-      });
-      this.ctx.$emit('drop', {
-        changed: changed,
-        list: this.list,
-        item: from.item,
-        key: from.key,
-        from: from.origin,
-        to: to.to
-      });
-      if (this.reRendered) {
-        var _Dnd$dragged;
-        (_Dnd$dragged = sortableDnd_min.dragged) === null || _Dnd$dragged === void 0 ? void 0 : _Dnd$dragged.remove();
-      }
-      if (params.from !== params.to && params.pullMode === 'clone') {
-        var _Dnd$clone;
-        (_Dnd$clone = sortableDnd_min.clone) === null || _Dnd$clone === void 0 ? void 0 : _Dnd$clone.remove();
-      }
-      this.reRendered = false;
-    },
-    _getIndex: function _getIndex(list, key) {
-      for (var i = 0; i < list.length; i++) {
-        if (getDataKey(list[i], this.ctx.dataKey) == key) {
-          return i;
-        }
-      }
-      return -1;
-    },
-    _getStore: function _getStore(params) {
-      return {
-        from: sortableDnd_min.get(params.from).option('store'),
-        to: sortableDnd_min.get(params.to).option('store')
-      };
-    }
-  };
-
   var VirtualProps = {
     dataSource: {
       type: Array,
@@ -1431,6 +858,577 @@
     }
   };
 
+  function throttle(fn, wait) {
+    var timer = null;
+    var result = function result() {
+      var _this = this;
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      if (timer) return;
+      if (wait <= 0) {
+        fn.apply(this, args);
+      } else {
+        timer = setTimeout(function () {
+          timer = undefined;
+          fn.apply(_this, args);
+        }, wait);
+      }
+    };
+    result['cancel'] = function () {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+    return result;
+  }
+  function debounce(fn, wait) {
+    var throttled = throttle(fn, wait);
+    var result = function result() {
+      throttled['cancel']();
+      throttled.apply(this, arguments);
+    };
+    result['cancel'] = function () {
+      throttled['cancel']();
+    };
+    return result;
+  }
+  function getDataKey(item, dataKey) {
+    return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
+      return (o || {})[k];
+    }, item);
+  }
+
+  var SortableAttrs = ['delay', 'group', 'handle', 'disabled', 'draggable', 'animation', 'autoScroll', 'ghostClass', 'ghostStyle', 'chosenClass', 'fallbackOnBody', 'scrollThreshold', 'delayOnTouchOnly'];
+  function Sortable(el, options) {
+    this.el = el;
+    this.options = options;
+    this.list = [];
+    this.store = {};
+    this.reRendered = false;
+    this.attrs = SortableAttrs;
+    this.init();
+  }
+  Sortable.prototype = {
+    constructor: Sortable,
+    destroy: function destroy() {
+      this.sortable && this.sortable.destroy();
+      this.sortable = this.store = this.reRendered = null;
+    },
+    option: function option(key, value) {
+      if (key === 'list') {
+        this.list = _toConsumableArray(value);
+      } else {
+        this.sortable.option(key, value);
+      }
+    },
+    // ========================================= Properties =========================================
+    init: function init() {
+      var _this = this;
+      var props = {};
+      for (var i = 0; i < SortableAttrs.length; i++) {
+        var key = SortableAttrs[i];
+        props[key] = this.options[key];
+      }
+      this.sortable = new sortableDnd_min(this.el, _objectSpread2(_objectSpread2({}, props), {}, {
+        swapOnDrop: function swapOnDrop(params) {
+          return params.from === params.to;
+        },
+        onDrag: function onDrag(params) {
+          return _this.onDrag(params);
+        },
+        onAdd: function onAdd(params) {
+          return _this.onAdd(params);
+        },
+        onRemove: function onRemove(params) {
+          return _this.onRemove(params);
+        },
+        onChange: function onChange(params) {
+          return _this.onChange(params);
+        },
+        onDrop: function onDrop(params) {
+          return _this.onDrop(params);
+        }
+      }));
+      this.list = _toConsumableArray(this.options.list);
+    },
+    onDrag: function onDrag(params) {
+      var key = params.node.dataset.key;
+      var index = this.getIndex(this.list, key);
+      var item = this.list[index];
+
+      // store the drag item
+      this.store = {
+        item: item,
+        key: key,
+        origin: {
+          index: index,
+          list: this.list
+        },
+        from: {
+          index: index,
+          list: this.list
+        },
+        to: {
+          index: index,
+          list: this.list
+        }
+      };
+      this.sortable.option('store', this.store);
+      this.dispatchEvent('onDrag', {
+        item: item,
+        key: key,
+        index: index
+      });
+    },
+    onRemove: function onRemove(params) {
+      var key = params.node.dataset.key;
+      var index = this.getIndex(this.list, key);
+      var item = this.list[index];
+      this.list.splice(index, 1);
+      Object.assign(this.store, {
+        key: key,
+        item: item
+      });
+      this.sortable.option('store', this.store);
+      this.dispatchEvent('onRemove', {
+        item: item,
+        key: key,
+        index: index
+      });
+    },
+    onAdd: function onAdd(params) {
+      var from = params.from,
+        target = params.target,
+        relative = params.relative;
+      var _Dnd$get$option = sortableDnd_min.get(from).option('store'),
+        key = _Dnd$get$option.key,
+        item = _Dnd$get$option.item;
+      var index = this.getIndex(this.list, target.dataset.key);
+      if (relative === 0) {
+        index = this.list.length;
+      } else if (relative === -1) {
+        index += 1;
+      }
+      this.list.splice(index, 0, item);
+      Object.assign(this.store, {
+        to: {
+          index: index,
+          list: this.list
+        }
+      });
+      this.sortable.option('store', this.store);
+      this.dispatchEvent('onAdd', {
+        item: item,
+        key: key,
+        index: index
+      });
+    },
+    onChange: function onChange(params) {
+      var store = sortableDnd_min.get(params.from).option('store');
+      if (params.revertDrag) {
+        this.list = _toConsumableArray(this.options.list);
+        Object.assign(this.store, {
+          from: store.origin
+        });
+        return;
+      }
+      var node = params.node,
+        target = params.target,
+        relative = params.relative,
+        backToOrigin = params.backToOrigin;
+      var fromIndex = this.getIndex(this.list, node.dataset.key);
+      var fromItem = this.list[fromIndex];
+      var toIndex = this.getIndex(this.list, target.dataset.key);
+      if (backToOrigin) {
+        if (relative === 1 && store.from.index < toIndex) {
+          toIndex -= 1;
+        }
+        if (relative === -1 && store.from.index > toIndex) {
+          toIndex += 1;
+        }
+      }
+      this.list.splice(fromIndex, 1);
+      this.list.splice(toIndex, 0, fromItem);
+      Object.assign(this.store, {
+        from: {
+          index: toIndex,
+          list: this.list
+        },
+        to: {
+          index: toIndex,
+          list: this.list
+        }
+      });
+    },
+    onDrop: function onDrop(params) {
+      var _this$getStore = this.getStore(params),
+        from = _this$getStore.from,
+        to = _this$getStore.to;
+      var changed = params.from !== params.to || from.origin.index !== to.to.index;
+      this.dispatchEvent('onDrop', {
+        changed: changed,
+        list: this.list,
+        item: from.item,
+        key: from.key,
+        from: from.origin,
+        to: to.to
+      });
+      if (params.from === this.el && this.reRendered) {
+        var _Dnd$dragged;
+        (_Dnd$dragged = sortableDnd_min.dragged) === null || _Dnd$dragged === void 0 ? void 0 : _Dnd$dragged.remove();
+      }
+      if (params.from !== params.to && params.pullMode === 'clone') {
+        var _Dnd$clone;
+        (_Dnd$clone = sortableDnd_min.clone) === null || _Dnd$clone === void 0 ? void 0 : _Dnd$clone.remove();
+      }
+      this.reRendered = false;
+    },
+    getIndex: function getIndex(list, key) {
+      for (var i = 0; i < list.length; i++) {
+        if (getDataKey(list[i], this.options.dataKey) == key) {
+          return i;
+        }
+      }
+      return -1;
+    },
+    getStore: function getStore(params) {
+      return {
+        from: sortableDnd_min.get(params.from).option('store'),
+        to: sortableDnd_min.get(params.to).option('store')
+      };
+    },
+    dispatchEvent: function dispatchEvent(name, params) {
+      var cb = this.options[name];
+      if (cb) cb(params);
+    }
+  };
+
+  var _scrollDir, _offsetDir, _scrollSize, _offsetSize;
+  var VirtualAttrs = ['size', 'keeps', 'scroller', 'direction', 'debounceTime', 'throttleTime'];
+  var CACLTYPE = {
+    INIT: 'INIT',
+    FIXED: 'FIXED',
+    DYNAMIC: 'DYNAMIC'
+  };
+  var SCROLL_DIRECTION = {
+    FRONT: 'FRONT',
+    BEHIND: 'BEHIND',
+    STATIONARY: 'STATIONARY'
+  };
+  var DIRECTION = {
+    HORIZONTAL: 'horizontal',
+    VERTICAL: 'vertical'
+  };
+  var scrollDir = (_scrollDir = {}, _defineProperty(_scrollDir, DIRECTION.VERTICAL, 'scrollTop'), _defineProperty(_scrollDir, DIRECTION.HORIZONTAL, 'scrollLeft'), _scrollDir);
+  var offsetDir = (_offsetDir = {}, _defineProperty(_offsetDir, DIRECTION.VERTICAL, 'offsetTop'), _defineProperty(_offsetDir, DIRECTION.HORIZONTAL, 'offsetLeft'), _offsetDir);
+  var scrollSize = (_scrollSize = {}, _defineProperty(_scrollSize, DIRECTION.VERTICAL, 'scrollHeight'), _defineProperty(_scrollSize, DIRECTION.HORIZONTAL, 'scrollWidth'), _scrollSize);
+  var offsetSize = (_offsetSize = {}, _defineProperty(_offsetSize, DIRECTION.VERTICAL, 'offsetHeight'), _defineProperty(_offsetSize, DIRECTION.HORIZONTAL, 'offsetWidth'), _offsetSize);
+  function Virtual(options) {
+    this.options = options;
+    var defaults = {
+      size: 0,
+      keeps: 0,
+      buffer: 0,
+      wrapper: null,
+      scroller: null,
+      direction: 'vertical',
+      uniqueKeys: [],
+      debounceTime: null,
+      throttleTime: null
+    };
+    for (var name in defaults) {
+      !(name in this.options) && (this.options[name] = defaults[name]);
+    }
+    this.sizes = new Map(); // store item size
+    this.range = {
+      start: 0,
+      end: 0,
+      front: 0,
+      behind: 0
+    };
+    this.offset = 0;
+    this.calcType = CACLTYPE.INIT;
+    this.calcSize = {
+      average: 0,
+      total: 0,
+      fixed: 0,
+      header: 0
+    };
+    this.scrollEl = this.getScrollElement(options.scroller);
+    this.direction = '';
+    this.useWindowScroll = null;
+    this.onScroll = null;
+    this.updateOnScrollFunction();
+    this.addScrollEventListener();
+    this.checkIfUpdate(0, options.keeps - 1);
+  }
+  Virtual.prototype = {
+    constructor: Virtual,
+    isFront: function isFront() {
+      return this.direction === SCROLL_DIRECTION.FRONT;
+    },
+    isBehind: function isBehind() {
+      return this.direction === SCROLL_DIRECTION.BEHIND;
+    },
+    isFixed: function isFixed() {
+      return this.calcType === CACLTYPE.FIXED;
+    },
+    getSize: function getSize(key) {
+      return this.sizes.get(key) || this.getItemSize();
+    },
+    getOffset: function getOffset() {
+      return this.scrollEl[scrollDir[this.options.direction]];
+    },
+    getScrollSize: function getScrollSize() {
+      return this.scrollEl[scrollSize[this.options.direction]];
+    },
+    getClientSize: function getClientSize() {
+      return this.scrollEl[offsetSize[this.options.direction]];
+    },
+    scrollToOffset: function scrollToOffset(offset) {
+      this.scrollEl[scrollDir[this.options.direction]] = offset;
+    },
+    scrollToIndex: function scrollToIndex(index) {
+      if (index >= this.options.uniqueKeys.length - 1) {
+        this.scrollToBottom();
+      } else {
+        var indexOffset = this.getOffsetByIndex(index);
+        this.scrollToOffset(indexOffset);
+      }
+    },
+    scrollToBottom: function scrollToBottom() {
+      var _this = this;
+      var offset = this.getScrollSize();
+      this.scrollToOffset(offset);
+
+      // if the bottom is not reached, execute the scroll method again
+      setTimeout(function () {
+        var clientSize = _this.getClientSize();
+        var scrollSize = _this.getScrollSize();
+        var scrollOffset = _this.getOffset();
+        if (scrollOffset + clientSize + 1 < scrollSize) {
+          _this.scrollToBottom();
+        }
+      }, 5);
+    },
+    option: function option(key, value) {
+      var _this2 = this;
+      var oldValue = this.options[key];
+      this.options[key] = value;
+      if (key === 'uniqueKeys') {
+        this.sizes.forEach(function (v, k) {
+          if (!value.includes(k)) {
+            _this2.sizes["delete"](k);
+          }
+        });
+      }
+      if (key === 'scroller') {
+        oldValue && sortableDnd_min.utils.off(oldValue, 'scroll', this.onScroll);
+        this.scrollEl = this.getScrollElement(value);
+        this.addScrollEventListener();
+      }
+    },
+    updateRange: function updateRange(range) {
+      if (range) {
+        this.handleUpdate(range.start, range.end);
+        return;
+      }
+      var start = this.range.start;
+      start = Math.max(start, 0);
+      this.handleUpdate(start, this.getEndByStart(start));
+    },
+    onItemResized: function onItemResized(key, size) {
+      this.sizes.set(key, size);
+      if (this.calcType === CACLTYPE.INIT) {
+        this.calcType = CACLTYPE.FIXED;
+        this.calcSize.fixed = size;
+      } else if (this.isFixed() && this.calcSize.fixed !== size) {
+        this.calcType = CACLTYPE.DYNAMIC;
+        this.calcSize.fixed = undefined;
+      }
+      // In the case of non-fixed heights, the average height and the total height are calculated
+      if (this.calcType !== CACLTYPE.FIXED) {
+        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
+          return t + i;
+        }, 0);
+        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
+      }
+    },
+    onSlotResized: function onSlotResized(key, size) {
+      this.calcSize[key] = size;
+    },
+    addScrollEventListener: function addScrollEventListener() {
+      if (this.options.scroller) {
+        sortableDnd_min.utils.on(this.options.scroller, 'scroll', this.onScroll);
+      }
+    },
+    removeScrollEventListener: function removeScrollEventListener() {
+      if (this.options.scroller) {
+        sortableDnd_min.utils.off(this.options.scroller, 'scroll', this.onScroll);
+      }
+    },
+    // ========================================= Properties =========================================
+    updateOnScrollFunction: function updateOnScrollFunction() {
+      var _this3 = this;
+      var _this$options = this.options,
+        debounceTime = _this$options.debounceTime,
+        throttleTime = _this$options.throttleTime;
+      if (debounceTime) {
+        this.onScroll = debounce(function () {
+          return _this3.handleScroll();
+        }, debounceTime);
+      } else if (throttleTime) {
+        this.onScroll = throttle(function () {
+          return _this3.handleScroll();
+        }, throttleTime);
+      } else {
+        this.onScroll = function () {
+          return _this3.handleScroll();
+        };
+      }
+    },
+    handleScroll: function handleScroll() {
+      var offset = this.getOffset();
+      var clientSize = this.getClientSize();
+      var scrollSize = this.getScrollSize();
+      if (offset === this.offset) {
+        this.direction = SCROLL_DIRECTION.STATIONARY;
+      } else {
+        this.direction = offset < this.offset ? SCROLL_DIRECTION.FRONT : SCROLL_DIRECTION.BEHIND;
+      }
+      this.offset = offset;
+      var top = this.isFront() && offset <= 0;
+      var bottom = this.isBehind() && clientSize + offset >= scrollSize;
+      this.options.onScroll({
+        top: top,
+        bottom: bottom,
+        offset: offset,
+        direction: this.direction
+      });
+      if (this.isFront()) {
+        this.handleScrollFront();
+      } else if (this.isBehind()) {
+        this.handleScrollBehind();
+      }
+    },
+    handleScrollFront: function handleScrollFront() {
+      var scrolls = this.getScrollItems();
+      if (scrolls > this.range.start) {
+        return;
+      }
+      var start = Math.max(scrolls - this.options.buffer, 0);
+      this.checkIfUpdate(start, this.getEndByStart(start));
+    },
+    handleScrollBehind: function handleScrollBehind() {
+      var scrolls = this.getScrollItems();
+      if (scrolls < this.range.start + this.options.buffer) {
+        return;
+      }
+      this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
+    },
+    getScrollItems: function getScrollItems() {
+      var offset = this.offset - this.getScrollStartOffset();
+      if (offset <= 0) {
+        return 0;
+      }
+      if (this.isFixed()) {
+        return Math.floor(offset / this.calcSize.fixed);
+      }
+      var low = 0;
+      var high = this.options.uniqueKeys.length;
+      var middle = 0;
+      var middleOffset = 0;
+      while (low <= high) {
+        middle = low + Math.floor((high - low) / 2);
+        middleOffset = this.getOffsetByIndex(middle);
+        if (middleOffset === offset) {
+          return middle;
+        } else if (middleOffset < offset) {
+          low = middle + 1;
+        } else if (middleOffset > offset) {
+          high = middle - 1;
+        }
+      }
+      return low > 0 ? --low : 0;
+    },
+    checkIfUpdate: function checkIfUpdate(start, end) {
+      var keeps = this.options.keeps;
+      var total = this.options.uniqueKeys.length;
+      if (total <= keeps) {
+        start = 0;
+        end = this.getLastIndex();
+      } else if (end - start < keeps - 1) {
+        start = end - keeps + 1;
+      }
+      if (this.range.start !== start) {
+        this.handleUpdate(start, end);
+      }
+    },
+    handleUpdate: function handleUpdate(start, end) {
+      this.range.start = start;
+      this.range.end = end;
+      this.range.front = this.getFrontOffset();
+      this.range.behind = this.getBehindOffset();
+      this.options.onUpdate(_objectSpread2({}, this.range));
+    },
+    getFrontOffset: function getFrontOffset() {
+      if (this.isFixed()) {
+        return this.calcSize.fixed * this.range.start;
+      } else {
+        return this.getOffsetByIndex(this.range.start);
+      }
+    },
+    getBehindOffset: function getBehindOffset() {
+      var end = this.range.end;
+      var last = this.getLastIndex();
+      if (this.isFixed()) {
+        return (last - end) * this.calcSize.fixed;
+      }
+      return (last - end) * this.getItemSize();
+    },
+    getOffsetByIndex: function getOffsetByIndex(index) {
+      if (!index) return 0;
+      var offset = 0;
+      for (var i = 0; i < index; i++) {
+        var size = this.sizes.get(this.options.uniqueKeys[i]);
+        offset = offset + (typeof size === 'number' ? size : this.getItemSize());
+      }
+      return offset;
+    },
+    getEndByStart: function getEndByStart(start) {
+      return Math.min(start + this.options.keeps - 1, this.getLastIndex());
+    },
+    getLastIndex: function getLastIndex() {
+      var _this$options2 = this.options,
+        uniqueKeys = _this$options2.uniqueKeys,
+        keeps = _this$options2.keeps;
+      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
+    },
+    getItemSize: function getItemSize() {
+      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
+    },
+    getScrollElement: function getScrollElement(scroller) {
+      if (scroller instanceof Document && scroller.nodeType === 9 || scroller instanceof Window) {
+        this.useWindowScroll = true;
+        return document.scrollingElement || document.documentElement || document.body;
+      }
+      this.useWindowScroll = false;
+      return scroller;
+    },
+    getScrollStartOffset: function getScrollStartOffset() {
+      var offset = this.calcSize.header;
+      if (this.useWindowScroll && this.options.wrapper) {
+        var el = this.options.wrapper;
+        do {
+          offset += el[offsetDir[this.options.direction]];
+        } while ((el = el.offsetParent) && el !== this.options.wrapper.ownerDocument);
+      }
+      return offset;
+    }
+  };
+
   var Observer = {
     inject: ['virtualList'],
     data: function data() {
@@ -1503,7 +1501,6 @@
       return {
         list: [],
         start: 0,
-        timer: null,
         range: {
           start: 0,
           end: 0,
@@ -1530,14 +1527,14 @@
       },
       virtualAttributes: function virtualAttributes() {
         var _this2 = this;
-        return attributes.reduce(function (res, key) {
+        return VirtualAttrs.reduce(function (res, key) {
           res[key] = _this2[key];
           return res;
         }, {});
       },
       sortableAttributes: function sortableAttributes() {
         var _this3 = this;
-        return attributes$1.reduce(function (res, key) {
+        return SortableAttrs.reduce(function (res, key) {
           res[key] = _this3[key];
           return res;
         }, {});
@@ -1555,7 +1552,7 @@
           if (!this.virtual) return;
           for (var key in newVal) {
             if (newVal[key] != oldVal[key]) {
-              this.virtual.updateOptions(key, newVal[key]);
+              this.virtual.option(key, newVal[key]);
             }
           }
         },
@@ -1566,7 +1563,7 @@
           if (!this.sortable) return;
           for (var key in newVal) {
             if (newVal[key] != oldVal[key]) {
-              this.sortable.setValue(key, newVal[key]);
+              this.sortable.option(key, newVal[key]);
             }
           }
         },
@@ -1587,9 +1584,9 @@
       this._onUpdate();
     },
     mounted: function mounted() {
-      this.virtual.updateOptions('wrapper', this.$refs.groupRef);
+      this.virtual.option('wrapper', this.$refs.groupRef);
       if (!this.scroller) {
-        this.virtual.updateOptions('scroller', this.$refs.rootRef);
+        this.virtual.option('scroller', this.$refs.rootRef);
       }
     },
     beforeDestroy: function beforeDestroy() {
@@ -1664,20 +1661,13 @@
         var oldList = _toConsumableArray(this.list);
         this.list = this.dataSource;
         this._updateUniqueKeys();
-        if (this.virtual.sizes.size) {
-          this._updateRange(oldList, this.list);
-        } else {
-          clearTimeout(this.timer);
-          this.timer = setTimeout(function () {
-            return _this4.virtual.updateRange();
-          }, 17);
-        }
+        this._updateRange(oldList, this.list);
         if (!this.sortable) {
           this.$nextTick(function () {
             return _this4._initSortable();
           });
         } else {
-          this.sortable.setValue('list', this.list);
+          this.sortable.option('list', this.list);
         }
 
         // top loading: auto scroll to the last offset
@@ -1720,29 +1710,35 @@
       // sortable init
       _initSortable: function _initSortable() {
         var _this6 = this;
-        this.sortable = new Sortable(this, function () {
-          _this6.start = _this6.range.start;
-        }, function (_ref) {
-          var list = _ref.list;
-          if (list.length === _this6.list.length && _this6.start < _this6.range.start) {
-            _this6.range.front += sortableDnd_min.clone[_this6.isHorizontal ? 'offsetWidth' : 'offsetHeight'];
+        this.sortable = new Sortable(this.$refs.groupRef, _objectSpread2(_objectSpread2({
+          list: this.list,
+          dataKey: this.dataKey
+        }, this.sortableAttributes), {}, {
+          onDrag: function onDrag(params) {
             _this6.start = _this6.range.start;
+            _this6.$emit('drag', params);
+          },
+          onAdd: function onAdd(params) {
+            _this6.$emit('add', params);
+          },
+          onRemove: function onRemove(params) {
+            _this6.$emit('remove', params);
+          },
+          onDrop: function onDrop(params) {
+            if (params.list.length === _this6.list.length && _this6.start < _this6.range.start) {
+              _this6.range.front += sortableDnd_min.clone[_this6.itemSizeKey];
+              _this6.start = _this6.range.start;
+            }
+            _this6.$emit('updateDataSource', params.list);
+            _this6.$emit('drop', params);
           }
-          _this6.$emit('updateDataSource', list);
-        });
+        }));
       },
       _updateRange: function _updateRange(oldList, newList) {
         var range = _objectSpread2({}, this.range);
-        if (this.range.start > 0) {
-          var index = newList.indexOf(oldList[this.range.start]);
-          if (index > -1) {
-            range.start = index;
-            range.end = index + this.keeps - 1;
-          }
-        }
         if (newList.length > oldList.length && this.range.end === oldList.length - 1 && this._scrolledToBottom()) {
           range.end++;
-          range.start = Math.max(0, range.end - this.keeps + 1);
+          range.start = Math.max(0, range.end - this.keeps);
         }
         this.virtual.updateRange(range);
       },
@@ -1760,17 +1756,21 @@
         this.$emit('bottom');
       }),
       _onItemResized: function _onItemResized(key, size) {
-        this.virtual.handleItemSizeChange(key, size);
+        var renders = this.virtual.sizes.size;
+        this.virtual.onItemResized(key, size);
+        if (renders === 0) {
+          this._updateRange(this.list, this.list);
+        }
       },
       _onSlotResized: function _onSlotResized(key, size) {
-        this.virtual.handleSlotSizeChange(key, size);
+        this.virtual.onSlotResized(key, size);
       },
       _updateUniqueKeys: function _updateUniqueKeys() {
         var _this7 = this;
         this.uniqueKeys = this.list.map(function (item) {
           return getDataKey(item, _this7.dataKey);
         });
-        this.virtual.updateOptions('uniqueKeys', this.uniqueKeys);
+        this.virtual.option('uniqueKeys', this.uniqueKeys);
       },
       _getItemStyle: function _getItemStyle(itemKey) {
         var _Dnd$dragged;
