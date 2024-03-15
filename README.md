@@ -115,8 +115,9 @@ Root component:
 | `handle`     | `Function/String` | `-`  | Drag handle selector within list items |
 | `group`      | `Function/String` | `-`  | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false/'clone', revertDrag: true/false }` |
 | `keepOffset` | `Boolean`  | `false`     | When scrolling up to load data, keep the same offset as the previous scroll |
-| `direction`  | `String`   | `vertical`  | `vertical/horizontal`, scroll direction |
-| `scroller`   | `HTMLElement`  | `-`     | Virtual list scrolling element |
+| `direction`  | `vertical \| horizontal`   | `vertical`  | Scroll direction |
+| `scroller`   | `Document \| HTMLElement`  | `-` | Virtual list scrolling element |
+| `lockAxis`   | `x \| y`   |  `-`    | Axis on which dragging will be locked |
 | `debounceTime`      | `Number`   | `0`         | debounce time on scroll |
 | `throttleTime`      | `Number`   | `0`         | throttle time on scroll |
 
