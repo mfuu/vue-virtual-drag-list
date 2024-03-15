@@ -22,14 +22,13 @@ Root component:
       :handle="'I'" // use tagName 
       :handle="'.handle'" // use class
       :handle="'#handle'" // use id
-      :data-source="list" // or replace with `v-model`
     -->
-    <virtual-drag-list
+    <virtual-list
       v-model="list"
       :data-key="'id'"
       :handle="'.handle'"
-      @top="handleToTop"
-      @bottom="handleToBottom"
+      @top="toTop"
+      @bottom="toBottom"
       @drag="onDrag"
       @drop="onDrop"
       @add="onAdd"
@@ -45,33 +44,35 @@ Root component:
       <template slot="footer">
         <div class="loading">bottom loading...</div>
       </template>
-    </virtual-drag-list>
+    </virtual-list>
   </div>
 </template>
 
 <script>
-  import virtualDragList from 'vue-virtual-draglist'
+  import virtualList from 'vue-virtual-draglist';
 
   export default {
     name: 'root',
-    components: { virtualDragList },
+    components: { virtualList },
     data () {
       return {
-        list: [{id: '1', text: 'asd'}, {id: '2', text: 'fgh'}, ...]
+        list: [{ id: '1', text: 'a' }, { id: '2', text: 'b' }, ...];
       }
     },
     methods: {
-      handleToTop() {
+      toTop() {
         // code here
       },
-      handleToBottom() {
+      toBottom() {
         // code here
       },
       onDrag({ item, key, index }) {
         // code here
       },
-      onDrop({ list, from, to, changed }) {
-        // code here
+      onDrop(params) {
+        if (params.changed) {
+          // list item position changed
+        }
       },
       onAdd({ item, key, index }) {
         // code here
@@ -87,12 +88,12 @@ Root component:
 
 |   **Emit**   | **Description** |
 |--------------|-----------------|
-| `top`        | Event fired when scroll to top |
-| `bottom`     | Event fired when scroll to bottom |
-| `drag`       | Event fired when the drag is started |
-| `drop`       | Event fired when the drag is completed |
-| `add`        | Event fired when element is dropped into the list from another |
-| `remove`     | Event fired when element is removed from the list into another |
+| `top`        | scrolled to top |
+| `bottom`     | scrolled to bottom |
+| `drag`       | drag is started |
+| `drop`       | drag is completed |
+| `add`        | element is dropped into the list from another |
+| `remove`     | element is removed from the list into another |
 
 ## Props
 
@@ -135,10 +136,6 @@ Root component:
 | `rootTag`    | `String`   | `div`       | Label type for root element |
 | `wrapTag`    | `String`   | `div`       | Label type for list wrap element |
 | `itemTag`    | `String`   | `div`       | Label type for list item element |
-| `headerTag`  | `String`   | `div`       | Label type for header slot element |
-| `headerStyle`| `Object`   | `{}`        | Header slot element style |
-| `footerTag`  | `String`   | `div`       | Label type for footer slot element |
-| `footerStyle`| `Object`   | `{}`        | Footer slot element style |
 | `wrapClass`  | `String`   | `''`        | List wrapper element class |
 | `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
 | `itemClass`  | `String`   | `''`        | List item element class |

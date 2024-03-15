@@ -8,7 +8,7 @@ export const VirtualProps = {
     required: true,
   },
   scroller: {
-    type: [Window, Document, HTMLElement],
+    type: [Document, HTMLElement],
   },
   direction: {
     type: String,
@@ -29,6 +29,10 @@ export const VirtualProps = {
   },
   group: {
     type: [String, Object],
+  },
+  lockAxis: {
+    type: String,
+    default: '',
   },
   debounceTime: {
     type: Number,
@@ -74,14 +78,6 @@ export const VirtualProps = {
     type: String,
     default: 'div',
   },
-  headerTag: {
-    type: String,
-    default: 'div',
-  },
-  footerTag: {
-    type: String,
-    default: 'div',
-  },
   itemTag: {
     type: String,
     default: 'div',
@@ -94,12 +90,6 @@ export const VirtualProps = {
     type: Object,
   },
   itemStyle: {
-    type: Object,
-  },
-  headerStyle: {
-    type: Object,
-  },
-  footerStyle: {
     type: Object,
   },
   itemClass: {
@@ -124,9 +114,6 @@ export const SlotsProps = {
   tag: {
     type: String,
     default: 'div',
-  },
-  event: {
-    type: String,
   },
   dataKey: {
     type: [String, Number],

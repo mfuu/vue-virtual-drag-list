@@ -4,7 +4,6 @@ import { VirtualProps, SlotsProps } from './props';
 import { Virtual, Sortable, debounce, getDataKey, SortableAttrs, VirtualAttrs } from './core';
 
 const Observer = {
-  inject: ['virtualList'],
   data() {
     return {
       observer: null,
@@ -29,7 +28,7 @@ const Observer = {
   },
   methods: {
     onSizeChange() {
-      this.virtualList[this.event](this.dataKey, this.getCurrentSize());
+      this.$emit('resized', this.dataKey, this.getCurrentSize());
     },
     getCurrentSize() {
       return this.$el ? this.$el[this.sizeKey] : 0;
@@ -55,47 +54,20 @@ const Items = Vue.component('virtual-draglist-items', {
   },
 });
 
-const Slots = Vue.component('virtual-draglist-slots', {
-  mixins: [Observer],
-  props: SlotsProps,
-  render(h) {
-    const { tag, dataKey } = this;
-    return h(
-      tag,
-      {
-        key: dataKey,
-        attrs: {
-          role: dataKey,
-        },
-      },
-      this.$slots.default
-    );
-  },
-});
-
 const VirtualDragList = Vue.component('virtual-drag-list', {
   model: {
     prop: 'dataSource',
     event: 'updateDataSource',
   },
-
   props: VirtualProps,
-
   data() {
     return {
       list: [],
-      start: 0,
       range: { start: 0, end: 0, front: 0, behind: 0 },
       virtual: null,
       sortable: null,
       lastLength: null,
       uniqueKeys: [],
-    };
-  },
-
-  provide() {
-    return {
-      virtualList: this,
     };
   },
 
@@ -257,7 +229,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
 
       this.list = this.dataSource;
       this._updateUniqueKeys();
-
       this._updateRange(oldList, this.list);
 
       if (!this.sortable) {
@@ -311,7 +282,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         dataKey: this.dataKey,
         ...this.sortableAttributes,
         onDrag: (params) => {
-          this.start = this.range.start;
           this.$emit('drag', params);
         },
         onAdd: (params) => {
@@ -321,12 +291,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           this.$emit('remove', params);
         },
         onDrop: (params) => {
-          if (params.list.length === this.list.length && this.start < this.range.start) {
-            this.range.front += Dnd.clone[this.itemSizeKey];
-            this.start = this.range.start;
+          if (params.changed) {
+            this.$emit('updateDataSource', params.list);
           }
-
-          this.$emit('updateDataSource', params.list);
           this.$emit('drop', params);
         },
       });
@@ -340,7 +307,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         this._scrolledToBottom()
       ) {
         range.end++;
-        range.start = Math.max(0, range.end - this.keeps);
+        range.start = Math.max(0, range.end - this.keeps + 1);
       }
       this.virtual.updateRange(range);
     },
@@ -369,10 +336,6 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       }
     },
 
-    _onSlotResized(key, size) {
-      this.virtual.onSlotResized(key, size);
-    },
-
     _updateUniqueKeys() {
       this.uniqueKeys = this.list.map((item) => getDataKey(item, this.dataKey));
       this.virtual.option('uniqueKeys', this.uniqueKeys);
@@ -386,32 +349,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       return {};
     },
 
-    _renderSlots(h, key, TagName) {
-      const { itemSizeKey } = this;
-      const slot = this.$slots[key];
-      const headerStyle = { ...this.headerStyle };
-      const footerStyle = { ...this.footerStyle };
-      return slot
-        ? h(
-            Slots,
-            {
-              props: {
-                tag: TagName,
-                dataKey: key,
-                sizeKey: itemSizeKey,
-                event: '_onSlotResized',
-              },
-              style: key === 'header' ? headerStyle : key === 'footer' ? footerStyle : undefined,
-            },
-            slot
-          )
-        : null;
-    },
-
     _renderItems(h) {
       const renders = [];
       const { start, end } = this.range;
-      const { itemTag, itemClass, itemSizeKey } = this;
 
       for (let index = start; index <= end; index++) {
         const record = this.list[index];
@@ -426,12 +366,14 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
                     key: dataKey,
                     props: {
                       dataKey,
-                      tag: itemTag,
-                      sizeKey: itemSizeKey,
-                      event: '_onItemResized',
+                      tag: this.itemTag,
+                      sizeKey: this.itemSizeKey,
+                    },
+                    on: {
+                      resized: this._onItemResized,
                     },
                     style: itemStyle,
-                    class: itemClass,
+                    class: this.itemClass,
                   },
                   this.$scopedSlots.item({ record, index, dataKey })
                 )
@@ -444,34 +386,30 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   },
 
   render(h) {
-    const pageMode = this.virtual.useWindowScroll;
     const { front, behind } = this.range;
-    const { isHorizontal, headerTag, footerTag, rootTag, wrapTag, wrapClass } = this;
-    const wrapStyle = {
-      ...this.wrapStyle,
-      padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`,
-    };
+    const { isHorizontal, rootTag, wrapTag } = this;
+    const padding = isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`;
 
     return h(
       rootTag,
       {
         ref: 'rootRef',
-        style: !pageMode && { overflow: isHorizontal ? 'auto hidden' : 'hidden auto' },
+        style: !this.scroller && { overflow: isHorizontal ? 'auto hidden' : 'hidden auto' },
       },
       [
-        this._renderSlots(h, 'header', headerTag),
+        this.$slots.header,
 
         h(
           wrapTag,
           {
             ref: 'groupRef',
-            class: wrapClass,
-            style: wrapStyle,
+            class: this.wrapClass,
+            style: { ...this.wrapStyle, padding },
           },
           this._renderItems(h)
         ),
 
-        this._renderSlots(h, 'footer', footerTag),
+        this.$slots.footer,
       ]
     );
   },
