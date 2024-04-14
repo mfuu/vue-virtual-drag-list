@@ -22,7 +22,12 @@ export const VirtualProps = {
     type: Number,
   },
   draggable: {
-    type: [Function, String],
+    type: String,
+    default: '.virtual-dnd-list-item',
+  },
+  sortable: {
+    type: Boolean,
+    default: true,
   },
   handle: {
     type: [Function, String],
