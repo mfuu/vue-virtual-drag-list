@@ -27,22 +27,16 @@ Root component:
       v-model="list"
       :data-key="'id'"
       :handle="'.handle'"
-      @top="toTop"
-      @bottom="toBottom"
-      @drag="onDrag"
-      @drop="onDrop"
-      @add="onAdd"
-      @remove="onRemove"
     >
       <template slot="item" slot-scope="{ record, index, dataKey }">
         <i class="handle">{{ record.id }}</span>
         {{ record.text }}
       </template>
       <template slot="header">
-        <div class="loading">top loading...</div>
+        <div class="header">header</div>
       </template>
       <template slot="footer">
-        <div class="loading">bottom loading...</div>
+        <div class="footer">footer</div>
       </template>
     </virtual-list>
   </div>
@@ -60,26 +54,7 @@ Root component:
       }
     },
     methods: {
-      toTop() {
-        // code here
-      },
-      toBottom() {
-        // code here
-      },
-      onDrag({ item, key, index }) {
-        // code here
-      },
-      onDrop(params) {
-        if (params.changed) {
-          // list item position changed
-        }
-      },
-      onAdd({ item, key, index }) {
-        // code here
-      },
-      onRemove({ item, key, index }) {
-        // code here
-      }
+
     }
   }
 </script>
@@ -103,6 +78,7 @@ Root component:
 |------------------|-------------|------------------|
 | `data-key`       | String      | The unique identifier of each piece of data, in the form of `'a.b.c'` |
 | `data-source`    | Array       | The data that needs to be rendered  |
+| `v-model`        | Array       | Choose between dataSource and v-model(recommend) |
 
 ### Optional props
 
@@ -126,7 +102,8 @@ Root component:
 
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
-| `draggable`  | `String` | `-`  | Specifies which items inside the element should be draggable. If does not set a value, the default list element can be dragged |
+| `sortable`   | `Boolean` | `true`  | Whether the current list can be sorted by dragging. |
+| `draggable`  | `String` | `.virtual-dnd-list-item`  | Specifies which items inside the element should be draggable. |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
@@ -139,11 +116,11 @@ Root component:
 | `itemTag`    | `String`   | `div`       | Label type for list item element |
 | `wrapClass`  | `String`   | `''`        | List wrapper element class |
 | `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
-| `itemClass`  | `String`   | `''`        | List item element class |
+| `itemClass`  | `String`   | `virtual-dnd-list-item`        | List item element class |
 | `itemStyle`  | `Object`   | `{}`        | List item element style |
 | `ghostClass` | `String`   | `''`        | The class of the mask element when dragging |
 | `ghostStyle` | `Object`   | `{}`        | The style of the mask element when dragging |
-| `chosenClass`| `String`   | `''`        | The class of the selected element when dragging |
+| `chosenClass`| `String`   | `''`        | Class name for the chosen item |
 
 ## Methods
 
