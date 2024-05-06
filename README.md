@@ -29,7 +29,7 @@ Root component:
       :handle="'.handle'"
     >
       <template slot="item" slot-scope="{ record, index, dataKey }">
-        <i class="handle">{{ record.id }}</span>
+        <span class="handle">{{ record.id }}</span>
         {{ record.text }}
       </template>
       <template slot="header">
@@ -77,8 +77,7 @@ Root component:
 | **Prop** | **Type**  | **Description** |
 |------------------|-------------|------------------|
 | `data-key`       | String      | The unique identifier of each piece of data, in the form of `'a.b.c'` |
-| `data-source`    | Array       | The data that needs to be rendered  |
-| `v-model`        | Array       | Choose between dataSource and v-model(recommend) |
+| `v-model`        | Array       | The data that needs to be rendered |
 
 ### Optional props
 
@@ -102,8 +101,8 @@ Root component:
 
 |  **Prop**    | **Type**   | **Default** | **Description** |
 |  --------    | --------   | ----------- | --------------- |
-| `sortable`   | `Boolean` | `true`  | Whether the current list can be sorted by dragging. |
-| `draggable`  | `String` | `.virtual-dnd-list-item`  | Specifies which items inside the element should be draggable. |
+| `sortable`   | `Boolean` | `true`  | Whether the current list can be sorted by dragging |
+| `draggable`  | `String` | `.virtual-dnd-list-item`  | Specifies which items inside the element should be draggable |
 | `disabled`   | `Boolean`  | `false`     | Disables the sortable if set to true |
 | `animation`  | `Number`   | `150`       | Animation speed moving items when sorting |
 | `autoScroll` | `Boolean`  | `true`      | Automatic scrolling when moving to the edge of the container |
@@ -116,7 +115,7 @@ Root component:
 | `itemTag`    | `String`   | `div`       | Label type for list item element |
 | `wrapClass`  | `String`   | `''`        | List wrapper element class |
 | `wrapStyle`  | `Object`   | `{}`        | List wrapper element style |
-| `itemClass`  | `String`   | `virtual-dnd-list-item`        | List item element class |
+| `itemClass`  | `String`   | `virtual-dnd-list-item` | List item element class |
 | `itemStyle`  | `Object`   | `{}`        | List item element style |
 | `ghostClass` | `String`   | `''`        | The class of the mask element when dragging |
 | `ghostStyle` | `Object`   | `{}`        | The style of the mask element when dragging |
