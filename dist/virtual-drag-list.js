@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.8.7
+ * vue-virtual-drag-list v2.8.8
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -98,7 +98,7 @@
   var sortableDnd_min = {exports: {}};
 
   /*!
-   * sortable-dnd v0.6.14
+   * sortable-dnd v0.6.15
    * open source under the MIT license
    * https://github.com/mfuu/sortable-dnd#readme
    */
@@ -755,8 +755,9 @@
   	      var e = k || X,
   	        n = "clone" === R && this.el !== O && A === O,
   	        o = "clone" === R && this.el === O && A !== O,
-  	        i = m(k, document);
-  	      P = this.el, W = g(X), B = e, F = i ? k.parentNode : this.el, A[I].animator.collect(X.parentNode), this.animator.collect(F), n && (U.target = J, U.newIndex = W, U.relative = J === H ? 0 : S(X, J), _(H, "display", ""), O[I].multiplayer.toggleVisible(!0), O[I].options.group.revertDrag || X.parentNode.insertBefore(H, X)), o && (W = g(H), _(H, "display", "none"), this.multiplayer.toggleVisible(!1)), _(X, "display", k !== H || i ? "" : "none"), k && i ? F.insertBefore(X, Q < 0 ? k : k.nextSibling) : F.appendChild(X), z = k !== H || i ? g(X) : G, n && O[I].options.group.revertDrag && (U.target = H, U.newIndex = G, U.relative = 0, E({
+  	        i = m(k, document),
+  	        r = k === H && !i;
+  	      P = this.el, W = g(X), B = e, F = i ? k.parentNode : this.el, A[I].animator.collect(X.parentNode), this.animator.collect(F), n && (U.target = J, U.newIndex = W, U.relative = J === H ? 0 : S(X, J), _(H, "display", ""), O[I].multiplayer.toggleVisible(!0), O[I].options.group.revertDrag || X.parentNode.insertBefore(H, X)), o && (W = g(H), _(H, "display", "none"), this.multiplayer.toggleVisible(!1)), _(X, "display", r ? "none" : ""), k && i ? F.insertBefore(X, Q < 0 ? k : k.nextSibling) : F.appendChild(X), z = r ? G : g(X), n && O[I].options.group.revertDrag && (U.target = H, U.newIndex = G, U.relative = 0, E({
   	        sortable: O[I],
   	        name: "onChange",
   	        params: this._getParams(t, {
@@ -794,7 +795,7 @@
   	      }), this.animator.animate(), A = this.el;
   	    },
   	    _onDrop: function (t) {
-  	      x(t), this._cancelStart(), h(K, "touchmove", this._nearestSortable), h(K, "mousemove", this._nearestSortable), h(K, "mouseup", this._onDrop), h(K, "touchend", this._onDrop), h(K, "touchcancel", this._onDrop), w(H, this.options.chosenClass, !1), O && (A = O, W = G, B === X && (B = H), this.multiplayer.toggleClass(!1), E({
+  	      this._cancelStart(), h(K, "touchmove", this._nearestSortable), h(K, "mousemove", this._nearestSortable), h(K, "mouseup", this._onDrop), h(K, "touchend", this._onDrop), h(K, "touchcancel", this._onDrop), w(H, this.options.chosenClass, !1), O && (A = O, W = G, B === X && (B = H), this.multiplayer.toggleClass(!1), E({
   	        sortable: this,
   	        name: "onUnchoose",
   	        params: this._getParams(t)

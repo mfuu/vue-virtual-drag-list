@@ -1,6 +1,6 @@
 {
   "name": "vue-virtual-draglist",
-  "version": "2.8.7",
+  "version": "2.8.8",
   "description": "A virtual scrolling list component that can be sorted by dragging",
   "main": "dist/virtual-drag-list.min.js",
   "files": [
@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/mfuu/vue-virtual-drag-list#readme",
   "dependencies": {
-    "sortable-dnd": "^0.6.14"
+    "sortable-dnd": "^0.6.15"
   },
   "devDependencies": {
     "@babel/core": "^7.8.7",
