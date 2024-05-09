@@ -1,7 +1,6 @@
 import Vue from 'vue';
-import Dnd from 'sortable-dnd';
-import { VirtualProps, SlotsProps } from './props';
 import { Virtual, Sortable, debounce, getDataKey, SortableAttrs, VirtualAttrs } from './core';
+import { VirtualProps, SlotsProps } from './props';
 
 const Observer = {
   data() {
@@ -64,6 +63,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   data() {
     return {
       range: { start: 0, end: 0, front: 0, behind: 0 },
+      dragging: '',
       lastList: [],
       lastLength: null,
       uniqueKeys: [],
@@ -259,10 +259,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           }
         },
         onUpdate: (range) => {
-          if (Dnd.dragged && range.start !== this.range.start) {
+          const rangeChanged = range.start !== this.range.start;
+          if (this.dragging && rangeChanged) {
             this.sortableRef.reRendered = true;
           }
+
           this.range = range;
+          rangeChanged && this.$emit('rangeChange', range);
         },
       });
     },
@@ -274,6 +277,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         list: this.dataSource,
         uniqueKeys: this.uniqueKeys,
         onDrag: (event) => {
+          this.dragging = event.key;
           if (!this.sortable) {
             this.virtualRef.enableScroll(false);
             this.sortableRef.option('autoScroll', false);
@@ -287,6 +291,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           this.$emit('remove', event);
         },
         onDrop: (event) => {
+          this.dragging = '';
           if (!this.sortable) {
             this.virtualRef.enableScroll(true);
             this.sortableRef.option('autoScroll', this.autoScroll);
@@ -345,8 +350,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
     },
 
     _getItemStyle(itemKey) {
-      const fromKey = Dnd.dragged?.dataset.key;
-      if (itemKey == fromKey) {
+      if (itemKey == this.dragging) {
         return { display: 'none' };
       }
       return {};

@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.8.8
+ * vue-virtual-drag-list v2.8.9
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -852,139 +852,6 @@
   var sortableDnd_minExports = sortableDnd_min.exports;
   var Dnd = /*@__PURE__*/getDefaultExportFromCjs(sortableDnd_minExports);
 
-  var VirtualProps = {
-    dataSource: {
-      type: Array,
-      "default": function _default() {
-        return [];
-      }
-    },
-    dataKey: {
-      type: String,
-      required: true
-    },
-    scroller: {
-      type: [Document, HTMLElement]
-    },
-    direction: {
-      type: String,
-      "default": 'vertical'
-    },
-    keeps: {
-      type: Number,
-      "default": 30
-    },
-    size: {
-      type: Number
-    },
-    draggable: {
-      type: String,
-      "default": '.virtual-dnd-list-item'
-    },
-    sortable: {
-      type: Boolean,
-      "default": true
-    },
-    handle: {
-      type: [Function, String]
-    },
-    group: {
-      type: [String, Object]
-    },
-    lockAxis: {
-      type: String,
-      "default": ''
-    },
-    debounceTime: {
-      type: Number,
-      "default": 0
-    },
-    animation: {
-      type: Number,
-      "default": 150
-    },
-    autoScroll: {
-      type: Boolean,
-      "default": true
-    },
-    scrollThreshold: {
-      type: Number,
-      "default": 55
-    },
-    keepOffset: {
-      type: Boolean,
-      "default": false
-    },
-    disabled: {
-      type: Boolean,
-      "default": false
-    },
-    fallbackOnBody: {
-      type: Boolean,
-      "default": false
-    },
-    delay: {
-      type: Number,
-      "default": 0
-    },
-    delayOnTouchOnly: {
-      type: Boolean,
-      "default": false
-    },
-    rootTag: {
-      type: String,
-      "default": 'div'
-    },
-    wrapTag: {
-      type: String,
-      "default": 'div'
-    },
-    itemTag: {
-      type: String,
-      "default": 'div'
-    },
-    wrapClass: {
-      type: String,
-      "default": ''
-    },
-    wrapStyle: {
-      type: Object
-    },
-    itemStyle: {
-      type: Object
-    },
-    itemClass: {
-      type: String,
-      "default": ''
-    },
-    ghostClass: {
-      type: String,
-      "default": ''
-    },
-    ghostStyle: {
-      type: Object,
-      "default": function _default() {
-        return {};
-      }
-    },
-    chosenClass: {
-      type: String,
-      "default": ''
-    }
-  };
-  var SlotsProps = {
-    tag: {
-      type: String,
-      "default": 'div'
-    },
-    dataKey: {
-      type: [String, Number]
-    },
-    sizeKey: {
-      type: String
-    }
-  };
-
   var SortableAttrs = ['delay', 'group', 'handle', 'lockAxis', 'disabled', 'sortable', 'draggable', 'animation', 'autoScroll', 'ghostClass', 'ghostStyle', 'chosenClass', 'fallbackOnBody', 'scrollThreshold', 'delayOnTouchOnly'];
   function Sortable(el, options) {
     this.el = el;
@@ -1548,6 +1415,139 @@
     }
   };
 
+  var VirtualProps = {
+    dataSource: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
+    },
+    dataKey: {
+      type: String,
+      required: true
+    },
+    scroller: {
+      type: [Document, HTMLElement]
+    },
+    direction: {
+      type: String,
+      "default": 'vertical'
+    },
+    keeps: {
+      type: Number,
+      "default": 30
+    },
+    size: {
+      type: Number
+    },
+    draggable: {
+      type: String,
+      "default": '.virtual-dnd-list-item'
+    },
+    sortable: {
+      type: Boolean,
+      "default": true
+    },
+    handle: {
+      type: [Function, String]
+    },
+    group: {
+      type: [String, Object]
+    },
+    lockAxis: {
+      type: String,
+      "default": ''
+    },
+    debounceTime: {
+      type: Number,
+      "default": 0
+    },
+    animation: {
+      type: Number,
+      "default": 150
+    },
+    autoScroll: {
+      type: Boolean,
+      "default": true
+    },
+    scrollThreshold: {
+      type: Number,
+      "default": 55
+    },
+    keepOffset: {
+      type: Boolean,
+      "default": false
+    },
+    disabled: {
+      type: Boolean,
+      "default": false
+    },
+    fallbackOnBody: {
+      type: Boolean,
+      "default": false
+    },
+    delay: {
+      type: Number,
+      "default": 0
+    },
+    delayOnTouchOnly: {
+      type: Boolean,
+      "default": false
+    },
+    rootTag: {
+      type: String,
+      "default": 'div'
+    },
+    wrapTag: {
+      type: String,
+      "default": 'div'
+    },
+    itemTag: {
+      type: String,
+      "default": 'div'
+    },
+    wrapClass: {
+      type: String,
+      "default": ''
+    },
+    wrapStyle: {
+      type: Object
+    },
+    itemStyle: {
+      type: Object
+    },
+    itemClass: {
+      type: String,
+      "default": ''
+    },
+    ghostClass: {
+      type: String,
+      "default": ''
+    },
+    ghostStyle: {
+      type: Object,
+      "default": function _default() {
+        return {};
+      }
+    },
+    chosenClass: {
+      type: String,
+      "default": ''
+    }
+  };
+  var SlotsProps = {
+    tag: {
+      type: String,
+      "default": 'div'
+    },
+    dataKey: {
+      type: [String, Number]
+    },
+    sizeKey: {
+      type: String
+    }
+  };
+
   var Observer = {
     data: function data() {
       return {
@@ -1610,6 +1610,7 @@
           front: 0,
           behind: 0
         },
+        dragging: '',
         lastList: [],
         lastLength: null,
         uniqueKeys: [],
@@ -1789,10 +1790,12 @@
             }
           },
           onUpdate: function onUpdate(range) {
-            if (Dnd.dragged && range.start !== _this4.range.start) {
+            var rangeChanged = range.start !== _this4.range.start;
+            if (_this4.dragging && rangeChanged) {
               _this4.sortableRef.reRendered = true;
             }
             _this4.range = range;
+            rangeChanged && _this4.$emit('rangeChange', range);
           }
         });
       },
@@ -1803,6 +1806,7 @@
           list: this.dataSource,
           uniqueKeys: this.uniqueKeys,
           onDrag: function onDrag(event) {
+            _this5.dragging = event.key;
             if (!_this5.sortable) {
               _this5.virtualRef.enableScroll(false);
               _this5.sortableRef.option('autoScroll', false);
@@ -1816,6 +1820,7 @@
             _this5.$emit('remove', event);
           },
           onDrop: function onDrop(event) {
+            _this5.dragging = '';
             if (!_this5.sortable) {
               _this5.virtualRef.enableScroll(true);
               _this5.sortableRef.option('autoScroll', _this5.autoScroll);
@@ -1868,9 +1873,7 @@
         (_this$sortableRef3 = this.sortableRef) === null || _this$sortableRef3 === void 0 ? void 0 : _this$sortableRef3.option('uniqueKeys', this.uniqueKeys);
       },
       _getItemStyle: function _getItemStyle(itemKey) {
-        var _Dnd$dragged;
-        var fromKey = (_Dnd$dragged = Dnd.dragged) === null || _Dnd$dragged === void 0 ? void 0 : _Dnd$dragged.dataset.key;
-        if (itemKey == fromKey) {
+        if (itemKey == this.dragging) {
           return {
             display: 'none'
           };

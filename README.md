@@ -69,6 +69,7 @@ Root component:
 | `drop`       | drag is completed |
 | `add`        | element is dropped into the list from another |
 | `remove`     | element is removed from the list into another |
+| `rangeChange`| triggered when the range changes |
 
 ## Props
 
