@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.8.9
+ * vue-virtual-drag-list v2.9.0
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -1440,6 +1440,10 @@
     size: {
       type: Number
     },
+    keepOffset: {
+      type: Boolean,
+      "default": false
+    },
     draggable: {
       type: String,
       "default": '.virtual-dnd-list-item'
@@ -1462,6 +1466,10 @@
       type: Number,
       "default": 0
     },
+    throttleTime: {
+      type: Number,
+      "default": 0
+    },
     animation: {
       type: Number,
       "default": 150
@@ -1473,10 +1481,6 @@
     scrollThreshold: {
       type: Number,
       "default": 55
-    },
-    keepOffset: {
-      type: Boolean,
-      "default": false
     },
     disabled: {
       type: Boolean,
@@ -1502,23 +1506,15 @@
       type: String,
       "default": 'div'
     },
-    itemTag: {
-      type: String,
-      "default": 'div'
-    },
     wrapClass: {
       type: String,
       "default": ''
     },
     wrapStyle: {
-      type: Object
-    },
-    itemStyle: {
-      type: Object
-    },
-    itemClass: {
-      type: String,
-      "default": ''
+      type: Object,
+      "default": function _default() {
+        return {};
+      }
     },
     ghostClass: {
       type: String,
@@ -1535,11 +1531,7 @@
       "default": ''
     }
   };
-  var SlotsProps = {
-    tag: {
-      type: String,
-      "default": 'div'
-    },
+  var ItemProps = {
     dataKey: {
       type: [String, Number]
     },
@@ -1548,28 +1540,29 @@
     }
   };
 
-  var Observer = {
+  var Items = Vue__default["default"].component('virtual-drag-list-items', {
+    props: ItemProps,
     data: function data() {
       return {
-        observer: null
+        sizeObserver: null
       };
     },
     mounted: function mounted() {
       var _this = this;
       if (typeof ResizeObserver !== 'undefined') {
-        this.observer = new ResizeObserver(function () {
+        this.sizeObserver = new ResizeObserver(function () {
           _this.onSizeChange();
         });
-        this.$el && this.observer.observe(this.$el);
+        this.$el && this.sizeObserver.observe(this.$el);
       }
     },
     updated: function updated() {
       this.onSizeChange();
     },
     beforeDestroy: function beforeDestroy() {
-      if (this.observer) {
-        this.observer.disconnect();
-        this.observer = null;
+      if (this.sizeObserver) {
+        this.sizeObserver.disconnect();
+        this.sizeObserver = null;
       }
     },
     methods: {
@@ -1579,21 +1572,9 @@
       getCurrentSize: function getCurrentSize() {
         return this.$el ? this.$el[this.sizeKey] : 0;
       }
-    }
-  };
-  var Items = Vue__default["default"].component('virtual-draglist-items', {
-    mixins: [Observer],
-    props: SlotsProps,
-    render: function render(h) {
-      var tag = this.tag,
-        dataKey = this.dataKey;
-      return h(tag, {
-        key: dataKey,
-        attrs: {
-          'data-key': dataKey
-        },
-        "class": 'virtual-dnd-list-item'
-      }, this.$slots["default"]);
+    },
+    render: function render() {
+      return this.$slots["default"];
     }
   });
   var VirtualDragList = Vue__default["default"].component('virtual-drag-list', {
@@ -1790,11 +1771,13 @@
             }
           },
           onUpdate: function onUpdate(range) {
+            var _this4$sortableRef;
             var rangeChanged = range.start !== _this4.range.start;
             if (_this4.dragging && rangeChanged) {
               _this4.sortableRef.reRendered = true;
             }
             _this4.range = range;
+            (_this4$sortableRef = _this4.sortableRef) === null || _this4$sortableRef === void 0 ? void 0 : _this4$sortableRef.option('range', range);
             rangeChanged && _this4.$emit('rangeChange', range);
           }
         });
@@ -1821,10 +1804,8 @@
           },
           onDrop: function onDrop(event) {
             _this5.dragging = '';
-            if (!_this5.sortable) {
-              _this5.virtualRef.enableScroll(true);
-              _this5.sortableRef.option('autoScroll', _this5.autoScroll);
-            }
+            _this5.virtualRef.enableScroll(true);
+            _this5.sortableRef.option('autoScroll', _this5.autoScroll);
             if (event.changed) {
               _this5.$emit('updateDataSource', event.list);
             }
@@ -1889,19 +1870,20 @@
           var record = this.dataSource[index];
           if (record) {
             var dataKey = getDataKey(record, this.dataKey);
-            var itemStyle = _objectSpread2(_objectSpread2({}, this.itemStyle), this._getItemStyle(dataKey));
             renders.push(this.$scopedSlots.item ? h(Items, {
               key: dataKey,
+              attrs: {
+                'data-key': dataKey
+              },
               props: {
                 dataKey: dataKey,
-                tag: this.itemTag,
                 sizeKey: this.itemSizeKey
               },
               on: {
                 resized: this._onItemResized
               },
-              style: itemStyle,
-              "class": this.itemClass
+              style: this._getItemStyle(dataKey),
+              "class": 'virtual-dnd-list-item'
             }, this.$scopedSlots.item({
               record: record,
               index: index,

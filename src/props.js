@@ -21,6 +21,10 @@ export const VirtualProps = {
   size: {
     type: Number,
   },
+  keepOffset: {
+    type: Boolean,
+    default: false,
+  },
   draggable: {
     type: String,
     default: '.virtual-dnd-list-item',
@@ -43,6 +47,10 @@ export const VirtualProps = {
     type: Number,
     default: 0,
   },
+  throttleTime: {
+    type: Number,
+    default: 0,
+  },
   animation: {
     type: Number,
     default: 150,
@@ -54,10 +62,6 @@ export const VirtualProps = {
   scrollThreshold: {
     type: Number,
     default: 55,
-  },
-  keepOffset: {
-    type: Boolean,
-    default: false,
   },
   disabled: {
     type: Boolean,
@@ -83,23 +87,13 @@ export const VirtualProps = {
     type: String,
     default: 'div',
   },
-  itemTag: {
-    type: String,
-    default: 'div',
-  },
   wrapClass: {
     type: String,
     default: '',
   },
   wrapStyle: {
     type: Object,
-  },
-  itemStyle: {
-    type: Object,
-  },
-  itemClass: {
-    type: String,
-    default: '',
+    default: () => ({}),
   },
   ghostClass: {
     type: String,
@@ -115,11 +109,7 @@ export const VirtualProps = {
   },
 };
 
-export const SlotsProps = {
-  tag: {
-    type: String,
-    default: 'div',
-  },
+export const ItemProps = {
   dataKey: {
     type: [String, Number],
   },

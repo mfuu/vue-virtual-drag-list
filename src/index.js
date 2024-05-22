@@ -1,28 +1,29 @@
 import Vue from 'vue';
 import { Virtual, Sortable, debounce, getDataKey, SortableAttrs, VirtualAttrs } from './core';
-import { VirtualProps, SlotsProps } from './props';
+import { VirtualProps, ItemProps } from './props';
 
-const Observer = {
+const Items = Vue.component('virtual-drag-list-items', {
+  props: ItemProps,
   data() {
     return {
-      observer: null,
+      sizeObserver: null,
     };
   },
   mounted() {
     if (typeof ResizeObserver !== 'undefined') {
-      this.observer = new ResizeObserver(() => {
+      this.sizeObserver = new ResizeObserver(() => {
         this.onSizeChange();
       });
-      this.$el && this.observer.observe(this.$el);
+      this.$el && this.sizeObserver.observe(this.$el);
     }
   },
   updated() {
     this.onSizeChange();
   },
   beforeDestroy() {
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
+    if (this.sizeObserver) {
+      this.sizeObserver.disconnect();
+      this.sizeObserver = null;
     }
   },
   methods: {
@@ -33,24 +34,8 @@ const Observer = {
       return this.$el ? this.$el[this.sizeKey] : 0;
     },
   },
-};
-
-const Items = Vue.component('virtual-draglist-items', {
-  mixins: [Observer],
-  props: SlotsProps,
-  render(h) {
-    const { tag, dataKey } = this;
-    return h(
-      tag,
-      {
-        key: dataKey,
-        attrs: {
-          'data-key': dataKey,
-        },
-        class: 'virtual-dnd-list-item',
-      },
-      this.$slots.default
-    );
+  render() {
+    return this.$slots.default;
   },
 });
 
@@ -265,6 +250,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           }
 
           this.range = range;
+          this.sortableRef?.option('range', range);
           rangeChanged && this.$emit('rangeChange', range);
         },
       });
@@ -292,10 +278,9 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         },
         onDrop: (event) => {
           this.dragging = '';
-          if (!this.sortable) {
-            this.virtualRef.enableScroll(true);
-            this.sortableRef.option('autoScroll', this.autoScroll);
-          }
+          this.virtualRef.enableScroll(true);
+          this.sortableRef.option('autoScroll', this.autoScroll);
+
           if (event.changed) {
             this.$emit('updateDataSource', event.list);
           }
@@ -364,23 +349,24 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
         const record = this.dataSource[index];
         if (record) {
           const dataKey = getDataKey(record, this.dataKey);
-          const itemStyle = { ...this.itemStyle, ...this._getItemStyle(dataKey) };
           renders.push(
             this.$scopedSlots.item
               ? h(
                   Items,
                   {
                     key: dataKey,
+                    attrs: {
+                      'data-key': dataKey,
+                    },
                     props: {
                       dataKey,
-                      tag: this.itemTag,
                       sizeKey: this.itemSizeKey,
                     },
                     on: {
                       resized: this._onItemResized,
                     },
-                    style: itemStyle,
-                    class: this.itemClass,
+                    style: this._getItemStyle(dataKey),
+                    class: 'virtual-dnd-list-item',
                   },
                   this.$scopedSlots.item({ record, index, dataKey })
                 )
