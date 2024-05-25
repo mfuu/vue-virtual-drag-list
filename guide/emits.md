@@ -1,31 +1,67 @@
 # Emits
 
-| **Emit**      | **Description**                               |
-| ------------- | --------------------------------------------- |
-| `top`         | scrolled to top                               |
-| `bottom`      | scrolled to bottom                            |
-| `drag`        | drag is started                               |
-| `drop`        | drag is completed                             |
-| `add`         | element is dropped into the list from another |
-| `remove`      | element is removed from the list into another |
-| `rangeChange` | triggered when the range changes              |
+## `top`
 
-## Usage
+scrolled to the top of list
+
+## `bottom`
+
+scrolled to the bottom of list
+
+## `drag`
+
+drag is started
+
+```ts
+const {
+  item,
+  key,
+  index,
+  event,
+} = dragEvent
+```
+
+## `drop`
+
+drag is completed
+
+```ts
+const {
+  key,
+  item,
+  list,
+  event,
+  changed,
+  oldList,
+  oldIndex,
+  newIndex,
+} = dropEvent
+```
+
+## `rangeChange`
+
+drag is completed
+
+```ts
+const {
+  start,
+  end,
+  front,
+  behind,
+} = range;
+```
+
+## Example Usage
 
 ```vue
 <template>
   <virtual-list
     v-model="list"
     data-key="id"
-    handle=".handle"
     @drop="onDrop"
   >
-    <template v-slot:item="{ record, index, dateKey }">
-      <div class="list-item">
-        <span class="index">#{{ index }}</span>
-        <div class="handle">☰</div>
-        <p>{{ record.desc }}</p>
-      </div>
+    <template v-slot:item="{ record, index, dataKey }">
+      item slot content
     </template>
   </virtual-list>
 </template>
@@ -39,10 +75,10 @@ export default {
   },
   setup() {
     const data = reactive({
-      list: getPageData(30, 0),
+      list: [{ id: 'a', text: 'a', id: 'b', text: 'b' }],
     });
 
-    const onDrop = () => {
+    const onDrop = (event) => {
       // code here
     };
 

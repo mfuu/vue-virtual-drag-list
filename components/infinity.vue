@@ -1,6 +1,7 @@
 <template>
   <virtual-list
     v-model="list"
+    :keeps="15"
     data-key="id"
     handle=".handle"
     class="infinity-list"
@@ -8,13 +9,15 @@
   >
     <template v-slot:item="{ record, index, dateKey }">
       <div class="list-item">
-        <span class="index">#{{ index }}</span>
-        <div class="handle">☰</div>
+        <div class="item-title">
+          <span class="index">#{{ index }}</span>
+          <span class="handle">☰</span>
+        </div>
         <p>{{ record.desc }}</p>
       </div>
     </template>
     <template v-slot:footer>
-      <div class="footer">
+      <div v-show="loading" class="footer">
         <div class="loading"></div>
       </div>
     </template>
@@ -22,24 +25,28 @@
 </template>
 
 <script>
-import { reactive, toRefs } from 'vue';
+import { reactive, toRefs, ref } from 'vue';
 import { getPageData } from '../public/sentence';
 export default {
   setup() {
+    const loading = ref(false);
     const data = reactive({
       list: getPageData(30, 0),
     });
 
     const bottomLoading = () => {
+      loading.value = true;
       setTimeout(() => {
         const index = data.list.length - 1;
         const loadedList = getPageData(10, index);
         data.list.push(...loadedList);
+        loading.value = false;
       }, 1000);
     };
 
     return {
       ...toRefs(data),
+      loading,
       bottomLoading,
     };
   },
@@ -51,11 +58,16 @@ export default {
   height: 500px;
 }
 
-.list-item {
+.infinity-list .list-item {
   position: relative;
   border-radius: 5px;
   box-shadow: 0px 2px 10px -5px #57bbb4;
   padding: 16px;
+}
+
+.item-title {
+  display: flex;
+  justify-content: space-between;
 }
 
 .index {
@@ -63,6 +75,7 @@ export default {
 }
 
 .handle {
+  cursor: grab;
   text-align: right;
 }
 

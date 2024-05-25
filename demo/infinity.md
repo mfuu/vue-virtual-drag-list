@@ -1,5 +1,5 @@
-# infinity
+# Infinity scroll
 
-scroller to the bottom of the list to load more
+scroll to the bottom of the list to load more
 
 <preview path="../components/infinity.vue" />

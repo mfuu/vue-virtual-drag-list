@@ -1,1 +1,0 @@
-import{_ as s,c as i,o as a,a6 as t}from"./chunks/framework.tp-41Ed0.js";const c=JSON.parse('{"title":"Emits","description":"","frontmatter":{},"headers":[],"relativePath":"guide/emits.md","filePath":"guide/emits.md"}'),n={name:"guide/emits.md"},h=t("",4),k=[h];function l(p,e,d,r,g,y){return a(),i("div",null,k)}const D=s(n,[["render",l]]);export{c as __pageData,D as default};

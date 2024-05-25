@@ -1,18 +1,42 @@
 # Methods
 
-| **Method**               | **Description**                                            |
-| ------------------------ | ---------------------------------------------------------- |
-| `getSize(key)`           | Get the size of the current item by unique key value       |
-| `getOffset()`            | Get the current scroll height                              |
-| `getClientSize()`        | Get wrapper element client viewport size (width or height) |
-| `getScrollSize()`        | Get all scroll size (scrollHeight or scrollWidth)          |
-| `scrollToTop()`          | Scroll to top of list                                      |
-| `scrollToBottom()`       | Scroll to bottom of list                                   |
-| `scrollToKey(key)`       | Scroll to the specified data-key position                  |
-| `scrollToIndex(index)`   | Scroll to the specified index position                     |
-| `scrollToOffset(offset)` | Scroll to the specified offset                             |
+## `getSize(key: string)`
 
-## Usage
+Get the size of the current item by unique key value
+
+## `getOffset()`
+
+Get the current scroll height
+
+## `getClientSize()`
+
+Get wrapper element client viewport size (width or height)
+
+## `getScrollSize()`
+
+Get all scroll size (scrollHeight or scrollWidth)
+
+## `scrollToTop()`
+
+Scroll to top of list
+
+## `scrollToBottom()`
+
+Scroll to bottom of list
+
+## `scrollToKey(key: string)`
+
+Scroll to the specified `data-key` position
+
+## `scrollToIndex(index: number)`
+
+Scroll to the specified `index` position
+
+## `scrollToOffset(offset: number)`
+
+Scroll to the specified offset
+
+## Example Usage
 
 ```vue
 <template>
@@ -21,14 +45,10 @@
   <virtual-list
     ref="virtualRef"
     v-model="list"
-    :data-key="'id'"
-    :handle="'.handle'"
+    data-key="id"
   >
-    <template slot="item" slot-scope="{ record, index, dataKey }">
-      <div class="list-item">
-        <span class="handle">{{ record.id }}</span>
-        {{ record.text }}
-      </div>
+    <template v-slot:item="{ record, index, dataKey }">
+      item slot content
     </template>
   </virtual-list>
 </template>
@@ -44,7 +64,7 @@ export default {
     const virtualRef = ref(null);
 
     const data = reactive({
-      list: getPageData(30, 0),
+      list: [{ id: 'a', text: 'a', id: 'b', text: 'b' }],
     });
 
     const scrollToIndex = () => {

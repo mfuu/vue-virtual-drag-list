@@ -14,20 +14,16 @@ $ yarn add vue-virtual-draglist
 
 :::
 
-## Usage
+## Simple Usage
 
 ```vue
 <template>
   <virtual-list
     v-model="list"
-    :data-key="'id'"
-    :handle="'.handle'"
+    data-key="id"
   >
     <template v-slot:item="{ record, index, dataKey }">
-      <div class="list-item">
-        <span class="handle">{{ record.id }}</span>
-        {{ record.text }}
-      </div>
+      item slot content
     </template>
   </virtual-list>
 </template>
@@ -41,7 +37,7 @@ export default {
   },
   setup() {
     const data = reactive({
-      list: getPageData(30, 0),
+      list: [{ id: 'a', text: 'a', id: 'b', text: 'b' }],
     });
 
     return {
