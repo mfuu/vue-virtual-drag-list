@@ -1,0 +1,81 @@
+<template>
+  <div class="group-list">
+    <virtual-list
+      v-model="list1"
+      data-key="id"
+      handle=".handle"
+      :group="group"
+      class="virtual-list"
+    >
+      <template v-slot:item="{ record, index, dateKey }">
+        <div class="list-item">
+          <span class="index">#{{ index }}</span>
+          <div class="handle">☰</div>
+          <p>{{ record.desc }}</p>
+        </div>
+      </template>
+    </virtual-list>
+
+    <virtual-list
+      v-model="list2"
+      data-key="id"
+      handle=".handle"
+      :group="group"
+      class="virtual-list"
+    >
+      <template v-slot:item="{ record, index, dateKey }">
+        <div class="list-item">
+          <span class="index">#{{ index }}</span>
+          <div class="handle">☰</div>
+          <p>{{ record.desc }}</p>
+        </div>
+      </template>
+    </virtual-list>
+  </div>
+</template>
+
+<script>
+import { reactive, toRefs } from 'vue';
+import { getPageData } from '../public/sentence';
+export default {
+  setup() {
+    const data = reactive({
+      list1: getPageData(100, 0),
+      list2: getPageData(100, 0),
+      group: { name: 'group', pull: true, put: true },
+    });
+
+    return {
+      ...toRefs(data),
+    };
+  },
+};
+</script>
+
+<style>
+.group-list {
+  display: flex;
+  justify-content: space-between;
+}
+
+.group-list .virtual-list {
+  height: 500px;
+  width: 49%;
+  display: inline-block;
+}
+
+.list-item {
+  position: relative;
+  border-radius: 5px;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
+  padding: 16px;
+}
+
+.index {
+  float: left;
+}
+
+.handle {
+  text-align: right;
+}
+</style>

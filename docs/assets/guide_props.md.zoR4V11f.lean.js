@@ -1,0 +1,1 @@
+import{_ as t,c as d,o as e,a6 as o}from"./chunks/framework.tp-41Ed0.js";const m=JSON.parse('{"title":"Props","description":"","frontmatter":{},"headers":[],"relativePath":"guide/props.md","filePath":"guide/props.md"}'),c={name:"guide/props.md"},r=o("",8),a=[r];function s(n,l,i,h,p,g){return e(),d("div",null,a)}const b=t(c,[["render",s]]);export{m as __pageData,b as default};

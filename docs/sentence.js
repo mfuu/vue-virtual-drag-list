@@ -1,30 +1,32 @@
-function getSentences(min = 1, max = 6) {
-  const sentences = sentenceArray[Mock.Random.pick([0, 1, 2])]
-  const results = []
+import Mock from 'mockjs';
 
-  let counts = Mock.Random.integer(min, max)
-  while (counts--) {
-    results.push(Mock.Random.pick(sentences))
-  }
-  return results.join('. ') + '.'
-}
-
-function getUniqueId(prefix) {
-  return `${prefix}$${Math.random().toString(16).substr(9)}`
-}
-
-function getPageData(count, currentLength) {
-  const DataItems = []
+export function getPageData(count, currentLength) {
+  const DataItems = [];
   for (let i = 0; i < count; i++) {
-    const index = currentLength + i
+    const index = currentLength + i;
     DataItems.push({
       index,
       name: Mock.Random.name(),
       id: getUniqueId(index),
       desc: getSentences(),
-    })
+    });
   }
-  return DataItems
+  return DataItems;
+}
+
+function getSentences(min = 1, max = 6) {
+  const sentences = sentenceArray[Mock.Random.pick([0, 1, 2])];
+  const results = [];
+
+  let counts = Mock.Random.integer(min, max);
+  while (counts--) {
+    results.push(Mock.Random.pick(sentences));
+  }
+  return results.join('. ') + '.';
+}
+
+function getUniqueId(prefix) {
+  return `${prefix}$${Math.random().toString(16).substr(9)}`;
 }
 
 // Try Everything (From Zootopia)
@@ -58,7 +60,7 @@ const sentence1 = [
   "I'll keep on making those new mistakes",
   "I'll keep on making them every day",
   'Those new mistakes',
-]
+];
 
 // Dream It Possible (From Delacey)
 const sentence2 = [
@@ -100,7 +102,7 @@ const sentence2 = [
   'We will glow in the dark turning dust to gold',
   "And we'll dream it possible",
   "And we'll dream it possible",
-]
+];
 
 // The Climb (From Miley Cyrus)
 const sentence3 = [
@@ -154,6 +156,6 @@ const sentence3 = [
   "It's all about the climb",
   'Keep your faith',
   'Whoa O Whoa',
-]
+];
 
-const sentenceArray = [sentence1, sentence2, sentence3]
+const sentenceArray = [sentence1, sentence2, sentence3];
