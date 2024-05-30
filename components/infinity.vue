@@ -17,7 +17,7 @@
       </div>
     </template>
     <template v-slot:footer>
-      <div v-show="loading" class="footer">
+      <div class="footer">
         <div class="loading"></div>
       </div>
     </template>
@@ -29,24 +29,20 @@ import { reactive, toRefs, ref } from 'vue';
 import { getPageData } from '../public/sentence';
 export default {
   setup() {
-    const loading = ref(false);
     const data = reactive({
       list: getPageData(30, 0),
     });
 
     const bottomLoading = () => {
-      loading.value = true;
       setTimeout(() => {
         const index = data.list.length - 1;
         const loadedList = getPageData(10, index);
         data.list.push(...loadedList);
-        loading.value = false;
       }, 1000);
     };
 
     return {
       ...toRefs(data),
-      loading,
       bottomLoading,
     };
   },

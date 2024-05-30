@@ -1,0 +1,1 @@
+import{_ as s,c as i,o as a,a6 as n}from"./chunks/framework.2nV6CLNR.js";const c=JSON.parse('{"title":"Emits","description":"","frontmatter":{},"headers":[],"relativePath":"guide/emits.md","filePath":"guide/emits.md"}'),h={name:"guide/emits.md"},t=n("",16),l=[t];function k(p,e,d,r,g,y){return a(),i("div",null,l)}const D=s(h,[["render",k]]);export{c as __pageData,D as default};
