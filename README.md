@@ -65,7 +65,7 @@ export default {
 | `bottom`      | scrolled to bottom |
 | `drag`        | drag is started    |
 | `drop`        | drag is completed  |
-| `rangeChange` | range changeed     |
+| `rangeChange` | range changed      |
 
 ## Props
 
@@ -86,10 +86,11 @@ export default {
 | `size`         | `Number`                  | `-`         | The estimated height of each piece of data, you can choose to pass it or not, it will be automatically calculated |
 | `handle`       | `Function/String`         | `-`         | Drag handle selector within list items                                                                            |
 | `group`        | `Function/String`         | `-`         | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false/'clone', revertDrag: true/false }`  |
-| `keepOffset`   | `Boolean`                 | `false`     | When scrolling up to load data, keep the same offset as the previous scroll                                       |
 | `direction`    | `vertical \| horizontal`  | `vertical`  | Scroll direction                                                                                                  |
 | `scroller`     | `Document \| HTMLElement` | `-`         | Virtual list scrolling element                                                                                    |
 | `lockAxis`     | `x \| y`                  | `-`         | Axis on which dragging will be locked                                                                             |
+| `tableMode`    | `Boolean`                 | `false`     | display with table and tbody                                                                                      |
+| `keepOffset`   | `Boolean`                 | `false`     | When scrolling up to load data, keep the same offset as the previous scroll                                       |
 | `debounceTime` | `Number`                  | `0`         | debounce time on scroll                                                                                           |
 | `throttleTime` | `Number`                  | `0`         | throttle time on scroll                                                                                           |
 
