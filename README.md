@@ -59,15 +59,13 @@ export default {
 
 ## Emits
 
-| **Emit**      | **Description**                               |
-| ------------- | --------------------------------------------- |
-| `top`         | scrolled to top                               |
-| `bottom`      | scrolled to bottom                            |
-| `drag`        | drag is started                               |
-| `drop`        | drag is completed                             |
-| `add`         | element is dropped into the list from another |
-| `remove`      | element is removed from the list into another |
-| `rangeChange` | triggered when the range changes              |
+| **Emit**      | **Description**    |
+| ------------- | ------------------ |
+| `top`         | scrolled to top    |
+| `bottom`      | scrolled to bottom |
+| `drag`        | drag is started    |
+| `drop`        | drag is completed  |
+| `rangeChange` | range changeed     |
 
 ## Props
 
@@ -101,6 +99,7 @@ export default {
 | ------------------ | --------- | ------------------------ | ------------------------------------------------------------ |
 | `sortable`         | `Boolean` | `true`                   | Whether the current list can be sorted by dragging           |
 | `draggable`        | `String`  | `.virtual-dnd-list-item` | Specifies which items inside the element should be draggable |
+| `itemClass`        | `String`  | `virtual-dnd-list-item`  | Default list item class                                      |
 | `disabled`         | `Boolean` | `false`                  | Disables the sortable if set to true                         |
 | `animation`        | `Number`  | `150`                    | Animation speed moving items when sorting                    |
 | `autoScroll`       | `Boolean` | `true`                   | Automatic scrolling when moving to the edge of the container |

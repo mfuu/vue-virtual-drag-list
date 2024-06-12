@@ -25,9 +25,17 @@ export const VirtualProps = {
     type: Boolean,
     default: false,
   },
+  tableMode: {
+    type: Boolean,
+    default: false,
+  },
   draggable: {
     type: String,
     default: '.virtual-dnd-list-item',
+  },
+  itemClass: {
+    type: String,
+    default: 'virtual-dnd-list-item',
   },
   sortable: {
     type: Boolean,

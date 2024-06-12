@@ -1,45 +1,9 @@
 import Vue from 'vue';
+import Item from './item';
+import { VirtualProps } from './props';
 import { Virtual, Sortable, debounce, getDataKey, SortableAttrs, VirtualAttrs } from './core';
-import { VirtualProps, ItemProps } from './props';
 
-const Items = Vue.component('virtual-drag-list-items', {
-  props: ItemProps,
-  data() {
-    return {
-      sizeObserver: null,
-    };
-  },
-  mounted() {
-    if (typeof ResizeObserver !== 'undefined') {
-      this.sizeObserver = new ResizeObserver(() => {
-        this.onSizeChange();
-      });
-      this.$el && this.sizeObserver.observe(this.$el);
-    }
-  },
-  updated() {
-    this.onSizeChange();
-  },
-  beforeDestroy() {
-    if (this.sizeObserver) {
-      this.sizeObserver.disconnect();
-      this.sizeObserver = null;
-    }
-  },
-  methods: {
-    onSizeChange() {
-      this.$emit('resized', this.dataKey, this.getCurrentSize());
-    },
-    getCurrentSize() {
-      return this.$el ? this.$el[this.sizeKey] : 0;
-    },
-  },
-  render() {
-    return this.$slots.default;
-  },
-});
-
-const VirtualDragList = Vue.component('virtual-drag-list', {
+const VirtualList = Vue.component('virtual-list', {
   model: {
     prop: 'dataSource',
     event: 'updateDataSource',
@@ -124,14 +88,13 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   },
 
   mounted() {
-    this._initVirtual();
-    this._initSortable();
+    this._installVirtual();
+    this._installSortable();
   },
 
   beforeDestroy() {
     this.sortableRef?.destroy();
     this.virtualRef?.removeScrollEventListener();
-    this.sortableRef = this.virtual = null;
   },
 
   methods: {
@@ -223,70 +186,10 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       this.lastList = [...this.dataSource];
     },
 
-    // virtual init
-    _initVirtual() {
-      this.virtualRef = new Virtual({
-        size: this.size,
-        keeps: this.keeps,
-        buffer: Math.round(this.keeps / 3),
-        wrapper: this.$refs.wrapRef,
-        scroller: this.scroller || this.$refs.rootRef,
-        direction: this.direction,
-        uniqueKeys: this.uniqueKeys,
-        debounceTime: this.debounceTime,
-        throttleTime: this.throttleTime,
-        onScroll: (event) => {
-          this.lastLength = null;
-          if (!!this.dataSource.length && event.top) {
-            this._handleToTop();
-          } else if (event.bottom) {
-            this._handleToBottom();
-          }
-        },
-        onUpdate: (range) => {
-          const rangeChanged = range.start !== this.range.start;
-          if (this.dragging && rangeChanged) {
-            this.sortableRef.reRendered = true;
-          }
-
-          this.range = range;
-          this.sortableRef?.option('range', range);
-          rangeChanged && this.$emit('rangeChange', range);
-        },
-      });
-    },
-
-    // sortable init
-    _initSortable() {
-      this.sortableRef = new Sortable(this.$refs.rootRef, {
-        ...this.sortableAttributes,
-        list: this.dataSource,
-        uniqueKeys: this.uniqueKeys,
-        onDrag: (event) => {
-          this.dragging = event.key;
-          if (!this.sortable) {
-            this.virtualRef.enableScroll(false);
-            this.sortableRef.option('autoScroll', false);
-          }
-          this.$emit('drag', event);
-        },
-        onAdd: (event) => {
-          this.$emit('add', event);
-        },
-        onRemove: (event) => {
-          this.$emit('remove', event);
-        },
-        onDrop: (event) => {
-          this.dragging = '';
-          this.virtualRef.enableScroll(true);
-          this.sortableRef.option('autoScroll', this.autoScroll);
-
-          if (event.changed) {
-            this.$emit('updateDataSource', event.list);
-          }
-          this.$emit('drop', event);
-        },
-      });
+    _updateUniqueKeys() {
+      this.uniqueKeys = this.dataSource.map((item) => getDataKey(item, this.dataKey));
+      this.virtualRef?.option('uniqueKeys', this.uniqueKeys);
+      this.sortableRef?.option('uniqueKeys', this.uniqueKeys);
     },
 
     _updateRange(oldList, newList) {
@@ -309,6 +212,62 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       return offset + clientSize + 1 >= scrollSize;
     },
 
+    // virtual init
+    _installVirtual() {
+      this.virtualRef = new Virtual({
+        ...this.virtualAttributes,
+        buffer: Math.round(this.keeps / 3),
+        wrapper: this.$refs.wrapRef,
+        scroller: this.scroller || this.$refs.rootRef,
+        uniqueKeys: this.uniqueKeys,
+        onScroll: (event) => {
+          this.lastLength = null;
+          if (!!this.dataSource.length && event.top) {
+            this._handleToTop();
+          } else if (event.bottom) {
+            this._handleToBottom();
+          }
+        },
+        onUpdate: (range) => {
+          const rangeChanged = range.start !== this.range.start;
+          if (this.dragging && rangeChanged) {
+            this.sortableRef.reRendered = true;
+          }
+
+          this.range = range;
+          this.sortableRef?.option('range', range);
+          rangeChanged && this.$emit('rangeChange', range);
+        },
+      });
+    },
+
+    // sortable init
+    _installSortable() {
+      this.sortableRef = new Sortable(this.$refs.rootRef, {
+        ...this.sortableAttributes,
+        list: this.dataSource,
+        uniqueKeys: this.uniqueKeys,
+        onDrag: (event) => {
+          this.dragging = event.key;
+          if (!this.sortable) {
+            this.virtualRef.enableScroll(false);
+            this.sortableRef.option('autoScroll', false);
+          }
+          this.$emit('drag', event);
+        },
+        onDrop: (event) => {
+          this.dragging = '';
+          this.virtualRef.enableScroll(true);
+          this.sortableRef.option('autoScroll', this.autoScroll);
+
+          if (event.changed) {
+            this.$emit('updateDataSource', event.list);
+          }
+          this.$emit('drop', event);
+        },
+      });
+    },
+
     _handleToTop: debounce(function () {
       this.$emit('top');
       this.lastLength = this.dataSource.length;
@@ -328,22 +287,20 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
       }
     },
 
-    _updateUniqueKeys() {
-      this.uniqueKeys = this.dataSource.map((item) => getDataKey(item, this.dataKey));
-      this.virtualRef?.option('uniqueKeys', this.uniqueKeys);
-      this.sortableRef?.option('uniqueKeys', this.uniqueKeys);
-    },
+    _renderSpacer(h, offset) {
+      if (this.tableMode) {
+        const tdStyle = { padding: 0, margin: 0, border: 0, height: `${offset}px` };
 
-    _getItemStyle(itemKey) {
-      if (itemKey == this.dragging) {
-        return { display: 'none' };
+        return h('tr', {}, [h('td', { style: tdStyle })]);
       }
-      return {};
+      return null;
     },
 
     _renderItems(h) {
       const renders = [];
-      const { start, end } = this.range;
+      const { start, end, front, behind } = this.range;
+
+      renders.push(this._renderSpacer(h, front));
 
       for (let index = start; index <= end; index++) {
         const record = this.dataSource[index];
@@ -352,7 +309,7 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           renders.push(
             this.$scopedSlots.item
               ? h(
-                  Items,
+                  Item,
                   {
                     key: dataKey,
                     attrs: {
@@ -365,8 +322,8 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
                     on: {
                       resized: this._onItemResized,
                     },
-                    style: this._getItemStyle(dataKey),
-                    class: 'virtual-dnd-list-item',
+                    style: dataKey == this.dragging && { display: 'none' },
+                    class: this.itemClass,
                   },
                   this.$scopedSlots.item({ record, index, dataKey })
                 )
@@ -374,30 +331,37 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
           );
         }
       }
+
+      renders.push(this._renderSpacer(h, behind));
+
       return renders;
     },
   },
 
   render(h) {
     const { front, behind } = this.range;
-    const { isHorizontal, rootTag, wrapTag } = this;
+    const { tableMode, isHorizontal, rootTag, wrapTag } = this;
     const padding = isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`;
+    const overflow = isHorizontal ? 'auto hidden' : 'hidden auto';
+
+    const container = tableMode ? 'table' : rootTag;
+    const wrapper = tableMode ? 'tbody' : wrapTag;
 
     return h(
-      rootTag,
+      container,
       {
         ref: 'rootRef',
-        style: !this.scroller && { overflow: isHorizontal ? 'auto hidden' : 'hidden auto' },
+        style: !this.scroller && !tableMode && { overflow },
       },
       [
         this.$slots.header,
 
         h(
-          wrapTag,
+          wrapper,
           {
             ref: 'wrapRef',
             class: this.wrapClass,
-            style: { ...this.wrapStyle, padding },
+            style: { ...this.wrapStyle, padding: !tableMode && padding },
           },
           this._renderItems(h)
         ),
@@ -408,4 +372,4 @@ const VirtualDragList = Vue.component('virtual-drag-list', {
   },
 });
 
-export default VirtualDragList;
+export default VirtualList;
