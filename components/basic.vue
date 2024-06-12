@@ -34,7 +34,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .basic-list {
   height: 500px;
 }

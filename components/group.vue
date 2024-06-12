@@ -58,7 +58,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .group-list {
   display: flex;
   justify-content: space-between;

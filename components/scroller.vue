@@ -36,7 +36,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .window-scroll .list-item {
   position: relative;
   border-radius: 5px;

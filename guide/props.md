@@ -56,6 +56,14 @@ object: {
 }
 ```
 
+## `tableMode`
+
+| **Type**  | **Default** |
+| --------- | ----------- |
+| `Boolean` | `false`     |
+
+Display with table
+
 ## `keepOffset`
 
 | **Type**  | **Default** |
@@ -127,6 +135,14 @@ Disables the sortable if set to true
 | `String` | `.virtual-dnd-list-item` |
 
 Specifies which items inside the element should be draggable
+
+## `itemClass`
+
+| **Type** | **Default**              |
+| -------- | ------------------------ |
+| `String` | `virtual-dnd-list-item` |
+
+Default list item class
 
 ## `animation`
 

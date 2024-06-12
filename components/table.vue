@@ -4,18 +4,27 @@
     :keeps="15"
     data-key="id"
     handle=".handle"
-    direction="horizontal"
-    class="horizontal-list"
-    :wrap-style="{ display: 'flex' }"
+    class="table-list"
+    :table-mode="true"
   >
+    <template v-slot:header>
+      <thead style="position: sticky; top: 0;">
+        <tr>
+          <th style="width: 15%">index</th>
+          <th style="width: 25%">name</th>
+          <th style="width: 60%">content</th>
+        </tr>
+      </thead>
+    </template>
     <template v-slot:item="{ record, index, dateKey }">
-      <div class="list-item">
-        <div class="item-title">
+      <tr>
+        <td>
           <span class="index">#{{ index }}</span>
           <span class="handle">☰</span>
-        </div>
-        <p>{{ record.desc }}</p>
-      </div>
+        </td>
+        <td>{{ record.name }}</td>
+        <td>{{ record.desc }}</td>
+      </tr>
     </template>
   </virtual-list>
 </template>
@@ -37,16 +46,15 @@ export default {
 </script>
 
 <style scoped>
-.horizontal-list {
+.table-list {
   height: 500px;
 }
 
-.horizontal-list .list-item {
+.table-list .list-item {
   position: relative;
   border-radius: 5px;
   box-shadow: 0px 2px 10px -5px #57bbb4;
   padding: 16px;
-  width: fit-content;
 }
 
 .item-title {

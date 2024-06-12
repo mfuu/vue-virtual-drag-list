@@ -12,13 +12,11 @@ export default defineConfig({
       provider: 'local',
     },
 
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/mfuu/vue-virtual-drag-list' }
-    ],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/mfuu/vue-virtual-drag-list' }],
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: `Copyright © 2019-${new Date().getFullYear()} mfuu`
+      copyright: `Copyright © 2019-${new Date().getFullYear()} mfuu`,
     },
 
     nav: [
@@ -53,6 +51,7 @@ export default defineConfig({
           { text: 'Horizontal', link: 'horizontal' },
           { text: 'Customize scroller', link: 'scroller' },
           { text: 'Scroll To', link: 'scrollto' },
+          { text: 'Table Mode', link: 'table' },
         ],
       },
     },
