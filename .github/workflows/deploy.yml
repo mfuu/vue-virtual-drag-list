@@ -1,29 +1,46 @@
 name: Deploy
 
 on:
+  workflow_dispatch:
+  
   push:
     branches:
       - main
 
+defaults:
+ run:
+  working-directory: ./docs
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: yarn
-      - run: cd docs
-      - run: yarn install --frozen-lockfile
 
-      - name: Build
-        run: yarn docs:build
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/.vitepress/dist
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build with VitePress
+        run: |
+          npm run build
+          ls
+
+      - name: Deploy Github Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/dist
