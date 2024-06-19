@@ -6,7 +6,10 @@ on:
   push:
     branches:
       - main
-    paths: ["docs/**"]
+
+defaults:
+ run:
+  working-directory: ./docs
 
 defaults:
  run:
