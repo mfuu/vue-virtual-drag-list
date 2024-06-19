@@ -1,1 +1,0 @@
-import{_ as t,c as e,o as a,a6 as o}from"./chunks/framework.2nV6CLNR.js";const y=JSON.parse('{"title":"Props","description":"","frontmatter":{},"headers":[],"relativePath":"guide/props.md","filePath":"guide/props.md"}'),d={name:"guide/props.md"},r=o("",91),s=[r];function h(l,i,n,c,p,b){return a(),e("div",null,s)}const k=t(d,[["render",h]]);export{y as __pageData,k as default};
