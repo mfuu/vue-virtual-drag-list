@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: Quickstart
-      link: /guide/index
+      link: /guide/install
     - theme: alt
       text: GitHub
       link: https://github.com/mfuu/vue-virtual-drag-list

@@ -11,10 +11,6 @@ defaults:
  run:
   working-directory: ./docs
 
-defaults:
- run:
-  working-directory: ./docs
-
 permissions:
   contents: write
 

@@ -6,6 +6,7 @@
     handle=".handle"
     direction="horizontal"
     class="horizontal-list"
+    chosen-class="chosen"
     :wrap-style="{ display: 'flex' }"
   >
     <template v-slot:item="{ record, index, dateKey }">
@@ -39,9 +40,11 @@ export default {
 <style scoped>
 .horizontal-list {
   height: 500px;
+  display: flex;
+  padding: 5px;
 }
 
-.horizontal-list .list-item {
+.list-item {
   position: relative;
   border-radius: 5px;
   box-shadow: 0px 2px 10px -5px #57bbb4;
@@ -61,5 +64,9 @@ export default {
 .handle {
   cursor: grab;
   text-align: right;
+}
+
+.chosen {
+  box-shadow: 0px 0px 0px 2px #30a46c;
 }
 </style>

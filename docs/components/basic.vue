@@ -4,6 +4,7 @@
     :keeps="15"
     data-key="id"
     handle=".handle"
+    chosen-class="chosen"
     class="basic-list"
   >
     <template v-slot:item="{ record, index, dateKey }">
@@ -37,9 +38,10 @@ export default {
 <style scoped>
 .basic-list {
   height: 500px;
+  padding: 5px;
 }
 
-.basic-list .list-item {
+.list-item {
   position: relative;
   border-radius: 5px;
   box-shadow: 0px 2px 10px -5px #57bbb4;
@@ -58,5 +60,9 @@ export default {
 .handle {
   cursor: grab;
   text-align: right;
+}
+
+.chosen {
+  box-shadow: 0px 0px 0px 2px #30a46c;
 }
 </style>

@@ -1,4 +1,4 @@
-# Scroll to ..
+# Scroll to
 
 Scroll to the specified location
 

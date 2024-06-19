@@ -5,6 +5,7 @@
     data-key="id"
     handle=".handle"
     class="infinity-list"
+    chosen-class="chosen"
     @bottom="bottomLoading"
   >
     <template v-slot:item="{ record, index, dateKey }">
@@ -52,9 +53,10 @@ export default {
 <style scoped>
 .infinity-list {
   height: 500px;
+  padding: 5px;
 }
 
-.infinity-list .list-item {
+.list-item {
   position: relative;
   border-radius: 5px;
   box-shadow: 0px 2px 10px -5px #57bbb4;
@@ -73,6 +75,10 @@ export default {
 .handle {
   cursor: grab;
   text-align: right;
+}
+
+.chosen {
+  box-shadow: 0px 0px 0px 2px #30a46c;
 }
 
 .footer {

@@ -45,13 +45,13 @@ export default defineConfig({
       '/demo/': {
         base: '/demo/',
         items: [
-          { text: 'Basic', link: 'index' },
+          { text: 'Basic', link: 'basic' },
           { text: 'Group', link: 'group' },
           { text: 'Infinity', link: 'infinity' },
           { text: 'Horizontal', link: 'horizontal' },
-          { text: 'Customize scroller', link: 'scroller' },
           { text: 'Scroll To', link: 'scrollto' },
           { text: 'Table Mode', link: 'table' },
+          { text: 'Customize Scroller', link: 'scroller' },
         ],
       },
     },

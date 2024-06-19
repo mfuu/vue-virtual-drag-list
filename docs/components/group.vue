@@ -6,15 +6,15 @@
       data-key="id"
       handle=".handle"
       :group="group"
+      chosen-class="chosen"
       class="virtual-list"
     >
       <template v-slot:item="{ record, index, dateKey }">
         <div class="list-item">
           <div class="item-title">
-            <span class="index">#{{ index }}</span>
+            <span class="index">#  {{ index }}-{{ record.name }}</span>
             <span class="handle">☰</span>
           </div>
-          <p>{{ record.desc }}</p>
         </div>
       </template>
     </virtual-list>
@@ -25,15 +25,15 @@
       data-key="id"
       handle=".handle"
       :group="group"
+      chosen-class="chosen"
       class="virtual-list"
     >
       <template v-slot:item="{ record, index, dateKey }">
         <div class="list-item">
           <div class="item-title">
-            <span class="index">#{{ index }}</span>
+            <span class="index">#  {{ index }}-{{ record.name }}</span>
             <span class="handle">☰</span>
           </div>
-          <p>{{ record.desc }}</p>
         </div>
       </template>
     </virtual-list>
@@ -64,17 +64,20 @@ export default {
   justify-content: space-between;
 }
 
-.group-list .virtual-list {
+.virtual-list {
   height: 500px;
   width: 49%;
+  padding: 5px;
   display: inline-block;
 }
 
-.group-list .list-item {
+.list-item {
   position: relative;
   border-radius: 5px;
   box-shadow: 0px 2px 10px -5px #57bbb4;
   padding: 16px;
+  height: 50px;
+  overflow: hidden;
 }
 
 .item-title {
@@ -89,5 +92,9 @@ export default {
 .handle {
   cursor: grab;
   text-align: right;
+}
+
+.chosen {
+  box-shadow: 0px 0px 0px 2px #30a46c;
 }
 </style>
