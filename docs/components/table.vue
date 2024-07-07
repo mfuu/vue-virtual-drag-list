@@ -49,7 +49,7 @@ export default {
 <style scoped>
 .table-list {
   height: 500px;
-  padding: 5px;
+  padding: 0 5px;
 }
 
 .list-item {

@@ -160,6 +160,15 @@ Animation speed moving items when sorting
 
 Automatic scrolling when moving to the edge of the container
 
+## `scrollSpeed`
+
+| **Type**  | **Default**             |
+| --------- | ----------------------- |
+| `Object`  | `{ x: 10, y: 10 }`      |
+
+Vertical&Horizontal scrolling speed (px)
+
+
 ## `scrollThreshold`
 
 | **Type** | **Default** |

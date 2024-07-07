@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { ItemProps } from './props';
 
 const Item = Vue.component('virtual-list-item', {
