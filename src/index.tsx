@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Item from './item';
 import { VirtualProps } from './props';
-import { Virtual, Sortable, debounce, getDataKey, SortableAttrs, VirtualAttrs } from './core';
+import { Virtual, Sortable, getDataKey, SortableAttrs, VirtualAttrs, throttle } from './core';
 
 const VirtualList = Vue.component('virtual-list', {
   model: {
@@ -12,7 +12,8 @@ const VirtualList = Vue.component('virtual-list', {
   data() {
     return {
       range: { start: 0, end: 0, front: 0, behind: 0 },
-      dragging: '',
+      choosen: '',
+      dragging: false,
       lastList: [],
       lastLength: null,
       uniqueKeys: [],
@@ -100,9 +101,8 @@ const VirtualList = Vue.component('virtual-list', {
   methods: {
     /**
      * Git item size by data-key
-     * @param {any} key data-key
      */
-    getSize(key) {
+    getSize(key: any) {
       return this.virtualRef.getSize(key);
     },
 
@@ -129,9 +129,8 @@ const VirtualList = Vue.component('virtual-list', {
 
     /**
      * Scroll to the specified data-key
-     * @param {Number|String} key
      */
-    scrollToKey(key) {
+    scrollToKey(key: any) {
       const index = this.uniqueKeys.indexOf(key);
       if (index > -1) {
         this.virtualRef.scrollToIndex(index);
@@ -140,17 +139,15 @@ const VirtualList = Vue.component('virtual-list', {
 
     /**
      * Scroll to the specified index position
-     * @param {Number} index
      */
-    scrollToIndex(index) {
+    scrollToIndex(index: number) {
       this.virtualRef.scrollToIndex(index);
     },
 
     /**
      * Scroll to the specified offset
-     * @param {Number} offset
      */
-    scrollToOffset(offset) {
+    scrollToOffset(offset: number) {
       this.virtualRef.scrollToOffset(offset);
     },
 
@@ -192,15 +189,22 @@ const VirtualList = Vue.component('virtual-list', {
       this.sortableRef?.option('uniqueKeys', this.uniqueKeys);
     },
 
-    _updateRange(oldList, newList) {
+    _updateRange(oldList: any[], newList: any[]) {
+      if (!oldList.length && !newList.length) {
+        return;
+      }
+
+      if (oldList.length === newList.length) {
+        return;
+      }
+
       let range = { ...this.range };
       if (
         newList.length > oldList.length &&
         this.range.end === oldList.length - 1 &&
         this._scrolledToBottom()
       ) {
-        range.end++;
-        range.start = Math.max(0, range.end - this.keeps + 1);
+        range.start++;
       }
       this.virtualRef?.updateRange(range);
     },
@@ -247,8 +251,14 @@ const VirtualList = Vue.component('virtual-list', {
         ...this.sortableAttributes,
         list: this.dataSource,
         uniqueKeys: this.uniqueKeys,
+        onChoose: (event) => {
+          this.choosen = event.node.getAttribute('data-key');
+        },
+        onUnChoose: () => {
+          this.choosen = '';
+        },
         onDrag: (event) => {
-          this.dragging = event.key;
+          this.dragging = true;
           if (!this.sortable) {
             this.virtualRef.enableScroll(false);
             this.sortableRef.option('autoScroll', false);
@@ -256,7 +266,7 @@ const VirtualList = Vue.component('virtual-list', {
           this.$emit('drag', event);
         },
         onDrop: (event) => {
-          this.dragging = '';
+          this.dragging = false;
           this.virtualRef.enableScroll(true);
           this.sortableRef.option('autoScroll', this.autoScroll);
 
@@ -268,36 +278,40 @@ const VirtualList = Vue.component('virtual-list', {
       });
     },
 
-    _handleToTop: debounce(function () {
+    _handleToTop: throttle(function () {
       this.$emit('top');
       this.lastLength = this.dataSource.length;
-    }),
+    }, 50),
 
-    _handleToBottom: debounce(function () {
+    _handleToBottom: throttle(function () {
       this.$emit('bottom');
-    }),
+    }, 50),
 
     _onItemResized(key, size) {
+      if (key === this.choosen) {
+        return;
+      }
+
       const sizes = this.virtualRef.sizes.size;
       const renders = Math.min(this.keeps, this.dataSource.length);
       this.virtualRef.onItemResized(key, size);
 
       if (sizes === renders - 1) {
-        this._updateRange(this.dataSource, this.dataSource);
+        this.virtualRef.updateRange(this.range);
       }
     },
 
-    _renderSpacer(h, offset) {
+    _renderSpacer(h: Vue.CreateElement, offset: number) {
       if (this.tableMode) {
-        const tdStyle = { padding: 0, margin: 0, border: 0, height: `${offset}px` };
+        const tdStyle = { padding: 0, border: 0, height: `${offset}px` };
 
         return h('tr', {}, [h('td', { style: tdStyle })]);
       }
       return null;
     },
 
-    _renderItems(h) {
-      const renders = [];
+    _renderItems(h: Vue.CreateElement) {
+      const renders: any[] = [];
       const { start, end, front, behind } = this.range;
 
       renders.push(this._renderSpacer(h, front));
@@ -306,6 +320,7 @@ const VirtualList = Vue.component('virtual-list', {
         const record = this.dataSource[index];
         if (record) {
           const dataKey = getDataKey(record, this.dataKey);
+          const itemStyle = this.dragging && dataKey == this.choosen && { display: 'none' };
           renders.push(
             this.$scopedSlots.item
               ? h(
@@ -322,7 +337,7 @@ const VirtualList = Vue.component('virtual-list', {
                     on: {
                       resized: this._onItemResized,
                     },
-                    style: dataKey == this.dragging && { display: 'none' },
+                    style: itemStyle,
                     class: this.itemClass,
                   },
                   this.$scopedSlots.item({ record, index, dataKey })
@@ -351,7 +366,7 @@ const VirtualList = Vue.component('virtual-list', {
       container,
       {
         ref: 'rootRef',
-        style: !this.scroller && !tableMode && { overflow },
+        style: !this.scroller && !tableMode ? { overflow } : {},
       },
       [
         this.$slots.header,

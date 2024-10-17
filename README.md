@@ -50,9 +50,6 @@ export default {
       list: [{ id: '1', text: 'a' }, { id: '2', text: 'b' }, ...];
     }
   },
-  methods: {
-
-  }
 }
 </script>
 ```
@@ -116,6 +113,7 @@ export default {
 | `ghostClass`       | `String`  | `''`                     | The class of the mask element when dragging                  |
 | `ghostStyle`       | `Object`  | `{}`                     | The style of the mask element when dragging                  |
 | `chosenClass`      | `String`  | `''`                     | Class name for the chosen item                               |
+| `placeholderClass` | `String`  | `''`                     | Class name for the drop placeholder                          |
 
 ## Methods
 

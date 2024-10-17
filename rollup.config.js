@@ -2,11 +2,12 @@ import babel from '@rollup/plugin-babel';
 import terser from '@rollup/plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
 import commonJs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 
 const packageJson = require('./package.json');
 const version = packageJson.version;
 const homepage = packageJson.homepage;
-
+const extensions = ['.js', '.jsx', '.ts', '.tsx'];
 const banner = `
 /*!
  * vue-virtual-drag-list v${version}
@@ -17,7 +18,7 @@ const banner = `
 
 export default {
   external: ['vue'],
-  input: 'src/index.js',
+  input: 'src/index.tsx',
   output: [
     {
       format: 'umd',
@@ -41,5 +42,5 @@ export default {
       plugins: [terser()],
     },
   ],
-  plugins: [babel(), resolve(), commonJs()],
+  plugins: [resolve(), commonJs(), typescript(), babel({ extensions, babelHelpers: 'bundled' })],
 };

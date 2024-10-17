@@ -119,6 +119,10 @@ export const VirtualProps = {
     type: String,
     default: '',
   },
+  placeholderClass: {
+    type: String,
+    default: '',
+  },
 };
 
 export const ItemProps = {
