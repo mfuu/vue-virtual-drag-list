@@ -2,9 +2,9 @@
 
 ## `v-model`
 
-| **Type**        | **Default** | **Required** |
-| --------------- | ----------- | ------------ |
-| `Array  \| Ref` | `[]`        | `true`       |
+| **Type** | **Default** | **Required** |
+| -------- | ----------- | ------------ |
+| `Array`  | `[]`        | `true`       |
 
 The data that needs to be rendered
 
@@ -138,8 +138,8 @@ Specifies which items inside the element should be draggable
 
 ## `itemClass`
 
-| **Type** | **Default**              |
-| -------- | ------------------------ |
+| **Type** | **Default**             |
+| -------- | ----------------------- |
 | `String` | `virtual-dnd-list-item` |
 
 Default list item class
@@ -162,12 +162,11 @@ Automatic scrolling when moving to the edge of the container
 
 ## `scrollSpeed`
 
-| **Type**  | **Default**             |
-| --------- | ----------------------- |
-| `Object`  | `{ x: 10, y: 10 }`      |
+| **Type** | **Default**        |
+| -------- | ------------------ |
+| `Object` | `{ x: 10, y: 10 }` |
 
 Vertical&Horizontal scrolling speed (px)
-
 
 ## `scrollThreshold`
 
@@ -256,3 +255,11 @@ The style of the mask element when dragging
 | `String` | `-`         |
 
 Class name for the chosen item
+
+## `placeholderClass`
+
+| **Type** | **Default** |
+| -------- | ----------- |
+| `String` | `-`         |
+
+Class name for the drop placeholder

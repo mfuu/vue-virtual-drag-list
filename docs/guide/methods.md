@@ -1,6 +1,6 @@
 # Methods
 
-## `getSize(key: string)`
+## `getSize(key)`
 
 Get the size of the current item by unique key value
 
@@ -24,14 +24,14 @@ Scroll to top of list
 
 Scroll to bottom of list
 
-## `scrollToKey(key: string)`
+## `scrollToKey(key)`
 
 Scroll to the specified `data-key` position
 
-## `scrollToIndex(index: number)`
+## `scrollToIndex(index)`
 
 Scroll to the specified `index` position
 
-## `scrollToOffset(offset: number)`
+## `scrollToOffset(offset)`
 
 Scroll to the specified offset

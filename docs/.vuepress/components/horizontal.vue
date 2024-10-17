@@ -22,16 +22,11 @@
 </template>
 
 <script>
-import { reactive, toRefs } from 'vue';
 import { getPageData } from '../public/sentence';
 export default {
-  setup() {
-    const data = reactive({
-      list: getPageData(100, 0),
-    });
-
+  data() {
     return {
-      ...toRefs(data),
+      list: getPageData(1000, 0),
     };
   },
 };

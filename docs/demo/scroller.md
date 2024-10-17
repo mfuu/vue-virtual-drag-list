@@ -2,4 +2,4 @@
 
 This Demo uses `scroller: document`
 
-<preview path="../components/scroller.vue" />
+<scroller></scroller>

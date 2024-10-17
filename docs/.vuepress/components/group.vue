@@ -41,18 +41,13 @@
 </template>
 
 <script>
-import { reactive, toRefs } from 'vue';
 import { getPageData } from '../public/sentence';
 export default {
-  setup() {
-    const data = reactive({
-      list1: getPageData(100, 0),
-      list2: getPageData(100, 0),
-      group: { name: 'group', pull: true, put: true },
-    });
-
+  data() {
     return {
-      ...toRefs(data),
+      list1: getPageData(1000, 0),
+      list2: getPageData(1000, 0),
+      group: { name: 'group', pull: true, put: true },
     };
   },
 };

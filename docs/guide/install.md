@@ -2,8 +2,6 @@
 
 ## Installation
 
-::: code-group
-
 ```sh [npm]
 $ npm i vue-virtual-draglist
 ```
@@ -11,8 +9,6 @@ $ npm i vue-virtual-draglist
 ```sh [yarn]
 $ yarn add vue-virtual-draglist
 ```
-
-:::
 
 ## Simple Usage
 
@@ -22,8 +18,8 @@ $ yarn add vue-virtual-draglist
     v-model="list"
     data-key="id"
   >
-    <template v-slot:item="{ record, index, dataKey }">
-      item slot content
+    <template slot="item" slot-scope="{ record, index, dataKey }">
+      <!-- content -->
     </template>
   </virtual-list>
 </template>
@@ -35,14 +31,10 @@ export default {
   components: {
     virtualList
   },
-  setup() {
-    const data = reactive({
-      list: [{ id: 'a', text: 'a', id: 'b', text: 'b' }],
-    });
-
+  data() {
     return {
-      ...toRefs(data),
-    };
+      list: [{ id: 'a', text: 'a', id: 'b', text: 'b' }],
+    }
   },
 };
 </script>

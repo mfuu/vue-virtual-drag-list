@@ -1,67 +1,58 @@
 <template>
-  <div class="oprations">
-    <button @click="scrollToIndex">
-      scroll to index:
-      <input v-model="index" type="number" @click="stopPropagation" />
-    </button>
-    <button @click="scrollToOffset">
-      scroll to offset:
-      <input v-model="offset" type="number" @click="stopPropagation" />
-    </button>
-  </div>
-  <virtual-list
-    ref="virtualRef"
-    v-model="list"
-    :keeps="15"
-    data-key="id"
-    handle=".handle"
-    chosen-class="chosen"
-    class="scrollto-list"
-  >
-    <template v-slot:item="{ record, index, dateKey }">
-      <div class="list-item">
-        <div class="item-title">
-          <span class="index">#{{ index }}</span>
-          <span class="handle">☰</span>
+  <div>
+    <div class="oprations">
+      <button @click="scrollToIndex">
+        scroll to index:
+        <input v-model="index" type="number" @click="stopPropagation" />
+      </button>
+      <button @click="scrollToOffset">
+        scroll to offset:
+        <input v-model="offset" type="number" @click="stopPropagation" />
+      </button>
+    </div>
+    <virtual-list
+      ref="virtualRef"
+      v-model="list"
+      :keeps="15"
+      data-key="id"
+      handle=".handle"
+      chosen-class="chosen"
+      class="scrollto-list"
+    >
+      <template v-slot:item="{ record, index, dateKey }">
+        <div class="list-item">
+          <div class="item-title">
+            <span class="index">#{{ index }}</span>
+            <span class="handle">☰</span>
+          </div>
+          <p>{{ record.desc }}</p>
         </div>
-        <p>{{ record.desc }}</p>
-      </div>
-    </template>
-  </virtual-list>
+      </template>
+    </virtual-list>
+  </div>
 </template>
 
 <script>
-import { reactive, toRefs, ref } from 'vue';
 import { getPageData } from '../public/sentence';
 export default {
-  setup() {
-    const virtualRef = ref(null);
-    const data = reactive({
+  data() {
+    return {
       index: 20,
       offset: 5000,
-      list: getPageData(100, 0),
-    });
-
-    const stopPropagation = (e) => {
-      e.stopPropagation()
-    }
-
-    const scrollToIndex = () => {
-      virtualRef.value.scrollToIndex(data.index);
-    };
-
-    const scrollToOffset = () => {
-      virtualRef.value.scrollToOffset(data.offset);
-    };
-
-    return {
-      ...toRefs(data),
-      virtualRef,
-      stopPropagation,
-      scrollToIndex,
-      scrollToOffset,
+      list: getPageData(1000, 0),
     };
   },
+  methods: {
+    stopPropagation(e) {
+      e.stopPropagation()
+    },
+    scrollToIndex() {
+      this.$refs.virtualRef.scrollToIndex(this.index);
+    },
+    scrollToOffset() {
+      this.$refs.virtualRef.scrollToOffset(this.offset);
+    }
+  }
 };
 </script>
 

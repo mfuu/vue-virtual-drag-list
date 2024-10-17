@@ -26,27 +26,22 @@
 </template>
 
 <script>
-import { reactive, toRefs, ref } from 'vue';
 import { getPageData } from '../public/sentence';
 export default {
-  setup() {
-    const data = reactive({
-      list: getPageData(30, 0),
-    });
-
-    const bottomLoading = () => {
-      setTimeout(() => {
-        const index = data.list.length - 1;
-        const loadedList = getPageData(10, index);
-        data.list.push(...loadedList);
-      }, 1000);
-    };
-
+  data() {
     return {
-      ...toRefs(data),
-      bottomLoading,
+      list: getPageData(50, 0),
     };
   },
+  methods: {
+    bottomLoading() {
+      setTimeout(() => {
+        const index = this.list.length - 1;
+        const loadedList = getPageData(10, index);
+        this.list.push(...loadedList);
+      }, 1000);
+    }
+  }
 };
 </script>
 

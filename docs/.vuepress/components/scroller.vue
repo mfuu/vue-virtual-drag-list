@@ -4,54 +4,38 @@
     :keeps="15"
     data-key="id"
     handle=".handle"
-    class="table-list"
+    :scroller="scroller"
     chosen-class="chosen"
-    :table-mode="true"
+    class="window-scroll"
   >
-    <template v-slot:header>
-      <thead style="position: sticky; top: 0;">
-        <tr>
-          <th style="width: 15%">index</th>
-          <th style="width: 25%">name</th>
-          <th style="width: 60%">content</th>
-        </tr>
-      </thead>
-    </template>
     <template v-slot:item="{ record, index, dateKey }">
-      <tr>
-        <td>
+      <div class="list-item">
+        <div class="item-title">
           <span class="index">#{{ index }}</span>
           <span class="handle">☰</span>
-        </td>
-        <td>{{ record.name }}</td>
-        <td>{{ record.desc }}</td>
-      </tr>
+        </div>
+        <p>{{ record.desc }}</p>
+      </div>
     </template>
   </virtual-list>
 </template>
 
 <script>
-import { reactive, toRefs } from 'vue';
 import { getPageData } from '../public/sentence';
 export default {
-  setup() {
-    const data = reactive({
-      list: getPageData(100, 0),
-    });
-
+  data() {
     return {
-      ...toRefs(data),
+      scroller: null,
+      list: getPageData(100, 0),
     };
   },
+  mounted() {
+    this.scroller = document;
+  }
 };
 </script>
 
 <style scoped>
-.table-list {
-  height: 500px;
-  padding: 0 5px;
-}
-
 .list-item {
   position: relative;
   border-radius: 5px;
