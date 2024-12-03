@@ -1,7 +1,15 @@
 import Vue from 'vue';
 import Item from './item';
 import { VirtualProps } from './props';
-import { Virtual, Sortable, getDataKey, SortableAttrs, VirtualAttrs, throttle } from './core';
+import {
+  Virtual,
+  Sortable,
+  getDataKey,
+  SortableAttrs,
+  VirtualAttrs,
+  throttle,
+  isSameValue,
+} from './core';
 
 const VirtualList = Vue.component('virtual-list', {
   model: {
@@ -12,7 +20,7 @@ const VirtualList = Vue.component('virtual-list', {
   data() {
     return {
       range: { start: 0, end: 0, front: 0, behind: 0 },
-      choosen: '',
+      chosenKey: '',
       dragging: false,
       lastList: [],
       lastLength: null,
@@ -252,10 +260,10 @@ const VirtualList = Vue.component('virtual-list', {
         list: this.dataSource,
         uniqueKeys: this.uniqueKeys,
         onChoose: (event) => {
-          this.choosen = event.node.getAttribute('data-key');
+          this.chosenKey = event.node.getAttribute('data-key');
         },
         onUnChoose: () => {
-          this.choosen = '';
+          this.chosenKey = '';
         },
         onDrag: (event) => {
           this.dragging = true;
@@ -288,7 +296,7 @@ const VirtualList = Vue.component('virtual-list', {
     }, 50),
 
     _onItemResized(key, size) {
-      if (key === this.choosen) {
+      if (isSameValue(key, this.chosenKey)) {
         return;
       }
 
@@ -320,7 +328,8 @@ const VirtualList = Vue.component('virtual-list', {
         const record = this.dataSource[index];
         if (record) {
           const dataKey = getDataKey(record, this.dataKey);
-          const itemStyle = this.dragging && dataKey == this.choosen && { display: 'none' };
+          const isChosen = isSameValue(dataKey, this.chosenKey);
+          const itemStyle = this.dragging && isChosen && { display: 'none' };
           renders.push(
             this.$scopedSlots.item
               ? h(

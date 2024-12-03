@@ -1,6 +1,6 @@
 {
   "name": "vue-virtual-draglist",
-  "version": "2.9.5",
+  "version": "2.9.6",
   "description": "A virtual scrolling list component that can be sorted by dragging",
   "main": "dist/virtual-drag-list.min.js",
   "files": [

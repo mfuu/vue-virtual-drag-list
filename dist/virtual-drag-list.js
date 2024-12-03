@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.9.5
+ * vue-virtual-drag-list v2.9.6
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -1015,6 +1015,54 @@
   var sortableDnd_minExports = sortableDnd_min.exports;
   var Dnd = /*@__PURE__*/getDefaultExportFromCjs(sortableDnd_minExports);
 
+  function throttle(fn, wait) {
+    var timer;
+    var result = function result() {
+      var _this = this;
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      if (timer) return;
+      if (wait <= 0) {
+        fn.apply(this, args);
+      } else {
+        timer = setTimeout(function () {
+          timer = null;
+          fn.apply(_this, args);
+        }, wait);
+      }
+    };
+    result['cancel'] = function () {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+    return result;
+  }
+  function debounce(fn, wait) {
+    var throttled = throttle(fn, wait);
+    var result = function result() {
+      throttled['cancel']();
+      throttled.apply(this, arguments);
+    };
+    result['cancel'] = function () {
+      throttled['cancel']();
+    };
+    return result;
+  }
+  function isSameValue(a, b) {
+    return a == b;
+  }
+  function getDataKey(item, dataKey) {
+    return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
+      return (o || {})[k];
+    }, item);
+  }
+  function elementIsDocumentOrWindow(element) {
+    return element instanceof Document && element.nodeType === 9 || element instanceof Window;
+  }
+
   var SortableAttrs = ['delay', 'group', 'handle', 'lockAxis', 'disabled', 'sortable', 'draggable', 'animation', 'autoScroll', 'ghostClass', 'ghostStyle', 'chosenClass', 'scrollSpeed', 'fallbackOnBody', 'scrollThreshold', 'delayOnTouchOnly', 'placeholderClass'];
   var Sortable = /*#__PURE__*/function () {
     function Sortable(el, options) {
@@ -1081,9 +1129,10 @@
     }, {
       key: "onDrag",
       value: function onDrag(event) {
-        var key = event.node.getAttribute('data-key');
-        var index = this.getIndex(key);
+        var dataKey = event.node.getAttribute('data-key');
+        var index = this.getIndex(dataKey);
         var item = this.options.list[index];
+        var key = this.options.uniqueKeys[index];
         // store the dragged item
         this.sortable.option('store', {
           item: item,
@@ -1172,7 +1221,16 @@
     }, {
       key: "getIndex",
       value: function getIndex(key) {
-        return this.options.uniqueKeys.indexOf(key);
+        if (key === null || key === undefined) {
+          return -1;
+        }
+        var uniqueKeys = this.options.uniqueKeys;
+        for (var i = 0, len = uniqueKeys.length; i < len; i++) {
+          if (isSameValue(uniqueKeys[i], key)) {
+            return i;
+          }
+        }
+        return -1;
       }
     }, {
       key: "dispatchEvent",
@@ -1182,51 +1240,6 @@
       }
     }]);
   }();
-
-  function throttle(fn, wait) {
-    var timer;
-    var result = function result() {
-      var _this = this;
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      if (timer) return;
-      if (wait <= 0) {
-        fn.apply(this, args);
-      } else {
-        timer = setTimeout(function () {
-          timer = null;
-          fn.apply(_this, args);
-        }, wait);
-      }
-    };
-    result['cancel'] = function () {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-    };
-    return result;
-  }
-  function debounce(fn, wait) {
-    var throttled = throttle(fn, wait);
-    var result = function result() {
-      throttled['cancel']();
-      throttled.apply(this, arguments);
-    };
-    result['cancel'] = function () {
-      throttled['cancel']();
-    };
-    return result;
-  }
-  function getDataKey(item, dataKey) {
-    return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
-      return (o || {})[k];
-    }, item);
-  }
-  function elementIsDocumentOrWindow(element) {
-    return element instanceof Document && element.nodeType === 9 || element instanceof Window;
-  }
 
   var VirtualAttrs = ['size', 'keeps', 'scroller', 'direction', 'debounceTime', 'throttleTime'];
   var Virtual = /*#__PURE__*/function () {
@@ -1255,7 +1268,8 @@
         start: 0,
         end: 0,
         front: 0,
-        behind: 0
+        behind: 0,
+        total: 0
       };
       this.offset = 0;
       this.direction = 'STATIONARY';
@@ -1319,7 +1333,7 @@
         if (index >= this.options.uniqueKeys.length - 1) {
           this.scrollToBottom();
         } else {
-          var indexOffset = this.getOffsetByIndex(index);
+          var indexOffset = this.getOffsetByRange(0, index);
           var startOffset = this.getScrollStartOffset();
           this.scrollToOffset(indexOffset + startOffset);
         }
@@ -1447,7 +1461,8 @@
       value: function updateScrollElement() {
         var scroller = this.options.scroller;
         if (elementIsDocumentOrWindow(scroller)) {
-          this.scrollEl = document.scrollingElement || document.documentElement || document.body;
+          var scrollEl = document.scrollingElement || document.documentElement || document.body;
+          this.scrollEl = scrollEl;
         } else {
           this.scrollEl = scroller;
         }
@@ -1534,7 +1549,7 @@
         var middleOffset = 0;
         while (low <= high) {
           middle = low + Math.floor((high - low) / 2);
-          middleOffset = this.getOffsetByIndex(middle);
+          middleOffset = this.getOffsetByRange(0, middle);
           if (middleOffset === offset) {
             return middle;
           } else if (middleOffset < offset) {
@@ -1566,7 +1581,15 @@
         this.range.end = this.getEndByStart(start);
         this.range.front = this.getFrontOffset();
         this.range.behind = this.getBehindOffset();
+        this.range.total = this.getTotalOffset();
         this.options.onUpdate(Object.assign({}, this.range));
+      }
+    }, {
+      key: "getTotalOffset",
+      value: function getTotalOffset() {
+        var offset = this.range.front + this.range.behind;
+        offset += this.getOffsetByRange(this.range.start, this.range.end + 1);
+        return offset;
       }
     }, {
       key: "getFrontOffset",
@@ -1574,7 +1597,7 @@
         if (this.isFixed()) {
           return this.fixedSize * this.range.start;
         } else {
-          return this.getOffsetByIndex(this.range.start);
+          return this.getOffsetByRange(0, this.range.start);
         }
       }
     }, {
@@ -1588,13 +1611,13 @@
         return (last - end) * this.getItemSize();
       }
     }, {
-      key: "getOffsetByIndex",
-      value: function getOffsetByIndex(index) {
-        if (!index) {
+      key: "getOffsetByRange",
+      value: function getOffsetByRange(start, end) {
+        if (start >= end) {
           return 0;
         }
         var offset = 0;
-        for (var i = 0; i < index; i++) {
+        for (var i = start; i < end; i++) {
           var size = this.sizes.get(this.options.uniqueKeys[i]);
           offset = offset + (typeof size === 'number' ? size : this.getItemSize());
         }
@@ -1629,9 +1652,9 @@
         }
         var offset = 0;
         if (scroller && wrapper) {
-          var sizeKey = this.isHorizontal() ? 'left' : 'top';
+          var offsetKey = this.isHorizontal() ? 'left' : 'top';
           var rect = elementIsDocumentOrWindow(scroller) ? Dnd.utils.getRect(wrapper) : Dnd.utils.getRect(wrapper, true, scroller);
-          offset = this.offset + rect[sizeKey];
+          offset = this.offset + rect[offsetKey];
         }
         return offset;
       }
@@ -1652,7 +1675,7 @@
           front: 0,
           behind: 0
         },
-        choosen: '',
+        chosenKey: '',
         dragging: false,
         lastList: [],
         lastLength: null,
@@ -1869,10 +1892,10 @@
           list: this.dataSource,
           uniqueKeys: this.uniqueKeys,
           onChoose: function onChoose(event) {
-            _this5.choosen = event.node.getAttribute('data-key');
+            _this5.chosenKey = event.node.getAttribute('data-key');
           },
           onUnChoose: function onUnChoose() {
-            _this5.choosen = '';
+            _this5.chosenKey = '';
           },
           onDrag: function onDrag(event) {
             _this5.dragging = true;
@@ -1901,7 +1924,7 @@
         this.$emit('bottom');
       }, 50),
       _onItemResized: function _onItemResized(key, size) {
-        if (key === this.choosen) {
+        if (isSameValue(key, this.chosenKey)) {
           return;
         }
         var sizes = this.virtualRef.sizes.size;
@@ -1936,7 +1959,8 @@
           var record = this.dataSource[index];
           if (record) {
             var dataKey = getDataKey(record, this.dataKey);
-            var itemStyle = this.dragging && dataKey == this.choosen && {
+            var isChosen = isSameValue(dataKey, this.chosenKey);
+            var itemStyle = this.dragging && isChosen && {
               display: 'none'
             };
             renders.push(this.$scopedSlots.item ? h(Item, {
