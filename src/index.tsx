@@ -4,11 +4,11 @@ import { VirtualProps } from './props';
 import {
   Virtual,
   Sortable,
-  getDataKey,
-  SortableAttrs,
-  VirtualAttrs,
   throttle,
+  getDataKey,
   isSameValue,
+  VirtualAttrs,
+  SortableAttrs,
 } from './core';
 
 const VirtualList = Vue.component('virtual-list', {
@@ -208,6 +208,7 @@ const VirtualList = Vue.component('virtual-list', {
 
       let range = { ...this.range };
       if (
+        oldList.length > this.keeps &&
         newList.length > oldList.length &&
         this.range.end === oldList.length - 1 &&
         this._scrolledToBottom()
@@ -243,7 +244,7 @@ const VirtualList = Vue.component('virtual-list', {
         onUpdate: (range) => {
           const rangeChanged = range.start !== this.range.start;
           if (this.dragging && rangeChanged) {
-            this.sortableRef.reRendered = true;
+            this.sortableRef.rangeChanged = true;
           }
 
           this.range = range;

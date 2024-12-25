@@ -9,6 +9,7 @@ export const VirtualProps = {
   },
   scroller: {
     type: [Document, HTMLElement],
+    default: undefined,
   },
   direction: {
     type: String,
@@ -20,6 +21,7 @@ export const VirtualProps = {
   },
   size: {
     type: Number,
+    default: undefined,
   },
   keepOffset: {
     type: Boolean,
@@ -43,9 +45,11 @@ export const VirtualProps = {
   },
   handle: {
     type: [Function, String],
+    default: undefined,
   },
   group: {
     type: [String, Object],
+    default: undefined,
   },
   lockAxis: {
     type: String,
@@ -128,8 +132,10 @@ export const VirtualProps = {
 export const ItemProps = {
   dataKey: {
     type: [String, Number],
+    default: undefined,
   },
   sizeKey: {
     type: String,
+    default: undefined,
   },
 };

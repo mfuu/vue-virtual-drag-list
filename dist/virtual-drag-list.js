@@ -1,5 +1,5 @@
 /*!
- * vue-virtual-drag-list v2.9.6
+ * vue-virtual-drag-list v2.9.7
  * open source under the MIT license
  * https://github.com/mfuu/vue-virtual-drag-list#readme
  */
@@ -79,7 +79,8 @@
       required: true
     },
     scroller: {
-      type: [Document, HTMLElement]
+      type: [Document, HTMLElement],
+      "default": undefined
     },
     direction: {
       type: String,
@@ -90,7 +91,8 @@
       "default": 30
     },
     size: {
-      type: Number
+      type: Number,
+      "default": undefined
     },
     keepOffset: {
       type: Boolean,
@@ -113,10 +115,12 @@
       "default": true
     },
     handle: {
-      type: [Function, String]
+      type: [Function, String],
+      "default": undefined
     },
     group: {
-      type: [String, Object]
+      type: [String, Object],
+      "default": undefined
     },
     lockAxis: {
       type: String,
@@ -206,10 +210,12 @@
   };
   var ItemProps = {
     dataKey: {
-      type: [String, Number]
+      type: [String, Number],
+      "default": undefined
     },
     sizeKey: {
-      type: String
+      type: String,
+      "default": undefined
     }
   };
 
@@ -1069,14 +1075,14 @@
       _classCallCheck(this, Sortable);
       this.el = el;
       this.options = options;
-      this.reRendered = false;
+      this.rangeChanged = false;
       this.installSortable();
     }
     return _createClass(Sortable, [{
       key: "destroy",
       value: function destroy() {
         this.sortable.destroy();
-        this.reRendered = false;
+        this.rangeChanged = false;
       }
     }, {
       key: "option",
@@ -1169,13 +1175,13 @@
           this.handleDropEvent(event, params, index);
         }
         this.dispatchEvent('onDrop', params);
-        if (event.from === this.el && this.reRendered) {
+        if (event.from === this.el && this.rangeChanged) {
           (_b = Dnd.dragged) === null || _b === void 0 ? void 0 : _b.remove();
         }
         if (event.from !== event.to) {
           (_c = Dnd.clone) === null || _c === void 0 ? void 0 : _c.remove();
         }
-        this.reRendered = false;
+        this.rangeChanged = false;
       }
     }, {
       key: "handleDropEvent",
@@ -1268,8 +1274,7 @@
         start: 0,
         end: 0,
         front: 0,
-        behind: 0,
-        total: 0
+        behind: 0
       };
       this.offset = 0;
       this.direction = 'STATIONARY';
@@ -1436,7 +1441,6 @@
         eventFn(scroller, 'touchmove', this.preventDefault);
         eventFn(scroller, 'keydown', this.preventDefaultForKeyDown);
       }
-      // ========================================= Properties =========================================
     }, {
       key: "preventDefault",
       value: function preventDefault(e) {
@@ -1581,15 +1585,7 @@
         this.range.end = this.getEndByStart(start);
         this.range.front = this.getFrontOffset();
         this.range.behind = this.getBehindOffset();
-        this.range.total = this.getTotalOffset();
         this.options.onUpdate(Object.assign({}, this.range));
-      }
-    }, {
-      key: "getTotalOffset",
-      value: function getTotalOffset() {
-        var offset = this.range.front + this.range.behind;
-        offset += this.getOffsetByRange(this.range.start, this.range.end + 1);
-        return offset;
       }
     }, {
       key: "getFrontOffset",
@@ -1846,7 +1842,7 @@
           return;
         }
         var range = Object.assign({}, this.range);
-        if (newList.length > oldList.length && this.range.end === oldList.length - 1 && this._scrolledToBottom()) {
+        if (oldList.length > this.keeps && newList.length > oldList.length && this.range.end === oldList.length - 1 && this._scrolledToBottom()) {
           range.start++;
         }
         (_a = this.virtualRef) === null || _a === void 0 ? void 0 : _a.updateRange(range);
@@ -1877,7 +1873,7 @@
             var _a;
             var rangeChanged = range.start !== _this4.range.start;
             if (_this4.dragging && rangeChanged) {
-              _this4.sortableRef.reRendered = true;
+              _this4.sortableRef.rangeChanged = true;
             }
             _this4.range = range;
             (_a = _this4.sortableRef) === null || _a === void 0 ? void 0 : _a.option('range', range);

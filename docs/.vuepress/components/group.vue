@@ -73,6 +73,7 @@ export default {
   padding: 16px;
   height: 50px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .item-title {

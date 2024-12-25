@@ -27,7 +27,7 @@ Root component:
     <template slot="item" slot-scope="{ record, index, dataKey }">
       <div>
         <span class="handle">{{ record.id }}</span>
-        {{ record.text }}
+        <p>{{ record.text }}</p>
       </div>
     </template>
     <template slot="header">
