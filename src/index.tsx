@@ -312,7 +312,8 @@ const VirtualList = Vue.component('virtual-list', {
 
     _renderSpacer(h: Vue.CreateElement, offset: number) {
       if (this.tableMode) {
-        const tdStyle = { padding: 0, border: 0, height: `${offset}px` };
+        const offsetKey = this.isHorizontal ? 'width' : 'height';
+        const tdStyle = { padding: 0, border: 0, [offsetKey]: `${offset}px` };
 
         return h('tr', {}, [h('td', { style: tdStyle })]);
       }

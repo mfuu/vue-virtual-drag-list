@@ -36,6 +36,14 @@
       writable: !1
     }), e;
   }
+  function _defineProperty(e, r, t) {
+    return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+      value: t,
+      enumerable: !0,
+      configurable: !0,
+      writable: !0
+    }) : e[r] = t, e;
+  }
   function _iterableToArray(r) {
     if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r);
   }
@@ -1924,11 +1932,11 @@
       },
       _renderSpacer: function _renderSpacer(h, offset) {
         if (this.tableMode) {
-          var tdStyle = {
+          var offsetKey = this.isHorizontal ? 'width' : 'height';
+          var tdStyle = _defineProperty({
             padding: 0,
-            border: 0,
-            height: "".concat(offset, "px")
-          };
+            border: 0
+          }, offsetKey, "".concat(offset, "px"));
           return h('tr', {}, [h('td', {
             style: tdStyle
           })]);
