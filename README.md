@@ -1,17 +1,17 @@
-# vue-virtual-draglist
+# vue-virtual-sortable
 
-[![npm](https://img.shields.io/npm/v/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist) [![npm](https://img.shields.io/npm/dm/vue-virtual-draglist.svg)](https://www.npmjs.com/package/vue-virtual-draglist) [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/) [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/vue-virtual-sortable.svg)](https://www.npmjs.com/package/vue-virtual-sortable) [![npm](https://img.shields.io/npm/dm/vue-virtual-sortable.svg)](https://www.npmjs.com/package/vue-virtual-sortable) [![vue2](https://img.shields.io/badge/vue-2.x-brightgreen.svg)](https://vuejs.org/) [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 A virtual scrolling list component that can be sorted by dragging
 
-For Vue 3 support, see [here](https://github.com/mfuu/vue3-virtual-drag-list)
+For Vue 3 support, see [here](https://github.com/mfuu/vue3-virtual-sortable)
 
-### [Live demo](https://mfuu.github.io/vue-virtual-drag-list/)
+### [Live demo](https://mfuu.github.io/vue-virtual-sortable/)
 
 ## Simple usage
 
 ```bash
-npm i vue-virtual-draglist
+npm i vue-virtual-sortable
 ```
 
 Root component:
@@ -40,7 +40,7 @@ Root component:
 </template>
 
 <script>
-import virtualList from 'vue-virtual-draglist';
+import virtualList from 'vue-virtual-sortable';
 
 export default {
   name: 'root',
@@ -96,8 +96,7 @@ export default {
 | **Prop**           | **Type**  | **Default**              | **Description**                                              |
 | ------------------ | --------- | ------------------------ | ------------------------------------------------------------ |
 | `sortable`         | `Boolean` | `true`                   | Whether the current list can be sorted by dragging           |
-| `draggable`        | `String`  | `.virtual-dnd-list-item` | Specifies which items inside the element should be draggable |
-| `itemClass`        | `String`  | `virtual-dnd-list-item`  | Default list item class                                      |
+| `draggable`        | `String`  | `[role="item"]`          | Specifies which items inside the element should be draggable |
 | `disabled`         | `Boolean` | `false`                  | Disables the sortable if set to true                         |
 | `animation`        | `Number`  | `150`                    | Animation speed moving items when sorting                    |
 | `autoScroll`       | `Boolean` | `true`                   | Automatic scrolling when moving to the edge of the container |

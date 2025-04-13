@@ -1,13 +1,12 @@
 {
-  "name": "vue-virtual-draglist",
-  "version": "2.9.7",
+  "name": "vue-virtual-sortable",
+  "version": "2.0.0",
   "description": "A virtual scrolling list component that can be sorted by dragging",
-  "main": "dist/virtual-drag-list.min.js",
+  "main": "dist/virtual-list.min.js",
   "files": [
     "dist"
   ],
   "scripts": {
-    "lint": "eslint --fix src --ext .js",
     "build": "rollup --config",
     "core:update": "git submodule update --remote",
     "docs:dev": "vuepress dev docs --temp .temp",
@@ -15,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mfuu/vue-virtual-drag-list.git"
+    "url": "git+https://github.com/mfuu/vue-virtual-sortable.git"
   },
   "keywords": [
     "vue",
@@ -34,11 +33,11 @@
   "license": "MIT",
   "private": false,
   "bugs": {
-    "url": "https://github.com/mfuu/vue-virtual-drag-list/issues"
+    "url": "https://github.com/mfuu/vue-virtual-sortable/issues"
   },
-  "homepage": "https://github.com/mfuu/vue-virtual-drag-list#readme",
+  "homepage": "https://github.com/mfuu/vue-virtual-sortable#readme",
   "dependencies": {
-    "sortable-dnd": "^0.6.20"
+    "sortable-dnd": "^0.6.22"
   },
   "devDependencies": {
     "@babel/core": "^7.8.7",

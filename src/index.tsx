@@ -338,6 +338,7 @@ const VirtualList = Vue.component('virtual-list', {
                   {
                     key: dataKey,
                     attrs: {
+                      role: 'item',
                       'data-key': dataKey,
                     },
                     props: {
@@ -348,7 +349,6 @@ const VirtualList = Vue.component('virtual-list', {
                       resized: this._onItemResized,
                     },
                     style: itemStyle,
-                    class: this.itemClass,
                   },
                   this.$scopedSlots.item({ record, index, dataKey })
                 )
