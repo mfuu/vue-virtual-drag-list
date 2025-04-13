@@ -3,11 +3,11 @@
 ## Installation
 
 ```sh [npm]
-$ npm i vue-virtual-draglist
+$ npm i vue-virtual-sortable
 ```
 
 ```sh [yarn]
-$ yarn add vue-virtual-draglist
+$ yarn add vue-virtual-sortable
 ```
 
 ## Simple Usage
@@ -25,7 +25,7 @@ $ yarn add vue-virtual-draglist
 </template>
 
 <script>
-import virtualList from 'vue-virtual-draglist';
+import virtualList from 'vue-virtual-sortable';
 import { reactive, toRefs } from 'vue';
 export default {
   components: {

@@ -12,7 +12,7 @@
       <template v-slot:item="{ record, index, dateKey }">
         <div class="list-item">
           <div class="item-title">
-            <span class="index">#  {{ index }}-{{ record.name }}</span>
+            <span class="index">#  {{ record.index }}-{{ record.name }}</span>
             <span class="handle">☰</span>
           </div>
         </div>
@@ -31,7 +31,7 @@
       <template v-slot:item="{ record, index, dateKey }">
         <div class="list-item">
           <div class="item-title">
-            <span class="index">#  {{ index }}-{{ record.name }}</span>
+            <span class="index">#  {{ record.index }}-{{ record.name }}</span>
             <span class="handle">☰</span>
           </div>
         </div>

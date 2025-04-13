@@ -1,11 +1,11 @@
 module.exports = {
-  base: '/vue-virtual-drag-list/',
+  base: '/vue-virtual-sortable/',
   lang: 'en-US',
-  title: 'vue-virtual-drag-list',
+  title: 'vue-virtual-sortable',
   description: 'A virtual scrolling list component that can be sorted by dragging',
 
   themeConfig: {
-    repo: 'mfuu/vue-virtual-drag-list',
+    repo: 'mfuu/vue-virtual-sortable',
 
     footer: {
       message: 'Released under the MIT License.',
